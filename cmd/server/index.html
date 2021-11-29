@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>"Server info"</title>
+	</head>
+	<body>
+		<h1> Gauge Metrics </h1>
+		<table>
+			{{ range $key, $value :=  .gaugeMetrics }}
+			<tr>
+				<td><p>{{$key}}</p></td>
+				<td><p>{{$value}}</p></td>
+			</tr>
+			{{end}}
+		</table>
+
+		<h1> Counter Metrics </h1>
+		<table>
+			{{ range $key, $value :=  .counterMetrics }}
+			<tr>
+				<td><p>{{$key}}</p></td>
+				<td><p>{{$value}}</p></td>
+			</tr>
+			{{end}}
+		</table>
+	</body>
+</html>
