@@ -3,6 +3,7 @@ package sender
 import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
+	"log"
 	"net/http"
 )
 
@@ -11,10 +12,14 @@ const (
 	port = "8080"
 )
 
-func Send(client *http.Client, m metrics.Metric) (*http.Response, error) {
+func Send(client *http.Client, m metrics.Metric) error {
 	url := generateURL(m)
 	resp, err := client.Post(url, "text/plain", nil)
-	return resp, err
+	if err != nil {
+		log.Printf("Failed to Post metric \"%s\" of type \"%s\"", m.Name, m.Typename)
+	}
+	defer resp.Body.Close()
+	return err
 }
 
 func generateURL(m metrics.Metric) string {

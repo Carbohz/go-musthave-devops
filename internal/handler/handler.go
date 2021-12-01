@@ -98,8 +98,7 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	// htmlFile := "index.html"
-	htmlFile := "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
+	htmlFile := "index.html"
 	htmlPage, err := os.ReadFile(htmlFile)
 	if err != nil {
 		log.Println("File reading error:", err)
