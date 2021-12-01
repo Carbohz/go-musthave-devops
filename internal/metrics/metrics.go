@@ -17,6 +17,8 @@ type Metric struct {
 	Value    float64
 }
 
+var PollCount int64 = 0
+
 func GetRuntimeMetrics() []Metric {
 	var rtm runtime.MemStats
 	runtime.ReadMemStats(&rtm)
@@ -55,7 +57,12 @@ func GetRandomValueMetric() Metric {
 	return Metric{"RandomValue", Gauge, rand.Float64()}
 }
 
-func GetCounterMetric(PollCount int64) Metric {
+func GetCounterMetric() Metric {
+	PollCount++
 	rand.Seed(time.Now().UnixNano())
 	return Metric{"PollCount", Counter, float64(PollCount)}
+}
+
+func ResetCounterMetric() {
+	PollCount = 0
 }
