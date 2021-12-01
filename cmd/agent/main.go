@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	pollInterval = 2
-	reportInterval = 10
+	pollInterval = 2 * time.Second
+	reportInterval = 10 * time.Second
 )
 
 func main() {
@@ -18,23 +18,27 @@ func main() {
 
 func RunAgent() {
 	var PollCount int64
+	var runtimeMetrics []metrics.Metric
+	var randomValueMetric metrics.Metric
+	var counterMetric metrics.Metric
 
 	client := http.Client{Timeout: 2 * time.Second}
-	ticker := time.NewTicker(pollInterval * time.Second)
+	pollTicker := time.NewTicker(pollInterval)
+	reportTicker := time.NewTicker(reportInterval )
 	for {
-		<-ticker.C
-		PollCount += 1
-		runtimeMetrics := metrics.GetRuntimeMetrics()
-		randomValueMetric := metrics.GetRandomValueMetric()
-		counterMetric := metrics.GetCounterMetric(PollCount)
-
-		if pollInterval * PollCount == reportInterval {
-			for _, m := range runtimeMetrics {
-				sender.Send(&client, m)
-			}
-			sender.Send(&client, randomValueMetric)
-			sender.Send(&client, counterMetric)
-			PollCount = 0
+		select {
+			case <-pollTicker.C:
+				PollCount++
+				runtimeMetrics = metrics.GetRuntimeMetrics()
+				randomValueMetric = metrics.GetRandomValueMetric()
+				counterMetric = metrics.GetCounterMetric(PollCount)
+			case <-reportTicker.C:
+				for _, m := range runtimeMetrics {
+					sender.Send(&client, m)
+				}
+				sender.Send(&client, randomValueMetric)
+				sender.Send(&client, counterMetric)
+				PollCount = 0
 		}
 	}
 }

@@ -81,7 +81,7 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(val.v)))
 		} else {
-			reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricType, metricName)
+			reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
 			http.Error(w, reason, http.StatusNotFound)
 		}
 	}
@@ -91,14 +91,15 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(val.v)))
 		} else {
-			reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricType, metricName)
+			reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
 			http.Error(w, reason, http.StatusNotFound)
 		}
 	}
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	htmlFile := "index.html"
+	// htmlFile := "index.html"
+	htmlFile := "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
 	htmlPage, err := os.ReadFile(htmlFile)
 	if err != nil {
 		log.Println("File reading error:", err)
