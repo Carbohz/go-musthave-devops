@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
 	"github.com/go-chi/chi"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"text/template"
 )
+
+//const htmlFile = "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
 
 type gauge struct {
 	v float64
@@ -22,6 +22,7 @@ type counter struct {
 
 var gaugeMetricsStorage = make(map[string]gauge)
 var counterMetricsStorage = make(map[string]counter)
+var HtmlTemplate *template.Template
 
 func SetupRouters(r *chi.Mux) {
 	r.Route("/update", func(r chi.Router) {
@@ -82,36 +83,58 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 		if val, found := counterMetricsStorage[metricName]; found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(val.v)))
-		} else {
-			reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-			http.Error(w, reason, http.StatusNotFound)
+			return
 		}
+		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+		http.Error(w, reason, http.StatusNotFound)
+		return
 	}
 
 	if metricType == metrics.Gauge {
 		if val, found := gaugeMetricsStorage[metricName]; found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(val.v)))
-		} else {
-			reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-			http.Error(w, reason, http.StatusNotFound)
+			return
 		}
+		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+		http.Error(w, reason, http.StatusNotFound)
 	}
 }
 
-func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	//htmlFile := "index.html"
-	htmlFile := "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
-	htmlPage, err := os.ReadFile(htmlFile)
-	if err != nil {
-		log.Println("File reading error:", err)
-		os.Exit(1)
-	}
+//func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
+//	//htmlFile := "index.html"
+//	htmlFile := "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
+//	htmlPage, err := os.ReadFile(htmlFile)
+//	if err != nil {
+//		log.Println("File reading error:", err)
+//	}
+//
+//	renderData := map[string]interface{}{
+//		"gaugeMetrics": gaugeMetricsStorage,
+//		"counterMetrics": counterMetricsStorage,
+//	}
+//	tmpl := template.Must(template.New("").Parse(string(htmlPage)))
+//	tmpl.Execute(w, renderData)
+//}
 
+//func PrepareHtmlFile() {
+//	bytes, err := os.ReadFile(htmlFile)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	tmp, err := template.New("").Parse(string(bytes))
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	htmlTemplate = tmp
+//}
+
+func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	renderData := map[string]interface{}{
 		"gaugeMetrics": gaugeMetricsStorage,
 		"counterMetrics": counterMetricsStorage,
 	}
-	tmpl := template.Must(template.New("").Parse(string(htmlPage)))
-	tmpl.Execute(w, renderData)
+	HtmlTemplate.Execute(w, renderData)
+	//tmpl := template.Must(template.New("").Parse(string(htmlPage)))
+	//tmpl.Execute(w, renderData)
 }
