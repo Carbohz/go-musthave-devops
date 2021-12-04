@@ -10,8 +10,6 @@ import (
 	"text/template"
 )
 
-//const htmlFile = "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
-
 type gauge struct {
 	v float64
 }
@@ -101,40 +99,10 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-//	//htmlFile := "index.html"
-//	htmlFile := "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
-//	htmlPage, err := os.ReadFile(htmlFile)
-//	if err != nil {
-//		log.Println("File reading error:", err)
-//	}
-//
-//	renderData := map[string]interface{}{
-//		"gaugeMetrics": gaugeMetricsStorage,
-//		"counterMetrics": counterMetricsStorage,
-//	}
-//	tmpl := template.Must(template.New("").Parse(string(htmlPage)))
-//	tmpl.Execute(w, renderData)
-//}
-
-//func PrepareHtmlFile() {
-//	bytes, err := os.ReadFile(htmlFile)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	tmp, err := template.New("").Parse(string(bytes))
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	htmlTemplate = tmp
-//}
-
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	renderData := map[string]interface{}{
 		"gaugeMetrics": gaugeMetricsStorage,
 		"counterMetrics": counterMetricsStorage,
 	}
 	HtmlTemplate.Execute(w, renderData)
-	//tmpl := template.Must(template.New("").Parse(string(htmlPage)))
-	//tmpl.Execute(w, renderData)
 }
