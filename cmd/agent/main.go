@@ -28,6 +28,7 @@ func RunAgent() {
 	for {
 		select {
 			case <-pollTicker.C:
+				metrics.IncrementCounterMetric()
 				runtimeMetrics = metrics.GetRuntimeMetrics()
 				randomValueMetric = metrics.GetRandomValueMetric()
 				counterMetric = metrics.GetCounterMetric()

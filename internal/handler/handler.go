@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/Carbohz/go-musthave-devops/internal/metrics"
 	"github.com/go-chi/chi"
 	"log"
 	"net/http"
@@ -29,12 +30,13 @@ func SetupRouters(r *chi.Mux) {
 		r.Post("/{metricName}/", NotFoundHandler)
 		r.Post("/*", NotImplementedHandler)
 	})
-	r.Get("/value/*", SpecificMetricHandler)
+	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
 	r.Get("/", AllMetricsHandler)
 }
 
 func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
-	metricName, metricValue := GetRequestBody(r)
+	metricName := chi.URLParam(r, "metricName")
+	metricValue := chi.URLParam(r, "metricValue")
 	value, err := strconv.ParseFloat(metricValue, 64)
 	if err != nil {
 		http.Error(w, "parsing error. Bad request", http.StatusBadRequest)
@@ -45,7 +47,8 @@ func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
-	metricName, metricValue := GetRequestBody(r)
+	metricName := chi.URLParam(r, "metricName")
+	metricValue := chi.URLParam(r, "metricValue")
 	value, err := strconv.ParseInt(metricValue, 10, 64)
 	if err != nil {
 		http.Error(w, "parsing error", http.StatusBadRequest)
@@ -72,11 +75,10 @@ func NotImplementedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
-	tokens := strings.Split(r.URL.Path, "/")
-	metricType := tokens[2]
-	metricName := tokens[3]
+	metricType := chi.URLParam(r, "metricType")
+	metricName := chi.URLParam(r, "metricName")
 
-	if metricType == "counter" {
+	if metricType == metrics.Counter {
 		if val, found := counterMetricsStorage[metricName]; found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(val.v)))
@@ -86,7 +88,7 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if metricType == "gauge" {
+	if metricType == metrics.Gauge {
 		if val, found := gaugeMetricsStorage[metricName]; found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(val.v)))
@@ -98,7 +100,8 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	htmlFile := "index.html"
+	//htmlFile := "index.html"
+	htmlFile := "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
 	htmlPage, err := os.ReadFile(htmlFile)
 	if err != nil {
 		log.Println("File reading error:", err)

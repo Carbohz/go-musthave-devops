@@ -58,9 +58,12 @@ func GetRandomValueMetric() Metric {
 }
 
 func GetCounterMetric() Metric {
-	PollCount++
 	rand.Seed(time.Now().UnixNano())
 	return Metric{"PollCount", Counter, float64(PollCount)}
+}
+
+func IncrementCounterMetric() {
+	PollCount++
 }
 
 func ResetCounterMetric() {
