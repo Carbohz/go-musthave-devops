@@ -17,22 +17,23 @@ const (
 )
 
 func main() {
-	//PrepareHTMLFile()
+	PrepareHTMLFile()
 	RunServer()
 }
 
 func PrepareHTMLFile() {
 	bytes, err := os.ReadFile(htmlFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error occurred while reading HTML file: ", err)
 	}
 	handler.HTMLTemplate, err = template.New("").Parse(string(bytes))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error occurred while parsing HTML file: ", err)
 	}
 }
 
 func RunServer() {
+	log.Println("Running server")
 	r := chi.NewRouter()
 	handler.SetupRouters(r)
 	addr := fmt.Sprintf("%s:%s", host, port)
