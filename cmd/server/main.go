@@ -17,8 +17,8 @@ const (
 )
 
 func main() {
-	PrepareHTMLFile()
-	RunServer()
+	go PrepareHTMLFile()
+	go RunServer()
 }
 
 func PrepareHTMLFile() {
