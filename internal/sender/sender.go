@@ -17,17 +17,19 @@ func Send(client *http.Client, m metrics.Metric) error {
 	resp, err := client.Post(url, "text/plain", nil)
 	if err != nil {
 		log.Printf("Failed to Post metric \"%s\" of type \"%s\"", m.Name, m.Typename)
+		return err
 	}
 	defer resp.Body.Close()
 	return err
 }
 
 func generateURL(m metrics.Metric) string {
-	if m.Typename == metrics.Gauge {
+	switch m.Typename {
+	case metrics.Gauge:
 		return fmt.Sprintf("http://%s:%s/update/%s/%s/%f", host, port, m.Typename, m.Name, m.Value)
-	} else if m.Typename == metrics.Counter {
+	case metrics.Counter:
 		return fmt.Sprintf("http://%s:%s/update/%s/%s/%d", host, port, m.Typename, m.Name, int64(m.Value))
-	} else {
+	default:
 		return ""
 	}
 }
