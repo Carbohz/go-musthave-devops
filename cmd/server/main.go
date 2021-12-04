@@ -17,11 +17,11 @@ const (
 )
 
 func main() {
-	go PrepareHTMLFile()
-	go RunServer()
+	//PrepareHTMLPage()
+	RunServer()
 }
 
-func PrepareHTMLFile() {
+func PrepareHTMLPage() {
 	bytes, err := os.ReadFile(htmlFile)
 	if err != nil {
 		log.Fatal("Error occurred while reading HTML file: ", err)
@@ -43,5 +43,6 @@ func RunServer() {
 	}
 	server.SetKeepAlivesEnabled(false)
 	log.Printf("Listening on port %s", port)
+	PrepareHTMLPage()
 	log.Fatal(server.ListenAndServe())
 }
