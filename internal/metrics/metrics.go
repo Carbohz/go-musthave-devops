@@ -11,61 +11,71 @@ const (
 	Counter = "counter"
 )
 
-type Metric struct {
-	Name     string
+type Base struct {
+	Name string
 	Typename string
-	Value    float64
 }
 
-var PollCount int64 = 0
+type GaugeMetric struct {
+	Base
+	Value float64
+}
 
-func GetRuntimeMetrics() []Metric {
+type CounterMetric struct {
+	Base
+	Value int64
+}
+
+var PollCount = CounterMetric{Base{Name:"PollCount", Typename: Counter}, 0}
+
+func GetRuntimeMetrics() []GaugeMetric {
 	var rtm runtime.MemStats
 	runtime.ReadMemStats(&rtm)
-	m := []Metric{
-		{"Alloc",Gauge, float64(rtm.Alloc)},
-		{"BuckHashSys",Gauge, float64(rtm.BuckHashSys)},
-		{"Frees", Gauge,float64(rtm.Frees)},
-		{"GCCPUFraction",Gauge, rtm.GCCPUFraction},
-		{"GCSys",Gauge, float64(rtm.GCSys)},
-		{"HeapAlloc",Gauge, float64(rtm.HeapAlloc)},
-		{"HeapIdle",Gauge, float64(rtm.HeapIdle)},
-		{"HeapInuse", Gauge,float64(rtm.HeapInuse)},
-		{"HeapObjects",Gauge, float64(rtm.HeapObjects)},
-		{"HeapReleased",Gauge, float64(rtm.HeapReleased)},
-		{"HeapSys",Gauge, float64(rtm.HeapSys)},
-		{"LastGC", Gauge,float64(rtm.LastGC)},
-		{"Lookups",Gauge, float64(rtm.Lookups)},
-		{"MCacheInuse", Gauge,float64(rtm.MCacheInuse)},
-		{"MCacheSys", Gauge,float64(rtm.MCacheSys)},
-		{"MSpanInuse",Gauge,float64(rtm.MSpanInuse)},
-		{"MSpanSys",Gauge, float64(rtm.MSpanSys)},
-		{"Mallocs", Gauge,float64(rtm.Mallocs)},
-		{"NextGC", Gauge,float64(rtm.NextGC)},
-		{"NumForcedGC",Gauge, float64(rtm.NumForcedGC)},
-		{"NumGC",Gauge,float64(rtm.NumGC)},
-		{"OtherSys",Gauge, float64(rtm.OtherSys)},
-		{"PauseTotalNs", Gauge,float64(rtm.PauseTotalNs)},
-		{"StackInuse",Gauge, float64(rtm.StackInuse)},
-		{"StackSys", Gauge,float64(rtm.StackSys)},
-		{"Sys", Gauge,float64(rtm.Sys)},
+
+	m := []GaugeMetric{
+		{Base{"Alloc",Gauge}, float64(rtm.Alloc)},
+		{Base{"BuckHashSys",Gauge}, float64(rtm.BuckHashSys)},
+		{Base{"Frees", Gauge},float64(rtm.Frees)},
+		{Base{"GCCPUFraction",Gauge}, rtm.GCCPUFraction},
+		{Base{"GCSys",Gauge}, float64(rtm.GCSys)},
+		{Base{"HeapAlloc",Gauge}, float64(rtm.HeapAlloc)},
+		{Base{"HeapIdle",Gauge}, float64(rtm.HeapIdle)},
+		{Base{"HeapInuse", Gauge},float64(rtm.HeapInuse)},
+		{Base{"HeapObjects",Gauge}, float64(rtm.HeapObjects)},
+		{Base{"HeapReleased",Gauge}, float64(rtm.HeapReleased)},
+		{Base{"HeapSys",Gauge}, float64(rtm.HeapSys)},
+		{Base{"LastGC", Gauge},float64(rtm.LastGC)},
+		{Base{"Lookups",Gauge}, float64(rtm.Lookups)},
+		{Base{"MCacheInuse", Gauge},float64(rtm.MCacheInuse)},
+		{Base{"MCacheSys", Gauge},float64(rtm.MCacheSys)},
+		{Base{"MSpanInuse",Gauge},float64(rtm.MSpanInuse)},
+		{Base{"MSpanSys",Gauge}, float64(rtm.MSpanSys)},
+		{Base{"Mallocs", Gauge},float64(rtm.Mallocs)},
+		{Base{"NextGC", Gauge},float64(rtm.NextGC)},
+		{Base{"NumForcedGC",Gauge}, float64(rtm.NumForcedGC)},
+		{Base{"NumGC",Gauge},float64(rtm.NumGC)},
+		{Base{"OtherSys",Gauge}, float64(rtm.OtherSys)},
+		{Base{"PauseTotalNs", Gauge},float64(rtm.PauseTotalNs)},
+		{Base{"StackInuse",Gauge}, float64(rtm.StackInuse)},
+		{Base{"StackSys", Gauge},float64(rtm.StackSys)},
+		{Base{"Sys", Gauge},float64(rtm.Sys)},
 	}
 	return m
 }
 
-func GetRandomValueMetric() Metric {
-	return Metric{"RandomValue", Gauge, rand.Float64()}
+func GetRandomValueMetric() GaugeMetric {
+	return GaugeMetric{Base{"RandomValue", Gauge}, rand.Float64()}
 }
 
-func GetCounterMetric() Metric {
+func GetCounterMetric() CounterMetric {
 	rand.Seed(time.Now().UnixNano())
-	return Metric{"PollCount", Counter, float64(PollCount)}
+	return PollCount
 }
 
 func IncrementCounterMetric() {
-	PollCount++
+	PollCount.Value++
 }
 
 func ResetCounterMetric() {
-	PollCount = 0
+	PollCount.Value = 0
 }

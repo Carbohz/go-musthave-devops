@@ -12,24 +12,22 @@ const (
 	port = "8080"
 )
 
-func Send(client *http.Client, m metrics.Metric) error {
-	url := generateURL(m)
+func SendGaugeMetric(client *http.Client, m metrics.GaugeMetric) error {
+	url := fmt.Sprintf("http://%s:%s/update/%s/%s/%f", host, port, m.Typename, m.Name, m.Value)
+	return Send(client, url, m.Base)
+}
+
+func SendCounterMetric(client *http.Client, m metrics.CounterMetric) error {
+	url := fmt.Sprintf("http://%s:%s/update/%s/%s/%d", host, port, m.Typename, m.Name, m.Value)
+	return Send(client, url, m.Base)
+}
+
+func Send(client *http.Client, url string, m metrics.Base) error {
 	resp, err := client.Post(url, "text/plain", nil)
 	if err != nil {
-		log.Printf("Failed to Post metric \"%s\" of type \"%s\"", m.Name, m.Typename)
+		log.Printf("Failed to \"Post\" metric \"%s\" of type \"%s\"", m.Name, m.Typename)
 		return err
 	}
 	defer resp.Body.Close()
 	return err
-}
-
-func generateURL(m metrics.Metric) string {
-	switch m.Typename {
-	case metrics.Gauge:
-		return fmt.Sprintf("http://%s:%s/update/%s/%s/%f", host, port, m.Typename, m.Name, m.Value)
-	case metrics.Counter:
-		return fmt.Sprintf("http://%s:%s/update/%s/%s/%d", host, port, m.Typename, m.Name, int64(m.Value))
-	default:
-		return ""
-	}
 }

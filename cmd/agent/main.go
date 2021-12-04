@@ -17,9 +17,9 @@ func main() {
 }
 
 func RunAgent() {
-	var runtimeMetrics []metrics.Metric
-	var randomValueMetric metrics.Metric
-	var counterMetric metrics.Metric
+	var runtimeMetrics []metrics.GaugeMetric
+	var randomValueMetric metrics.GaugeMetric
+	var counterMetric metrics.CounterMetric
 
 	client := http.Client{Timeout: 2 * time.Second}
 
@@ -34,10 +34,10 @@ func RunAgent() {
 				counterMetric = metrics.GetCounterMetric()
 			case <-reportTicker.C:
 				for _, m := range runtimeMetrics {
-					sender.Send(&client, m)
+					sender.SendGaugeMetric(&client, m)
 				}
-				sender.Send(&client, randomValueMetric)
-				sender.Send(&client, counterMetric)
+				sender.SendGaugeMetric(&client, randomValueMetric)
+				sender.SendCounterMetric(&client, counterMetric)
 				metrics.ResetCounterMetric()
 		}
 	}

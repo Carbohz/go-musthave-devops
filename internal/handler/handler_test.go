@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGaugeHandler(t *testing.T) {
+func TestGaugeMetricHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		requestURL string
@@ -41,7 +41,7 @@ func TestGaugeHandler(t *testing.T) {
 	}
 }
 
-func TestCounterHandler(t *testing.T) {
+func TestCounterMetricHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		requestURL string
@@ -70,37 +70,6 @@ func TestCounterHandler(t *testing.T) {
 
 			assert.Equal(t, res.StatusCode, tt.wantCode)
 			defer res.Body.Close()
-		})
-	}
-}
-
-func TestGetRequestBody(t *testing.T) {
-	tests := []struct {
-		name       string
-		requestURL string
-		wantToken1 string
-		wantToken2 string
-	}{
-		{
-			name: "gauge request tokens",
-			requestURL: "/update/gauge/Alloc/111",
-			wantToken1: "Alloc",
-			wantToken2: "111",
-		},
-		{
-			name: "counter request tokens",
-			requestURL: "/update/counter/PollCount/222",
-			wantToken1: "PollCount",
-			wantToken2: "222",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodGet, tt.requestURL, nil)
-
-			gotToken1, gotToken2 := GetRequestBody(request)
-			assert.Equal(t, gotToken1, tt.wantToken1)
-			assert.Equal(t, gotToken2, tt.wantToken2)
 		})
 	}
 }

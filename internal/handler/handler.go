@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi"
 	"net/http"
 	"strconv"
-	"strings"
 	"text/template"
 )
 
@@ -55,14 +54,6 @@ func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	counterMetricsStorage[metricName] = counter{counterMetricsStorage[metricName].v + value}
 	w.WriteHeader(http.StatusOK)
-}
-
-func GetRequestBody(r *http.Request) (string, string) {
-	uri := r.RequestURI
-	tokens := strings.Split(uri, "/")
-	metricName := tokens[3]
-	metricValue := tokens[4]
-	return metricName, metricValue
 }
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
