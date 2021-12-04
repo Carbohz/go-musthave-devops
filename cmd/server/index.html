@@ -10,7 +10,7 @@
 			{{ range $key, $value :=  .gaugeMetrics }}
 			<tr>
 				<td><p>{{$key}}</p></td>
-				<td><p>{{$value}}</p></td>
+				<td><p>{{$value.Value}}</p></td>
 			</tr>
 			{{end}}
 		</table>
@@ -20,7 +20,7 @@
 			{{ range $key, $value :=  .counterMetrics }}
 			<tr>
 				<td><p>{{$key}}</p></td>
-				<td><p>{{$value}}</p></td>
+				<td><p>{{$value.Value}}</p></td>
 			</tr>
 			{{end}}
 		</table>

@@ -19,7 +19,7 @@ func main() {
 func RunAgent() {
 	var runtimeMetrics []metrics.GaugeMetric
 	var randomValueMetric metrics.GaugeMetric
-	var counterMetric metrics.CounterMetric
+	var pollCountMetric metrics.CounterMetric
 
 	client := http.Client{Timeout: 2 * time.Second}
 
@@ -28,17 +28,17 @@ func RunAgent() {
 	for {
 		select {
 			case <-pollTicker.C:
-				metrics.IncrementCounterMetric()
+				metrics.IncrementPollCountMetric()
 				runtimeMetrics = metrics.GetRuntimeMetrics()
 				randomValueMetric = metrics.GetRandomValueMetric()
-				counterMetric = metrics.GetCounterMetric()
+				pollCountMetric = metrics.GetPollCountMetric()
 			case <-reportTicker.C:
 				for _, m := range runtimeMetrics {
 					sender.SendGaugeMetric(&client, m)
 				}
 				sender.SendGaugeMetric(&client, randomValueMetric)
-				sender.SendCounterMetric(&client, counterMetric)
-				metrics.ResetCounterMetric()
+				sender.SendCounterMetric(&client, pollCountMetric)
+				metrics.ResetPollCountMetric()
 		}
 	}
 }

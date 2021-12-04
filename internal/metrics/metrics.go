@@ -67,15 +67,15 @@ func GetRandomValueMetric() GaugeMetric {
 	return GaugeMetric{Base{"RandomValue", Gauge}, rand.Float64()}
 }
 
-func GetCounterMetric() CounterMetric {
+func GetPollCountMetric() CounterMetric {
 	rand.Seed(time.Now().UnixNano())
 	return PollCount
 }
 
-func IncrementCounterMetric() {
+func IncrementPollCountMetric() {
 	PollCount.Value++
 }
 
-func ResetCounterMetric() {
+func ResetPollCountMetric() {
 	PollCount.Value = 0
 }

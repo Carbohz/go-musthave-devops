@@ -13,8 +13,7 @@ import (
 const (
 	host = "127.0.0.1"
 	port = "8080"
-	//htmlFile = "index.html"
-	htmlFile = "D:\\Go\\yandex-praktikum\\Sprint1\\net_http\\increment1\\go-musthave-devops2\\cmd\\server\\index.html"
+	htmlFile = "index.html"
 )
 
 func main() {

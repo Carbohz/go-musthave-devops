@@ -25,7 +25,7 @@ func SendCounterMetric(client *http.Client, m metrics.CounterMetric) error {
 func Send(client *http.Client, url string, m metrics.Base) error {
 	resp, err := client.Post(url, "text/plain", nil)
 	if err != nil {
-		log.Printf("Failed to \"Post\" metric \"%s\" of type \"%s\"", m.Name, m.Typename)
+		log.Printf("Failed to \"Post\" request to update metric \"%s\" of type \"%s\"", m.Name, m.Typename)
 		return err
 	}
 	defer resp.Body.Close()

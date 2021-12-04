@@ -9,16 +9,8 @@ import (
 	"text/template"
 )
 
-type gauge struct {
-	v float64
-}
-
-type counter struct {
-	v int64
-}
-
-var gaugeMetricsStorage = make(map[string]gauge)
-var counterMetricsStorage = make(map[string]counter)
+var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
+var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HtmlTemplate *template.Template
 
 func SetupRouters(r *chi.Mux) {
@@ -40,7 +32,9 @@ func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "parsing error. Bad request", http.StatusBadRequest)
 		return
 	}
-	gaugeMetricsStorage[metricName] = gauge{v: value}
+	gaugeMetricsStorage[metricName] = metrics.GaugeMetric{
+		Base: metrics.Base{Name: metricName, Typename: metrics.Gauge},
+		Value: value}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -52,7 +46,9 @@ func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "parsing error", http.StatusBadRequest)
 		return
 	}
-	counterMetricsStorage[metricName] = counter{counterMetricsStorage[metricName].v + value}
+	counterMetricsStorage[metricName] = metrics.CounterMetric{
+		Base: metrics.Base{Name: metricName, Typename: metrics.Counter},
+		Value: counterMetricsStorage[metricName].Value + value}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -71,7 +67,7 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 	if metricType == metrics.Counter {
 		if val, found := counterMetricsStorage[metricName]; found {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprint(val.v)))
+			w.Write([]byte(fmt.Sprint(val.Value)))
 			return
 		}
 		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
@@ -82,7 +78,7 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 	if metricType == metrics.Gauge {
 		if val, found := gaugeMetricsStorage[metricName]; found {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprint(val.v)))
+			w.Write([]byte(fmt.Sprint(val.Value)))
 			return
 		}
 		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
