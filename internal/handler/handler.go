@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
 	"github.com/go-chi/chi"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"text/template"
@@ -12,7 +14,7 @@ import (
 
 var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 var counterMetricsStorage = make(map[string]metrics.CounterMetric)
-var HtmlTemplate *template.Template
+var HTMLTemplate *template.Template
 
 func SetupRouters(r *chi.Mux) {
 	r.Route("/update", func(r chi.Router) {
@@ -101,9 +103,18 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	bytes, err := os.ReadFile( "index.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	HTMLTemplate, err = template.New("").Parse(string(bytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	renderData := map[string]interface{}{
 		"gaugeMetrics": gaugeMetricsStorage,
 		"counterMetrics": counterMetricsStorage,
 	}
-	HtmlTemplate.Execute(w, renderData)
+	HTMLTemplate.Execute(w, renderData)
 }

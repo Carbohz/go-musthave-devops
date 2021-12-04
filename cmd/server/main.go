@@ -17,16 +17,16 @@ const (
 )
 
 func main() {
-	PrepareHtmlFile()
+	//PrepareHTMLFile()
 	RunServer()
 }
 
-func PrepareHtmlFile() {
+func PrepareHTMLFile() {
 	bytes, err := os.ReadFile(htmlFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	handler.HtmlTemplate, err = template.New("").Parse(string(bytes))
+	handler.HTMLTemplate, err = template.New("").Parse(string(bytes))
 	if err != nil {
 		log.Fatal(err)
 	}
