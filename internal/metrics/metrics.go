@@ -64,11 +64,11 @@ func GetRuntimeMetrics() []GaugeMetric {
 }
 
 func GetRandomValueMetric() GaugeMetric {
+	rand.Seed(time.Now().UnixNano())
 	return GaugeMetric{Base{"RandomValue", Gauge}, rand.Float64()}
 }
 
 func GetPollCountMetric() CounterMetric {
-	rand.Seed(time.Now().UnixNano())
 	return PollCount
 }
 
