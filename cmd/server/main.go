@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/Carbohz/go-musthave-devops/internal/handler"
@@ -23,20 +24,18 @@ func main() {
 }
 
 func PrepareHTMLPage() {
-	bytes, err := os.ReadFile("cmd/server/index.html") // htmlFile
+	page := strings.Join([]string{"cmd/server", htmlFile}, "/")
+	bytes, err := os.ReadFile(page)
 	if err != nil {
-		fmt.Println("Error occurred while reading HTML file: ", err)
 		log.Fatal("Error occurred while reading HTML file: ", err)
 	}
 	handler.HTMLTemplate, err = template.New("").Parse(string(bytes))
 	if err != nil {
-		fmt.Println("Error occurred while parsing HTML file: ", err)
 		log.Fatal("Error occurred while parsing HTML file: ", err)
 	}
 }
 
 func RunServer() {
-	log.Println("Running server")
 	r := chi.NewRouter()
 	handler.SetupRouters(r)
 	addr := fmt.Sprintf("%s:%s", host, port)

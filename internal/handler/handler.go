@@ -87,15 +87,6 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	//bytes, err := os.ReadFile( "index.html")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//HTMLTemplate, err = template.New("").Parse(string(bytes))
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
 	renderData := map[string]interface{}{
 		"gaugeMetrics": gaugeMetricsStorage,
 		"counterMetrics": counterMetricsStorage,
