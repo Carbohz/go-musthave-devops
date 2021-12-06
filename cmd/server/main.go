@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"text/template"
 )
 
@@ -17,17 +18,22 @@ const (
 )
 
 func main() {
-	//PrepareHTMLPage()
+	PrepareHTMLPage()
 	RunServer()
 }
 
 func PrepareHTMLPage() {
-	bytes, err := os.ReadFile(htmlFile)
+	path, _ := os.Getwd()
+	abs := strings.Join([]string{path, htmlFile}, "/")
+	fmt.Println(abs)
+	bytes, err := os.ReadFile(abs) // htmlFile
 	if err != nil {
+		fmt.Println("Error occurred while reading HTML file: ", err)
 		log.Fatal("Error occurred while reading HTML file: ", err)
 	}
 	handler.HTMLTemplate, err = template.New("").Parse(string(bytes))
 	if err != nil {
+		fmt.Println("Error occurred while parsing HTML file: ", err)
 		log.Fatal("Error occurred while parsing HTML file: ", err)
 	}
 }
@@ -43,6 +49,5 @@ func RunServer() {
 	}
 	server.SetKeepAlivesEnabled(false)
 	log.Printf("Listening on port %s", port)
-	PrepareHTMLPage()
 	log.Fatal(server.ListenAndServe())
 }
