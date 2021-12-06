@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"text/template"
 
 	"github.com/Carbohz/go-musthave-devops/internal/handler"
@@ -24,7 +23,7 @@ func main() {
 }
 
 func PrepareHTMLPage() {
-	page := strings.Join([]string{"cmd/server", htmlFile}, "/")
+	page := "cmd/server/" + htmlFile
 	bytes, err := os.ReadFile(page)
 	if err != nil {
 		log.Fatal("Error occurred while reading HTML file: ", err)

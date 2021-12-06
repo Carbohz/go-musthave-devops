@@ -24,7 +24,7 @@ func RunAgent() {
 	client := http.Client{Timeout: 2 * time.Second}
 
 	pollTicker := time.NewTicker(pollInterval)
-	reportTicker := time.NewTicker(reportInterval )
+	reportTicker := time.NewTicker(reportInterval)
 	for {
 		select {
 			case <-pollTicker.C:
