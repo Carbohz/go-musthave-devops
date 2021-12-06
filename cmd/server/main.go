@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/Carbohz/go-musthave-devops/internal/handler"
-	"github.com/go-chi/chi"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"text/template"
+
+	"github.com/Carbohz/go-musthave-devops/internal/handler"
+	"github.com/go-chi/chi"
 )
 
 const (
-	host = "127.0.0.1"
-	port = "8080"
+	host     = "127.0.0.1"
+	port     = "8080"
 	htmlFile = "index.html"
 )
 
@@ -23,10 +23,7 @@ func main() {
 }
 
 func PrepareHTMLPage() {
-	path, _ := os.Getwd()
-	abs := strings.Join([]string{path, "cmd/server", htmlFile}, "\\")
-	fmt.Println(abs)
-	bytes, err := os.ReadFile(abs) // htmlFile
+	bytes, err := os.ReadFile("cmd/server/index.html") // htmlFile
 	if err != nil {
 		fmt.Println("Error occurred while reading HTML file: ", err)
 		log.Fatal("Error occurred while reading HTML file: ", err)
