@@ -24,7 +24,7 @@ func main() {
 
 func PrepareHTMLPage() {
 	path, _ := os.Getwd()
-	abs := strings.Join([]string{path, htmlFile}, "/")
+	abs := strings.Join([]string{path, "cmd/server", htmlFile}, "\\")
 	fmt.Println(abs)
 	bytes, err := os.ReadFile(abs) // htmlFile
 	if err != nil {
