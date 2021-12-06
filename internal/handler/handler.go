@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi"
 	"net/http"
 	"strconv"
-	"strings"
 	"text/template"
 )
 
@@ -26,9 +25,8 @@ func SetupRouters(r *chi.Mux) {
 }
 
 func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
-	//metricName := chi.URLParam(r, "metricName")
-	//metricValue := chi.URLParam(r, "metricValue")
-	metricName, metricValue := GetRequestBody(r)
+	metricName := chi.URLParam(r, "metricName")
+	metricValue := chi.URLParam(r, "metricValue")
 	value, err := strconv.ParseFloat(metricValue, 64)
 	if err != nil {
 		http.Error(w, "parsing error. Bad request", http.StatusBadRequest)
@@ -41,9 +39,8 @@ func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
-	//metricName := chi.URLParam(r, "metricName")
-	//metricValue := chi.URLParam(r, "metricValue")
-	metricName, metricValue := GetRequestBody(r)
+	metricName := chi.URLParam(r, "metricName")
+	metricValue := chi.URLParam(r, "metricValue")
 	value, err := strconv.ParseInt(metricValue, 10, 64)
 	if err != nil {
 		http.Error(w, "parsing error", http.StatusBadRequest)
@@ -55,14 +52,6 @@ func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func GetRequestBody(r *http.Request) (string, string) {
-	uri := r.RequestURI
-	tokens := strings.Split(uri, "/")
-	metricName := tokens[3]
-	metricValue := tokens[4]
-	return metricName, metricValue
-}
-
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Not Found", http.StatusNotFound)
 }
@@ -72,11 +61,8 @@ func NotImplementedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
-	//metricType := chi.URLParam(r, "metricType")
-	//metricName := chi.URLParam(r, "metricName")
-	tokens := strings.Split(r.URL.Path, "/")
-	metricType := tokens[2]
-	metricName := tokens[3]
+	metricType := chi.URLParam(r, "metricType")
+	metricName := chi.URLParam(r, "metricName")
 
 	if metricType == metrics.Counter {
 		if val, found := counterMetricsStorage[metricName]; found {
