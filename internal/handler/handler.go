@@ -32,7 +32,7 @@ func SetupRouters(r *chi.Mux) {
 		r.Post("/*", UnknownTypeMetricHandler)
 		r.Post("/", UpdateMetricsJSONHandler)
 	})
-	r.Post("/value", GetMetricsJSONHandler)
+	r.Post("/value/", GetMetricsJSONHandler)
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
 	r.Get("/", AllMetricsHandler)
 }

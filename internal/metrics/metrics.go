@@ -59,6 +59,7 @@ func GetRuntimeMetrics() []GaugeMetric {
 		{Base{"StackInuse",Gauge}, float64(rtm.StackInuse)},
 		{Base{"StackSys", Gauge},float64(rtm.StackSys)},
 		{Base{"Sys", Gauge},float64(rtm.Sys)},
+		{Base{"TotalAlloc", Gauge}, float64(rtm.TotalAlloc)},
 	}
 	return m
 }
