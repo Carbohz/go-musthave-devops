@@ -7,18 +7,18 @@ import (
 	"net/http"
 )
 
-const (
-	host = "127.0.0.1"
-	port = "8080"
-)
+//const (
+//	host = "127.0.0.1"
+//	port = "8080"
+//)
 
-func SendGaugeMetric(client *http.Client, m metrics.GaugeMetric) error {
-	url := fmt.Sprintf("http://%s:%s/update/%s/%s/%f", host, port, m.Typename, m.Name, m.Value)
+func SendGaugeMetric(client *http.Client, m metrics.GaugeMetric, address string) error {
+	url := fmt.Sprintf("http://%s/update/%s/%s/%f", address, m.Typename, m.Name, m.Value)
 	return Send(client, url, m.Base)
 }
 
-func SendCounterMetric(client *http.Client, m metrics.CounterMetric) error {
-	url := fmt.Sprintf("http://%s:%s/update/%s/%s/%d", host, port, m.Typename, m.Name, m.Value)
+func SendCounterMetric(client *http.Client, m metrics.CounterMetric, address string) error {
+	url := fmt.Sprintf("http://%s/update/%s/%s/%d", address, m.Typename, m.Name, m.Value)
 	return Send(client, url, m.Base)
 }
 
