@@ -17,8 +17,8 @@ import (
 
 type Config struct {
 	Address        string         `env:"ADDRESS"`
-	ReportInterval *time.Duration `env:"REPORT_INTERVAL"`
-	PollInterval   *time.Duration `env:"POLL_INTERVAL"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL"`
 }
 
 const (
@@ -38,12 +38,12 @@ func main() {
 		cfg.Address = defaultAddress
 	}
 
-	if cfg.ReportInterval == nil {
-		*cfg.ReportInterval = defaultReportInterval
+	if cfg.ReportInterval == 0 {
+		cfg.ReportInterval = defaultReportInterval
 	}
 
-	if cfg.PollInterval == nil {
-		*cfg.PollInterval = defaultPollInterval
+	if cfg.PollInterval == 0 {
+		cfg.PollInterval = defaultPollInterval
 	}
 
 	RunAgent(cfg)
@@ -58,8 +58,8 @@ func RunAgent(cfg Config) {
 
 	//pollTicker := time.NewTicker(pollInterval)
 	//reportTicker := time.NewTicker(reportInterval)
-	pollTicker := time.NewTicker(*cfg.PollInterval)
-	reportTicker := time.NewTicker(*cfg.ReportInterval)
+	pollTicker := time.NewTicker(cfg.PollInterval)
+	reportTicker := time.NewTicker(cfg.ReportInterval)
 	for {
 		select {
 			case <-pollTicker.C:
