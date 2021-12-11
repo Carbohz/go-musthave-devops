@@ -29,8 +29,8 @@ func SetupRouters(r *chi.Mux) {
 		r.Post("/gauge/{metricName}/{metricValue}", GaugeMetricHandler)
 		r.Post("/counter/{metricName}/{metricValue}", CounterMetricHandler)
 		r.Post("/{metricName}/", NotFoundHandler)
-		//r.Post("/*", NotImplementedHandler)
-		r.Post("/*", UpdateMetricsJSONHandler)
+		r.Post("/*", UnknownTypeMetricHandler)
+		r.Post("/", UpdateMetricsJSONHandler)
 	})
 	r.Post("/value", GetMetricsJSONHandler)
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
@@ -69,7 +69,7 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Not Found", http.StatusNotFound)
 }
 
-func NotImplementedHandler(w http.ResponseWriter, r *http.Request) {
+func UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Unknown type", http.StatusNotImplemented)
 }
 

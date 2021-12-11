@@ -15,6 +15,44 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCounterMetricHandler(t *testing.T) {
+	tests := []struct {
+		name     string
+		URL      string
+		pattern  string
+		wantCode int
+	}{
+		{
+			name:     "valid value",
+			URL:      "/update/counter/metric/1",
+			pattern:  "/update/counter/{metricName}/{metricValue}",
+			wantCode: 200,
+		},
+		{
+			name:     "invalid value",
+			URL:      "/update/counter/metric/value",
+			pattern:  "/update/counter/{metricName}/{metricValue}",
+			wantCode: 400,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := chi.NewRouter()
+			SetupRouters(r)
+			req, err := http.NewRequest(http.MethodPost, tt.URL, nil)
+			require.NoError(t, err)
+			rec := httptest.NewRecorder()
+			r.HandleFunc(tt.pattern, CounterMetricHandler)
+
+			r.ServeHTTP(rec, req)
+			res := rec.Result()
+
+			assert.Equal(t, res.StatusCode, tt.wantCode)
+			defer res.Body.Close()
+		})
+	}
+}
+
 func TestGaugeMetricHandler(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -23,13 +61,13 @@ func TestGaugeMetricHandler(t *testing.T) {
 		wantCode int
 	}{
 		{
-			name:     "valid gauge metric value request",
+			name:     "valid value",
 			URL:      "/update/gauge/metric/1234.5",
 			pattern:  "/update/gauge/{metricName}/{metricValue}",
 			wantCode: 200,
 		},
 		{
-			name:     "invalid gauge metric value request",
+			name:     "invalid value",
 			URL:      "/update/gauge/metric/value",
 			pattern:  "/update/gauge/{metricName}/{metricValue}",
 			wantCode: 400,
@@ -53,25 +91,25 @@ func TestGaugeMetricHandler(t *testing.T) {
 	}
 }
 
-func TestCounterMetricHandler(t *testing.T) {
+func TestUnknownTypeMetricHandler(t *testing.T) {
 	tests := []struct {
 		name     string
 		URL      string
-		pattern  string
+		//pattern  string
 		wantCode int
 	}{
 		{
-			name:     "valid counter metric value request",
-			URL:      "/update/counter/metric/1",
-			pattern:  "/update/counter/{metricName}/{metricValue}",
-			wantCode: 200,
+			name:     "update invalid type",
+			URL:      "/update/unknown/testCounter/100",
+			//pattern:  "/update/{metricType}/{metricName}/{metricValue}",
+			wantCode: http.StatusNotImplemented,
 		},
-		{
-			name:     "invalid counter metric value request",
-			URL:      "/update/counter/metric/value",
-			pattern:  "/update/counter/{metricName}/{metricValue}",
-			wantCode: 400,
-		},
+		//{
+		//	name:     "invalid counter metric value request",
+		//	URL:      "/update/counter/metric/value",
+		//	pattern:  "/update/counter/{metricName}/{metricValue}",
+		//	wantCode: 400,
+		//},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -80,7 +118,7 @@ func TestCounterMetricHandler(t *testing.T) {
 			req, err := http.NewRequest(http.MethodPost, tt.URL, nil)
 			require.NoError(t, err)
 			rec := httptest.NewRecorder()
-			r.HandleFunc(tt.pattern, CounterMetricHandler)
+			//r.HandleFunc(tt.pattern, CounterMetricHandler)
 
 			r.ServeHTTP(rec, req)
 			res := rec.Result()
@@ -169,12 +207,12 @@ func TestGetMetricsJSONHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 
 			rec := httptest.NewRecorder()
-			r.HandleFunc(pattern, UpdateMetricsJSONHandler)
+			//r.HandleFunc(pattern, UpdateMetricsJSONHandler)
 
 			r.ServeHTTP(rec, req)
 			res := rec.Result()
 
-			assert.Equal(t, res.StatusCode, tt.wantCode)
+			assert.Equal(t, tt.wantCode, res.StatusCode)
 			defer res.Body.Close()
 
 			// get data from storage
@@ -196,7 +234,7 @@ func TestGetMetricsJSONHandler(t *testing.T) {
 			json.Unmarshal(body, &m)
 			log.Print("type: ", m.MType, ", id: ", m.ID)
 
-			assert.Equal(t, res.StatusCode, tt.wantCode)
+			assert.Equal(t, tt.wantCode, res.StatusCode)
 			defer res.Body.Close()
 		})
 	}
