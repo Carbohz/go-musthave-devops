@@ -1,25 +1,39 @@
 package main
 
 import (
-	"fmt"
+	"github.com/Carbohz/go-musthave-devops/internal/handler"
+	"github.com/caarlos0/env/v6"
+	"github.com/go-chi/chi"
 	"log"
 	"net/http"
 	"os"
 	"text/template"
-
-	"github.com/Carbohz/go-musthave-devops/internal/handler"
-	"github.com/go-chi/chi"
 )
 
 const (
-	host     = "127.0.0.1"
-	port     = "8080"
+	//host     = "127.0.0.1"
+	//port     = "8080"
 	htmlFile = "index.html"
+	defaultAddress = "127.0.0.1:8080"
 )
 
+type Config struct {
+	Address string `env:"ADDRESS"`
+}
+
 func main() {
+	var cfg Config
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if cfg.Address == "" {
+		cfg.Address = defaultAddress
+	}
+
 	PrepareHTMLPage()
-	RunServer()
+	RunServer(cfg)
 }
 
 func PrepareHTMLPage() {
@@ -34,15 +48,15 @@ func PrepareHTMLPage() {
 	}
 }
 
-func RunServer() {
+func RunServer(cfg Config) {
 	r := chi.NewRouter()
 	handler.SetupRouters(r)
-	addr := fmt.Sprintf("%s:%s", host, port)
+	//addr := fmt.Sprintf("%s:%s", host, port)
 	server := &http.Server{
-		Addr:    addr,
+		Addr:    cfg.Address,
 		Handler: r,
 	}
 	server.SetKeepAlivesEnabled(false)
-	log.Printf("Listening on port %s", port)
+	log.Printf("Listening on address %s", cfg.Address)
 	log.Fatal(server.ListenAndServe())
 }
