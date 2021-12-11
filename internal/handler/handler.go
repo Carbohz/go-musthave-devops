@@ -1,25 +1,38 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/Carbohz/go-musthave-devops/internal/metrics"
-	"github.com/go-chi/chi"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"text/template"
+
+	"github.com/Carbohz/go-musthave-devops/internal/metrics"
+	"github.com/go-chi/chi"
 )
 
 var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
 
+type Metrics struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
 func SetupRouters(r *chi.Mux) {
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/gauge/{metricName}/{metricValue}", GaugeMetricHandler)
 		r.Post("/counter/{metricName}/{metricValue}", CounterMetricHandler)
 		r.Post("/{metricName}/", NotFoundHandler)
-		r.Post("/*", NotImplementedHandler)
+		//r.Post("/*", NotImplementedHandler)
+		r.Post("/*", UpdateMetricsJSONHandler)
 	})
+	r.Post("/value", GetMetricsJSONHandler)
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
 	r.Get("/", AllMetricsHandler)
 }
@@ -33,7 +46,7 @@ func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	gaugeMetricsStorage[metricName] = metrics.GaugeMetric{
-		Base: metrics.Base{Name: metricName, Typename: metrics.Gauge},
+		Base:  metrics.Base{Name: metricName, Typename: metrics.Gauge},
 		Value: value}
 	w.WriteHeader(http.StatusOK)
 }
@@ -47,7 +60,7 @@ func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	counterMetricsStorage[metricName] = metrics.CounterMetric{
-		Base: metrics.Base{Name: metricName, Typename: metrics.Counter},
+		Base:  metrics.Base{Name: metricName, Typename: metrics.Counter},
 		Value: counterMetricsStorage[metricName].Value + value}
 	w.WriteHeader(http.StatusOK)
 }
@@ -88,8 +101,74 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	renderData := map[string]interface{}{
-		"gaugeMetrics": gaugeMetricsStorage,
+		"gaugeMetrics":   gaugeMetricsStorage,
 		"counterMetrics": counterMetricsStorage,
 	}
 	HTMLTemplate.Execute(w, renderData)
+}
+
+// UpdateMetricsJSONHandler Передача метрик на сервер
+func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m := Metrics{}
+	err = json.Unmarshal(body, &m)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	log.Print("type: ", m.MType, ", id: ", m.ID)
+
+	updateMetricsStorage(m)
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func updateMetricsStorage(m Metrics) {
+	switch m.MType {
+	case metrics.Gauge:
+		gaugeMetricsStorage[m.ID] = metrics.GaugeMetric{
+			Base:  metrics.Base{Name: m.ID, Typename: metrics.Gauge},
+			Value: *m.Value}
+	case metrics.Counter:
+		counterMetricsStorage[m.ID] = metrics.CounterMetric{
+			Base:  metrics.Base{Name: m.ID, Typename: metrics.Counter},
+			Value: counterMetricsStorage[m.ID].Value + *m.Delta}
+	}
+}
+
+// GetMetricsJSONHandler Получение метрик с сервера
+func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m := Metrics{}
+	err = json.Unmarshal(body, &m)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	log.Print("type: ", m.MType, ", id: ", m.ID)
+
+	switch m.MType {
+	case metrics.Gauge:
+		v := gaugeMetricsStorage[m.ID].Value
+		m.Value = &v
+	case metrics.Counter:
+		v := counterMetricsStorage[m.ID].Value
+		m.Delta = &v
+		//*m.Delta = counterMetricsStorage[m.ID].Value
+	}
+
+	//bytes, _ := json.Marshal(m)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(m)
+
+	w.WriteHeader(http.StatusOK)
 }
