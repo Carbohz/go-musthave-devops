@@ -26,7 +26,6 @@ func main() {
 	cfg := CreateConfig()
 	PrepareHTMLPage()
 	exitChan := make(chan int, 1)
-	log.Println("Awaiting interrupt signal")
 	go AwaitInterruptSignal(exitChan)
 	go RunServer(cfg)
 	exitCode := <-exitChan
@@ -79,7 +78,6 @@ func CreateConfig() handler.Config {
 	storeIntervalFlagPtr := flag.Duration("i", defaultStoreInterval, "set server's metrics store interval")
 	storeFileFlagPtr := flag.String("f", defaultStoreFile, "set file where metrics are stored")
 	restoreFlagPtr := flag.Bool("r", defaultRestore, "choose whether to restore server metrics from file")
-
 	flag.Parse()
 	log.Printf("Server is running with command line flags: Address %v, Store Interval %v, Store File %v, Restore %v",
 		*addressFlagPtr, *storeIntervalFlagPtr, *storeFileFlagPtr, *restoreFlagPtr)
@@ -87,46 +85,29 @@ func CreateConfig() handler.Config {
 	_, isSet := os.LookupEnv("ADDRESS")
 	if !isSet {
 		cfg.Address = *addressFlagPtr
-		//if addressFlagPtr != nil {
-		//	cfg.Address = *addressFlagPtr
-		//} else {
-		//	cfg.Address = defaultAddress
-		//}
 	}
 
 	_, isSet = os.LookupEnv("STORE_INTERVAL")
 	if !isSet {
 		cfg.StoreInterval = *storeIntervalFlagPtr
-		//if storeIntervalFlagPtr != nil {
-		//	cfg.StoreInterval = *storeIntervalFlagPtr
-		//} else {
-		//	cfg.StoreInterval = defaultStoreInterval
-		//}
 	}
 
 	_, isSet = os.LookupEnv("STORE_FILE")
 	if !isSet {
 		cfg.StoreFile = *storeFileFlagPtr
-		//if storeFileFlagPtr != nil {
-		//	cfg.StoreFile = *storeFileFlagPtr
-		//} else {
-		//	cfg.StoreFile = defaultStoreFile
-		//}
 	}
 
 	_, isSet = os.LookupEnv("RESTORE")
 	if !isSet {
 		cfg.Restore = *restoreFlagPtr
-		//if restoreFlagPtr != nil {
-		//	cfg.Restore = *restoreFlagPtr
-		//} else {
-		//	cfg.Restore = defaultRestore
-		//}
 	}
+
 	return cfg
 }
 
 func AwaitInterruptSignal(exitChan chan<- int) {
+	log.Println("Awaiting interrupt signal")
+
 	signalChanel := make(chan os.Signal, 1)
 	signal.Notify(signalChanel,
 		syscall.SIGINT,

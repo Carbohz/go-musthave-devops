@@ -30,51 +30,29 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Agent is running with environment variables: %+v", cfg)
 
 	addressFlagPtr := flag.String("a", defaultAddress, "set server's address where you want to send metrics")
 	pollIntervalFlagPtr := flag.Duration("p", defaultPollInterval, "set metrics poll interval")
 	reportIntervalFlagPtr := flag.Duration("r", defaultReportInterval, "set metrics report interval")
-
 	flag.Parse()
+	log.Printf("Agent is running with command line flags: Address %v, Poll Interval %v, Report Interval %v",
+		*addressFlagPtr, *pollIntervalFlagPtr, *reportIntervalFlagPtr)
 
 	_, isSet := os.LookupEnv("ADDRESS")
 	if !isSet {
-		if addressFlagPtr != nil {
-			cfg.Address = *addressFlagPtr
-		} else {
-			cfg.Address = defaultAddress
-		}
+		cfg.Address = *addressFlagPtr
 	}
 
 	_, isSet = os.LookupEnv("POLL_INTERVAL")
 	if !isSet {
-		if pollIntervalFlagPtr != nil {
-			cfg.PollInterval = *pollIntervalFlagPtr
-		} else {
-			cfg.PollInterval = defaultPollInterval
-		}
+		cfg.PollInterval = *pollIntervalFlagPtr
 	}
 
 	_, isSet = os.LookupEnv("REPORT_INTERVAL")
 	if !isSet {
-		if reportIntervalFlagPtr != nil {
-			cfg.ReportInterval = *reportIntervalFlagPtr
-		} else {
-			cfg.ReportInterval = defaultReportInterval
-		}
+		cfg.ReportInterval = *reportIntervalFlagPtr
 	}
-
-	//if cfg.Address == "" {
-	//	cfg.Address = defaultAddress
-	//}
-	//
-	//if cfg.ReportInterval == 0 {
-	//	cfg.ReportInterval = defaultReportInterval
-	//}
-	//
-	//if cfg.PollInterval == 0 {
-	//	cfg.PollInterval = defaultPollInterval
-	//}
 
 	RunAgent(cfg)
 }
