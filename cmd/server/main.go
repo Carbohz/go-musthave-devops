@@ -69,11 +69,11 @@ func RunServer(cfg handler.Config) {
 
 func CreateConfig() handler.Config {
 	var cfg handler.Config
-
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Server is running with environment variables: %+v", cfg)
 
 	addressFlagPtr := flag.String("a", defaultAddress, "set address of server")
 	storeIntervalFlagPtr := flag.Duration("i", defaultStoreInterval, "set server's metrics store interval")
@@ -81,41 +81,47 @@ func CreateConfig() handler.Config {
 	restoreFlagPtr := flag.Bool("r", defaultRestore, "choose whether to restore server metrics from file")
 
 	flag.Parse()
+	log.Printf("Server is running with command line flags: Address %v, Store Interval %v, Store File %v, Restore %v",
+		*addressFlagPtr, *storeIntervalFlagPtr, *storeFileFlagPtr, *restoreFlagPtr)
 
 	_, isSet := os.LookupEnv("ADDRESS")
 	if !isSet {
-		if addressFlagPtr != nil {
-			cfg.Address = *addressFlagPtr
-		} else {
-			cfg.Address = defaultAddress
-		}
+		cfg.Address = *addressFlagPtr
+		//if addressFlagPtr != nil {
+		//	cfg.Address = *addressFlagPtr
+		//} else {
+		//	cfg.Address = defaultAddress
+		//}
 	}
 
 	_, isSet = os.LookupEnv("STORE_INTERVAL")
 	if !isSet {
-		if storeIntervalFlagPtr != nil {
-			cfg.StoreInterval = *storeIntervalFlagPtr
-		} else {
-			cfg.StoreInterval = defaultStoreInterval
-		}
+		cfg.StoreInterval = *storeIntervalFlagPtr
+		//if storeIntervalFlagPtr != nil {
+		//	cfg.StoreInterval = *storeIntervalFlagPtr
+		//} else {
+		//	cfg.StoreInterval = defaultStoreInterval
+		//}
 	}
 
 	_, isSet = os.LookupEnv("STORE_FILE")
 	if !isSet {
-		if storeFileFlagPtr != nil {
-			cfg.StoreFile = *storeFileFlagPtr
-		} else {
-			cfg.StoreFile = defaultStoreFile
-		}
+		cfg.StoreFile = *storeFileFlagPtr
+		//if storeFileFlagPtr != nil {
+		//	cfg.StoreFile = *storeFileFlagPtr
+		//} else {
+		//	cfg.StoreFile = defaultStoreFile
+		//}
 	}
 
 	_, isSet = os.LookupEnv("RESTORE")
 	if !isSet {
-		if restoreFlagPtr != nil {
-			cfg.Restore = *restoreFlagPtr
-		} else {
-			cfg.Restore = defaultRestore
-		}
+		cfg.Restore = *restoreFlagPtr
+		//if restoreFlagPtr != nil {
+		//	cfg.Restore = *restoreFlagPtr
+		//} else {
+		//	cfg.Restore = defaultRestore
+		//}
 	}
 	return cfg
 }
