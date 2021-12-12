@@ -25,6 +25,11 @@ const (
 )
 
 func main() {
+	cfg := CreateConfig()
+	RunAgent(cfg)
+}
+
+func CreateConfig() Config {
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {
@@ -53,8 +58,8 @@ func main() {
 	if !isSet {
 		cfg.ReportInterval = *reportIntervalFlagPtr
 	}
-
-	RunAgent(cfg)
+	
+	return cfg
 }
 
 func RunAgent(cfg Config) {
