@@ -198,7 +198,7 @@ func DumpMetricsImpl(cfg Config) {
 
 	f, err := os.OpenFile(cfg.StoreFile, flags, 0644)
 	if err != nil {
-		log.Fatal("cannot open file for writing: ", err)
+		log.Fatal("Can't open file for writing: ", err)
 	}
 	defer f.Close()
 
@@ -210,7 +210,7 @@ func DumpMetricsImpl(cfg Config) {
 	}
 
 	if err := encoder.Encode(internalStorage); err != nil {
-		log.Fatal("cannot encode internal metrics: ", err)
+		log.Fatal("Can't encode internal metrics: ", err)
 	}
 }
 
@@ -221,7 +221,7 @@ func LoadMetrics(cfg Config) {
 
 	f, err := os.OpenFile(cfg.StoreFile, flags, 0)
 	if err != nil {
-		log.Print("cannot open file for reading ", err)
+		log.Print("Can't open file for reading: ", err)
 		return
 	}
 	defer f.Close()
@@ -229,7 +229,7 @@ func LoadMetrics(cfg Config) {
 	var internalStorage InternalStorage
 
 	if err := json.NewDecoder(f).Decode(&internalStorage); err != nil {
-		log.Fatal("cannot decode statistics ", err)
+		log.Fatal("Can't decode metrics ", err)
 	}
 
 	gaugeMetricsStorage = internalStorage.GaugeMetrics
