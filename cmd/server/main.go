@@ -16,8 +16,8 @@ import (
 const (
 	htmlFile = "index.html"
 	defaultAddress = "127.0.0.1:8080"
-	defaultStoreInterval = 10 * time.Second // 300
-	defaultStoreFile = "tmp/devops-metrics-db.json" //"/tmp/devops-metrics-db.json"
+	defaultStoreInterval = 300 * time.Second // 300
+	defaultStoreFile = "/tmp/devops-metrics-db.json" //"/tmp/devops-metrics-db.json"
 	defaultRestore = true
 )
 
@@ -34,6 +34,11 @@ func main() {
 	// 3. HandleInterrupts
 
 	var cfg handler.Config
+
+	cfg.StoreInterval = defaultStoreInterval
+	cfg.StoreFile = defaultStoreFile
+	cfg.Restore = true
+
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
@@ -43,17 +48,17 @@ func main() {
 		cfg.Address = defaultAddress
 	}
 
-	if cfg.StoreFile == "" {
-		cfg.StoreFile = defaultStoreFile
-	}
+	//if cfg.StoreInterval == 0 {
+	//	cfg.StoreInterval = defaultStoreInterval
+	//}
+	//
+	//if cfg.StoreFile == "" {
+	//	cfg.StoreFile = defaultStoreFile
+	//}
 
-	if cfg.StoreInterval == 0 {
-		cfg.StoreInterval = defaultStoreInterval
-	}
-
-	if !cfg.Restore {
-		cfg.Restore = defaultRestore
-	}
+	//if !cfg.Restore {
+	//	cfg.Restore = defaultRestore
+	//}
 
 	PrepareHTMLPage()
 	//go RunServer(cfg)
@@ -92,7 +97,8 @@ func main() {
 	go RunServer(cfg)
 	log.Println("awaiting signal")
 	exitCode := <-exitChan
-	log.Println("exiting")
+	log.Println("Saving metrics and exiting")
+	handler.SaveMetrics(cfg)
 	os.Exit(exitCode)
 }
 
