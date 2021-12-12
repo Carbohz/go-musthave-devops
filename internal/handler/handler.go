@@ -162,10 +162,7 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	case metrics.Counter:
 		v := counterMetricsStorage[m.ID].Value
 		m.Delta = &v
-		//*m.Delta = counterMetricsStorage[m.ID].Value
 	}
-
-	//bytes, _ := json.Marshal(m)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(m)

@@ -10,15 +10,22 @@ import (
 	"os/signal"
 	"syscall"
 	"text/template"
+	"time"
 )
 
 const (
 	htmlFile = "index.html"
 	defaultAddress = "127.0.0.1:8080"
+	defaultStoreInterval = 2 * time.Second // 300
+	defaultStoreFile = "tmp/devops-metrics-db.json" //"/tmp/devops-metrics-db.json"
+	defaultRestore = true
 )
 
 type Config struct {
-	Address string `env:"ADDRESS"`
+	Address string 				`env:"ADDRESS"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+	StoreFile string 			`env:"STORE_FILE"`
+	Restore bool 				`env:"RESTORE"`
 }
 
 func main() {
@@ -32,8 +39,20 @@ func main() {
 		cfg.Address = defaultAddress
 	}
 
+	if cfg.StoreFile == "" {
+		cfg.StoreFile = defaultStoreFile
+	}
+
+	if cfg.StoreInterval == 0 {
+		cfg.StoreInterval = defaultStoreInterval
+	}
+
+	if !cfg.Restore {
+		cfg.Restore = defaultRestore
+	}
+
 	PrepareHTMLPage()
-	go RunServer(cfg)
+	//go RunServer(cfg)
 	signalChanel := make(chan os.Signal, 1)
 	signal.Notify(signalChanel,
 		syscall.SIGINT, // interrupt
@@ -61,9 +80,7 @@ func main() {
 			exitChan <- 1
 		}
 	}()
-	//RunServer(cfg)
-	//exitCode := <-exitChan
-	//os.Exit(exitCode)
+	go RunServer(cfg)
 	log.Println("awaiting signal")
 	exitCode := <-exitChan
 	log.Println("exiting")
@@ -83,6 +100,10 @@ func PrepareHTMLPage() {
 }
 
 func RunServer(cfg Config) {
+	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
+		go metricsSaver(cfg)
+	}
+
 	r := chi.NewRouter()
 	handler.SetupRouters(r)
 	server := &http.Server{
@@ -92,4 +113,27 @@ func RunServer(cfg Config) {
 	server.SetKeepAlivesEnabled(false)
 	log.Printf("Listening on address %s", cfg.Address)
 	log.Fatal(server.ListenAndServe())
+}
+
+func metricsSaver(cfg Config) {
+	ticker := time.NewTicker(cfg.StoreInterval)
+	for {
+		<-ticker.C
+		saveMetrics(cfg)
+	}
+}
+
+func saveMetrics(cfg Config) {
+	flags := os.O_WRONLY|os.O_CREATE|os.O_APPEND
+
+	f, err := os.OpenFile(cfg.StoreFile, flags, 0777) //0644
+	if err != nil {
+		log.Fatal("cannot open file for writing: ", err)
+	}
+	defer f.Close()
+
+	//if err := json.NewEncoder(f).Encode(statistics); err != nil {
+	//	log.Fatal("cannot encode statistics: ", err)
+	//}
+	f.Write([]byte(`{"id":"llvm","type":"gauge","value":10}`))
 }
