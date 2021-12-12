@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"text/template"
 )
 
@@ -31,7 +33,41 @@ func main() {
 	}
 
 	PrepareHTMLPage()
-	RunServer(cfg)
+	go RunServer(cfg)
+	signalChanel := make(chan os.Signal, 1)
+	signal.Notify(signalChanel,
+		syscall.SIGINT, // interrupt
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+
+	exitChan := make(chan int, 1)
+	go func() {
+		s := <-signalChanel
+		switch s {
+		case syscall.SIGINT:
+			log.Printf("%s signal triggered.", s)
+			exitChan <- 1
+
+		case syscall.SIGTERM:
+			log.Printf("%s signal triggered.", s)
+			exitChan <- 2
+
+		case syscall.SIGQUIT:
+			log.Printf("%s signal triggered.", s)
+			exitChan <- 3
+
+		default:
+			log.Printf("%s signal triggered.", s)
+			exitChan <- 1
+		}
+	}()
+	//RunServer(cfg)
+	//exitCode := <-exitChan
+	//os.Exit(exitCode)
+	log.Println("awaiting signal")
+	exitCode := <-exitChan
+	log.Println("exiting")
+	os.Exit(exitCode)
 }
 
 func PrepareHTMLPage() {
