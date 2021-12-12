@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"text/template"
 	"time"
 
@@ -18,6 +19,8 @@ import (
 var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
+
+var mutex sync.Mutex
 
 type InternalStorage struct {
 	GaugeMetrics map[string]metrics.GaugeMetric
@@ -190,14 +193,17 @@ func SaveMetrics(cfg Config) {
 	for {
 		<-ticker.C
 		log.Println("Saving metrics to file")
+		mutex.Lock()
 		saveMetricsImpl(cfg)
+		mutex.Unlock()
 	}
 }
 
 func saveMetricsImpl(cfg Config) {
-	flags := os.O_WRONLY|os.O_CREATE
+	//flags := os.O_WRONLY|os.O_CREATE
+	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
-	f, err := os.OpenFile(cfg.StoreFile, flags, 0777) //0644
+	f, err := os.OpenFile(cfg.StoreFile, flags, 0644) // 0777
 	if err != nil {
 		log.Fatal("cannot open file for writing: ", err)
 	}
@@ -224,4 +230,29 @@ func saveMetricsImpl(cfg Config) {
 
 	// dummy test save
 	//f.Write([]byte(`{"id":"llvm","type":"gauge","value":10}`))
+}
+
+func LoadMetrics(cfg Config) {
+	log.Println("Loading metrics from file")
+
+	flags := os.O_RDONLY
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	f, err := os.OpenFile(cfg.StoreFile, flags, 0)
+	if err != nil {
+		log.Print("cannot open file for reading ", err)
+		return
+	}
+	defer f.Close()
+
+	var internalStorage InternalStorage
+
+	if err := json.NewDecoder(f).Decode(&internalStorage); err != nil {
+		log.Fatal("cannot decode statistics ", err)
+	}
+
+	gaugeMetricsStorage = internalStorage.GaugeMetrics
+	counterMetricsStorage = internalStorage.CounterMetrics
+	log.Println("Metrics successfully loaded from file")
 }

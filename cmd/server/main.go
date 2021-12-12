@@ -84,6 +84,11 @@ func main() {
 			exitChan <- 1
 		}
 	}()
+
+	if cfg.Restore && cfg.StoreFile != "" {
+		handler.LoadMetrics(cfg)
+	}
+
 	go RunServer(cfg)
 	log.Println("awaiting signal")
 	exitCode := <-exitChan
@@ -104,6 +109,10 @@ func PrepareHTMLPage() {
 }
 
 func RunServer(cfg handler.Config) {
+	//if cfg.Restore && cfg.StoreFile != "" {
+	//	handler.LoadMetrics(cfg)
+	//}
+
 	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
 		go handler.SaveMetrics(cfg)
 	}
