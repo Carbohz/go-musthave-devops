@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	//host     = "127.0.0.1"
-	//port     = "8080"
 	htmlFile = "index.html"
 	defaultAddress = "127.0.0.1:8080"
 )
@@ -51,7 +49,6 @@ func PrepareHTMLPage() {
 func RunServer(cfg Config) {
 	r := chi.NewRouter()
 	handler.SetupRouters(r)
-	//addr := fmt.Sprintf("%s:%s", host, port)
 	server := &http.Server{
 		Addr:    cfg.Address,
 		Handler: r,

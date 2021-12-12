@@ -10,11 +10,6 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
-//const (
-//	pollInterval = 2 * time.Second
-//	reportInterval = 10 * time.Second
-//)
-
 type Config struct {
 	Address        string         `env:"ADDRESS"`
 	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
@@ -56,8 +51,6 @@ func RunAgent(cfg Config) {
 
 	client := http.Client{Timeout: 2 * time.Second}
 
-	//pollTicker := time.NewTicker(pollInterval)
-	//reportTicker := time.NewTicker(reportInterval)
 	pollTicker := time.NewTicker(cfg.PollInterval)
 	reportTicker := time.NewTicker(cfg.ReportInterval)
 	for {

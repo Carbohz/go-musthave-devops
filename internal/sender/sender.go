@@ -7,11 +7,6 @@ import (
 	"net/http"
 )
 
-//const (
-//	host = "127.0.0.1"
-//	port = "8080"
-//)
-
 func SendGaugeMetric(client *http.Client, m metrics.GaugeMetric, address string) error {
 	url := fmt.Sprintf("http://%s/update/%s/%s/%f", address, m.Typename, m.Name, m.Value)
 	return Send(client, url, m.Base)
