@@ -28,36 +28,7 @@ func main() {
 	exitChan := make(chan int, 1)
 	log.Println("Awaiting interrupt signal")
 	go AwaitInterruptSignal(exitChan)
-	//signalChanel := make(chan os.Signal, 1)
-	//signal.Notify(signalChanel,
-	//	syscall.SIGINT,
-	//	syscall.SIGTERM,
-	//	syscall.SIGQUIT)
-	//
-	//exitChan := make(chan int, 1)
-	//go func() {
-	//	s := <-signalChanel
-	//	switch s {
-	//	case syscall.SIGINT:
-	//		log.Printf("%s signal triggered.", s)
-	//		exitChan <- 1
-	//
-	//	case syscall.SIGTERM:
-	//		log.Printf("%s signal triggered.", s)
-	//		exitChan <- 2
-	//
-	//	case syscall.SIGQUIT:
-	//		log.Printf("%s signal triggered.", s)
-	//		exitChan <- 3
-	//
-	//	default:
-	//		log.Printf("%s signal triggered.", s)
-	//		exitChan <- 1
-	//	}
-	//}()
-
 	go RunServer(cfg)
-	//log.Println("awaiting interrupt signal")
 	exitCode := <-exitChan
 	log.Println("Dumping metrics and exiting")
 	handler.DumpMetricsImpl(cfg)
@@ -156,7 +127,6 @@ func AwaitInterruptSignal(exitChan chan<- int) {
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
-	//exitChan := make(chan int, 1)
 	go func() {
 		s := <-signalChanel
 		switch s {

@@ -134,7 +134,6 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	log.Print("type: ", m.MType, ", id: ", m.ID)
 
 	updateMetricsStorage(m)
 
@@ -167,7 +166,6 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	log.Print("type: ", m.MType, ", id: ", m.ID)
 
 	switch m.MType {
 	case metrics.Gauge:
@@ -188,17 +186,17 @@ func DumpMetrics(cfg Config) {
 	ticker := time.NewTicker(cfg.StoreInterval)
 	for {
 		<-ticker.C
-		log.Println("Saving metrics to file")
+		log.Printf("Dumping metrics to file %s", cfg.StoreFile)
 		DumpMetricsImpl(cfg)
 	}
 }
 
 func DumpMetricsImpl(cfg Config) {
-	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
-	f, err := os.OpenFile(cfg.StoreFile, flags, 0644)
+	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
 	if err != nil {
-		log.Fatal("Can't open file for writing: ", err)
+		log.Fatal("Can't open file for dumping: ", err)
 	}
 	defer f.Close()
 
@@ -210,18 +208,18 @@ func DumpMetricsImpl(cfg Config) {
 	}
 
 	if err := encoder.Encode(internalStorage); err != nil {
-		log.Fatal("Can't encode internal metrics: ", err)
+		log.Fatal("Can't encode server's metrics: ", err)
 	}
 }
 
 func LoadMetrics(cfg Config) {
-	log.Println("Loading metrics from file")
+	log.Printf("Loading metrics from file %s", cfg.StoreFile)
 
-	flags := os.O_RDONLY
+	flag := os.O_RDONLY
 
-	f, err := os.OpenFile(cfg.StoreFile, flags, 0)
+	f, err := os.OpenFile(cfg.StoreFile, flag, 0)
 	if err != nil {
-		log.Print("Can't open file for reading: ", err)
+		log.Print("Can't open file for loading metrics: ", err)
 		return
 	}
 	defer f.Close()
@@ -229,10 +227,10 @@ func LoadMetrics(cfg Config) {
 	var internalStorage InternalStorage
 
 	if err := json.NewDecoder(f).Decode(&internalStorage); err != nil {
-		log.Fatal("Can't decode metrics ", err)
+		log.Fatal("Can't decode metrics: ", err)
 	}
 
 	gaugeMetricsStorage = internalStorage.GaugeMetrics
 	counterMetricsStorage = internalStorage.CounterMetrics
-	log.Println("Metrics successfully loaded from file")
+	log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
 }
