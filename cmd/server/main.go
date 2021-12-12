@@ -35,10 +35,6 @@ func main() {
 
 	var cfg handler.Config
 
-	cfg.StoreInterval = defaultStoreInterval
-	cfg.StoreFile = defaultStoreFile
-	cfg.Restore = true
-
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
@@ -48,17 +44,20 @@ func main() {
 		cfg.Address = defaultAddress
 	}
 
-	//if cfg.StoreInterval == 0 {
-	//	cfg.StoreInterval = defaultStoreInterval
-	//}
-	//
-	//if cfg.StoreFile == "" {
-	//	cfg.StoreFile = defaultStoreFile
-	//}
+	_, isSet := os.LookupEnv("STORE_INTERVAL")
+	if !isSet {
+		cfg.StoreInterval = defaultStoreInterval
+	}
 
-	//if !cfg.Restore {
-	//	cfg.Restore = defaultRestore
-	//}
+	_, isSet = os.LookupEnv("STORE_FILE")
+	if !isSet {
+		cfg.StoreFile = defaultStoreFile
+	}
+
+	_, isSet = os.LookupEnv("RESTORE")
+	if !isSet {
+		cfg.Restore = defaultRestore
+	}
 
 	PrepareHTMLPage()
 	//go RunServer(cfg)
@@ -98,7 +97,7 @@ func main() {
 	log.Println("awaiting signal")
 	exitCode := <-exitChan
 	log.Println("Saving metrics and exiting")
-	handler.SaveMetrics(cfg)
+	handler.SaveMetricsImpl(cfg)
 	os.Exit(exitCode)
 }
 

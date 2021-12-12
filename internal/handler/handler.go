@@ -190,11 +190,11 @@ func SaveMetrics(cfg Config) {
 	for {
 		<-ticker.C
 		log.Println("Saving metrics to file")
-		saveMetricsImpl(cfg)
+		SaveMetricsImpl(cfg)
 	}
 }
 
-func saveMetricsImpl(cfg Config) {
+func SaveMetricsImpl(cfg Config) {
 	//flags := os.O_WRONLY|os.O_CREATE
 	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
