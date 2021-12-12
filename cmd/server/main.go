@@ -21,15 +21,19 @@ const (
 	defaultRestore = true
 )
 
-type Config struct {
-	Address string 				`env:"ADDRESS"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile string 			`env:"STORE_FILE"`
-	Restore bool 				`env:"RESTORE"`
-}
+//type Config struct {
+//	Address string 				`env:"ADDRESS"`
+//	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+//	StoreFile string 			`env:"STORE_FILE"`
+//	Restore bool 				`env:"RESTORE"`
+//}
 
 func main() {
-	var cfg Config
+	// 1. Create config
+	// 2. Prepare HTML page
+	// 3. HandleInterrupts
+
+	var cfg handler.Config
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
@@ -99,9 +103,9 @@ func PrepareHTMLPage() {
 	}
 }
 
-func RunServer(cfg Config) {
+func RunServer(cfg handler.Config) {
 	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
-		go metricsSaver(cfg)
+		go handler.MetricsSaver(cfg)
 	}
 
 	r := chi.NewRouter()
@@ -115,25 +119,25 @@ func RunServer(cfg Config) {
 	log.Fatal(server.ListenAndServe())
 }
 
-func metricsSaver(cfg Config) {
-	ticker := time.NewTicker(cfg.StoreInterval)
-	for {
-		<-ticker.C
-		saveMetrics(cfg)
-	}
-}
-
-func saveMetrics(cfg Config) {
-	flags := os.O_WRONLY|os.O_CREATE|os.O_APPEND
-
-	f, err := os.OpenFile(cfg.StoreFile, flags, 0777) //0644
-	if err != nil {
-		log.Fatal("cannot open file for writing: ", err)
-	}
-	defer f.Close()
-
-	//if err := json.NewEncoder(f).Encode(statistics); err != nil {
-	//	log.Fatal("cannot encode statistics: ", err)
-	//}
-	f.Write([]byte(`{"id":"llvm","type":"gauge","value":10}`))
-}
+//func metricsSaver(cfg handler.Config) {
+//	ticker := time.NewTicker(cfg.StoreInterval)
+//	for {
+//		<-ticker.C
+//		saveMetrics(cfg)
+//	}
+//}
+//
+//func saveMetrics(cfg handler.Config) {
+//	flags := os.O_WRONLY|os.O_CREATE|os.O_APPEND
+//
+//	f, err := os.OpenFile(cfg.StoreFile, flags, 0777) //0644
+//	if err != nil {
+//		log.Fatal("cannot open file for writing: ", err)
+//	}
+//	defer f.Close()
+//
+//	//if err := json.NewEncoder(f).Encode(statistics); err != nil {
+//	//	log.Fatal("cannot encode statistics: ", err)
+//	//}
+//	f.Write([]byte(`{"id":"llvm","type":"gauge","value":10}`))
+//}

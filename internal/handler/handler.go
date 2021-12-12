@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"text/template"
+	"time"
 
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
 	"github.com/go-chi/chi"
@@ -22,6 +24,13 @@ type Metrics struct {
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
+type Config struct {
+	Address string 				`env:"ADDRESS"`
+	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+	StoreFile string 			`env:"STORE_FILE"`
+	Restore bool 				`env:"RESTORE"`
 }
 
 func SetupRouters(r *chi.Mux) {
@@ -168,4 +177,29 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(m)
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func MetricsSaver(cfg Config) {
+	ticker := time.NewTicker(cfg.StoreInterval)
+	for {
+		<-ticker.C
+		saveMetrics(cfg)
+	}
+}
+
+func saveMetrics(cfg Config) {
+	flags := os.O_WRONLY|os.O_CREATE|os.O_APPEND
+
+	f, err := os.OpenFile(cfg.StoreFile, flags, 0777) //0644
+	if err != nil {
+		log.Fatal("cannot open file for writing: ", err)
+	}
+	defer f.Close()
+
+	if err := json.NewEncoder(f).Encode(gaugeMetricsStorage); err != nil {
+		log.Fatal("cannot encode gaugeMetricsStorage: ", err)
+	}
+
+	// dummy test save
+	//f.Write([]byte(`{"id":"llvm","type":"gauge","value":10}`))
 }
