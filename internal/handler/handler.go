@@ -184,21 +184,19 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func SaveMetrics(cfg Config) {
-	//log.Println("Saving metrics to file")
+func DumpMetrics(cfg Config) {
 	ticker := time.NewTicker(cfg.StoreInterval)
 	for {
 		<-ticker.C
 		log.Println("Saving metrics to file")
-		SaveMetricsImpl(cfg)
+		DumpMetricsImpl(cfg)
 	}
 }
 
-func SaveMetricsImpl(cfg Config) {
-	//flags := os.O_WRONLY|os.O_CREATE
+func DumpMetricsImpl(cfg Config) {
 	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
-	f, err := os.OpenFile(cfg.StoreFile, flags, 0644) // 0777
+	f, err := os.OpenFile(cfg.StoreFile, flags, 0644)
 	if err != nil {
 		log.Fatal("cannot open file for writing: ", err)
 	}
@@ -211,20 +209,9 @@ func SaveMetricsImpl(cfg Config) {
 		CounterMetrics: counterMetricsStorage,
 	}
 
-	//if err := encoder.Encode(gaugeMetricsStorage); err != nil {
-	//	log.Fatal("cannot encode gaugeMetricsStorage: ", err)
-	//}
-	//
-	//if err = encoder.Encode(counterMetricsStorage); err != nil {
-	//	log.Fatal("cannot encode counterMetricsStorage: ", err)
-	//}
-
 	if err := encoder.Encode(internalStorage); err != nil {
 		log.Fatal("cannot encode internal metrics: ", err)
 	}
-
-	// dummy test save
-	//f.Write([]byte(`{"id":"llvm","type":"gauge","value":10}`))
 }
 
 func LoadMetrics(cfg Config) {
