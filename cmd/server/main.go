@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/Carbohz/go-musthave-devops/internal/handler"
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
@@ -40,23 +41,48 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if cfg.Address == "" {
-		cfg.Address = defaultAddress
+	// ENV > CMD
+	addressFlagPtr := flag.String("a", defaultAddress, "set address of server")
+	storeIntervalFlagPtr := flag.Duration("i", defaultStoreInterval, "set server's metrics store interval")
+	storeFileFlagPtr := flag.String("f", defaultStoreFile, "set file where metrics are stored")
+	restoreFlagPtr := flag.Bool("r", defaultRestore, "choose whether to restore server metrics from file")
+
+	flag.Parse()
+
+	_, isSet := os.LookupEnv("ADDRESS")
+	if !isSet {
+		if addressFlagPtr != nil {
+			cfg.Address = *addressFlagPtr
+		} else {
+			cfg.Address = defaultAddress
+		}
 	}
 
-	_, isSet := os.LookupEnv("STORE_INTERVAL")
+	_, isSet = os.LookupEnv("STORE_INTERVAL")
 	if !isSet {
-		cfg.StoreInterval = defaultStoreInterval
+		if storeIntervalFlagPtr != nil {
+			cfg.StoreInterval = *storeIntervalFlagPtr
+		} else {
+			cfg.StoreInterval = defaultStoreInterval
+		}
 	}
 
 	_, isSet = os.LookupEnv("STORE_FILE")
 	if !isSet {
-		cfg.StoreFile = defaultStoreFile
+		if storeFileFlagPtr != nil {
+			cfg.StoreFile = *storeFileFlagPtr
+		} else {
+			cfg.StoreFile = defaultStoreFile
+		}
 	}
 
 	_, isSet = os.LookupEnv("RESTORE")
 	if !isSet {
-		cfg.Restore = defaultRestore
+		if restoreFlagPtr != nil {
+			cfg.Restore = *restoreFlagPtr
+		} else {
+			cfg.Restore = defaultRestore
+		}
 	}
 
 	PrepareHTMLPage()

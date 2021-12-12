@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
 	"github.com/Carbohz/go-musthave-devops/internal/sender"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/caarlos0/env/v6"
@@ -12,8 +14,8 @@ import (
 
 type Config struct {
 	Address        string         `env:"ADDRESS"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 	PollInterval   time.Duration `env:"POLL_INTERVAL"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 }
 
 const (
@@ -29,17 +31,50 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if cfg.Address == "" {
-		cfg.Address = defaultAddress
+	addressFlagPtr := flag.String("a", defaultAddress, "set server's address where you want to send metrics")
+	pollIntervalFlagPtr := flag.Duration("p", defaultPollInterval, "set metrics poll interval")
+	reportIntervalFlagPtr := flag.Duration("r", defaultReportInterval, "set metrics report interval")
+
+	flag.Parse()
+
+	_, isSet := os.LookupEnv("ADDRESS")
+	if !isSet {
+		if addressFlagPtr != nil {
+			cfg.Address = *addressFlagPtr
+		} else {
+			cfg.Address = defaultAddress
+		}
 	}
 
-	if cfg.ReportInterval == 0 {
-		cfg.ReportInterval = defaultReportInterval
+	_, isSet = os.LookupEnv("POLL_INTERVAL")
+	if !isSet {
+		if pollIntervalFlagPtr != nil {
+			cfg.PollInterval = *pollIntervalFlagPtr
+		} else {
+			cfg.PollInterval = defaultPollInterval
+		}
 	}
 
-	if cfg.PollInterval == 0 {
-		cfg.PollInterval = defaultPollInterval
+	_, isSet = os.LookupEnv("REPORT_INTERVAL")
+	if !isSet {
+		if reportIntervalFlagPtr != nil {
+			cfg.ReportInterval = *reportIntervalFlagPtr
+		} else {
+			cfg.ReportInterval = defaultReportInterval
+		}
 	}
+
+	//if cfg.Address == "" {
+	//	cfg.Address = defaultAddress
+	//}
+	//
+	//if cfg.ReportInterval == 0 {
+	//	cfg.ReportInterval = defaultReportInterval
+	//}
+	//
+	//if cfg.PollInterval == 0 {
+	//	cfg.PollInterval = defaultPollInterval
+	//}
 
 	RunAgent(cfg)
 }
