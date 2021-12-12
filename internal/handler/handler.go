@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 	"text/template"
 	"time"
 
@@ -19,8 +18,6 @@ import (
 var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
-
-var mutex sync.Mutex
 
 type InternalStorage struct {
 	GaugeMetrics map[string]metrics.GaugeMetric
@@ -193,9 +190,7 @@ func SaveMetrics(cfg Config) {
 	for {
 		<-ticker.C
 		log.Println("Saving metrics to file")
-		mutex.Lock()
 		saveMetricsImpl(cfg)
-		mutex.Unlock()
 	}
 }
 
@@ -236,8 +231,6 @@ func LoadMetrics(cfg Config) {
 	log.Println("Loading metrics from file")
 
 	flags := os.O_RDONLY
-	mutex.Lock()
-	defer mutex.Unlock()
 
 	f, err := os.OpenFile(cfg.StoreFile, flags, 0)
 	if err != nil {
