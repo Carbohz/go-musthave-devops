@@ -56,11 +56,13 @@ func RunAgent(cfg Config) {
 	for {
 		select {
 			case <-pollTicker.C:
+				log.Println("Collecting Metrics")
 				metrics.IncrementPollCountMetric()
 				runtimeMetrics = metrics.GetRuntimeMetrics()
 				randomValueMetric = metrics.GetRandomValueMetric()
 				pollCountMetric = metrics.GetPollCountMetric()
 			case <-reportTicker.C:
+				log.Println("Sending Metrics")
 				for _, m := range runtimeMetrics {
 					sender.SendGaugeMetric(&client, m, cfg.Address)
 				}

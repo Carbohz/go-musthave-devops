@@ -19,6 +19,11 @@ var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
 
+type InternalStorage struct {
+	GaugeMetrics map[string]metrics.GaugeMetric
+	CounterMetrics map[string]metrics.CounterMetric
+}
+
 type Metrics struct {
 	ID    string   `json:"id"`              // имя метрики
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
@@ -179,16 +184,18 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func MetricsSaver(cfg Config) {
+func SaveMetrics(cfg Config) {
+	//log.Println("Saving metrics to file")
 	ticker := time.NewTicker(cfg.StoreInterval)
 	for {
 		<-ticker.C
-		saveMetrics(cfg)
+		log.Println("Saving metrics to file")
+		saveMetricsImpl(cfg)
 	}
 }
 
-func saveMetrics(cfg Config) {
-	flags := os.O_WRONLY|os.O_CREATE|os.O_APPEND
+func saveMetricsImpl(cfg Config) {
+	flags := os.O_WRONLY|os.O_CREATE
 
 	f, err := os.OpenFile(cfg.StoreFile, flags, 0777) //0644
 	if err != nil {
@@ -196,8 +203,23 @@ func saveMetrics(cfg Config) {
 	}
 	defer f.Close()
 
-	if err := json.NewEncoder(f).Encode(gaugeMetricsStorage); err != nil {
-		log.Fatal("cannot encode gaugeMetricsStorage: ", err)
+	encoder := json.NewEncoder(f)
+
+	internalStorage := InternalStorage{
+		GaugeMetrics: gaugeMetricsStorage,
+		CounterMetrics: counterMetricsStorage,
+	}
+
+	//if err := encoder.Encode(gaugeMetricsStorage); err != nil {
+	//	log.Fatal("cannot encode gaugeMetricsStorage: ", err)
+	//}
+	//
+	//if err = encoder.Encode(counterMetricsStorage); err != nil {
+	//	log.Fatal("cannot encode counterMetricsStorage: ", err)
+	//}
+
+	if err := encoder.Encode(internalStorage); err != nil {
+		log.Fatal("cannot encode internal metrics: ", err)
 	}
 
 	// dummy test save

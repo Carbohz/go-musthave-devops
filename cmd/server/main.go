@@ -16,7 +16,7 @@ import (
 const (
 	htmlFile = "index.html"
 	defaultAddress = "127.0.0.1:8080"
-	defaultStoreInterval = 2 * time.Second // 300
+	defaultStoreInterval = 10 * time.Second // 300
 	defaultStoreFile = "tmp/devops-metrics-db.json" //"/tmp/devops-metrics-db.json"
 	defaultRestore = true
 )
@@ -105,7 +105,7 @@ func PrepareHTMLPage() {
 
 func RunServer(cfg handler.Config) {
 	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
-		go handler.MetricsSaver(cfg)
+		go handler.SaveMetrics(cfg)
 	}
 
 	r := chi.NewRouter()
@@ -119,25 +119,3 @@ func RunServer(cfg handler.Config) {
 	log.Fatal(server.ListenAndServe())
 }
 
-//func metricsSaver(cfg handler.Config) {
-//	ticker := time.NewTicker(cfg.StoreInterval)
-//	for {
-//		<-ticker.C
-//		saveMetrics(cfg)
-//	}
-//}
-//
-//func saveMetrics(cfg handler.Config) {
-//	flags := os.O_WRONLY|os.O_CREATE|os.O_APPEND
-//
-//	f, err := os.OpenFile(cfg.StoreFile, flags, 0777) //0644
-//	if err != nil {
-//		log.Fatal("cannot open file for writing: ", err)
-//	}
-//	defer f.Close()
-//
-//	//if err := json.NewEncoder(f).Encode(statistics); err != nil {
-//	//	log.Fatal("cannot encode statistics: ", err)
-//	//}
-//	f.Write([]byte(`{"id":"llvm","type":"gauge","value":10}`))
-//}
