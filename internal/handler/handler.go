@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -114,6 +115,13 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	//w.Header().Set("Content-Type", http.DetectContentType(yourBody))
+
+	// проверяем, что клиент поддерживает gzip-сжатие
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		w.Header().Set("Content-Encoding", "gzip")
+	}
+
 	renderData := map[string]interface{}{
 		"gaugeMetrics":   gaugeMetricsStorage,
 		"counterMetrics": counterMetricsStorage,
