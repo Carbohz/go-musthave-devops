@@ -120,6 +120,7 @@ func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	// проверяем, что клиент поддерживает gzip-сжатие
 	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Content-Type", "text/html")
 	}
 
 	renderData := map[string]interface{}{
