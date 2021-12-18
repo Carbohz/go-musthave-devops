@@ -5,6 +5,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/internal/handler"
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -56,6 +57,7 @@ func RunServer(cfg handler.Config) {
 	}
 
 	r := chi.NewRouter()
+	r.Use(middleware.Compress(5))
 	handler.SetupRouters(r)
 	server := &http.Server{
 		Addr:    cfg.Address,
