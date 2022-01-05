@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Carbohz/go-musthave-devops/internal/metrics"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/Carbohz/go-musthave-devops/internal/metrics"
+	"github.com/Carbohz/go-musthave-devops/internal/common"
 	"github.com/go-chi/chi"
 )
 
@@ -20,22 +21,22 @@ var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
 
 type InternalStorage struct {
-	GaugeMetrics map[string]metrics.GaugeMetric
+	GaugeMetrics   map[string]metrics.GaugeMetric
 	CounterMetrics map[string]metrics.CounterMetric
 }
 
-type Metrics struct {
-	ID    string   `json:"id"`              // имя метрики
-	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
-	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
-	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
-}
+//type Metrics struct {
+//	ID    string   `json:"id"`              // имя метрики
+//	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+//	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+//	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+//}
 
 type Config struct {
-	Address string 				`env:"ADDRESS"`
+	Address       string        `env:"ADDRESS"`
 	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile string 			`env:"STORE_FILE"`
-	Restore bool 				`env:"RESTORE"`
+	StoreFile     string        `env:"STORE_FILE"`
+	Restore       bool          `env:"RESTORE"`
 }
 
 func SetupRouters(r *chi.Mux) {
@@ -130,7 +131,7 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := Metrics{}
+	m := common.Metrics{}
 	err = json.Unmarshal(body, &m)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -141,7 +142,7 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func updateMetricsStorage(m Metrics) {
+func updateMetricsStorage(m common.Metrics) {
 	switch m.MType {
 	case metrics.Gauge:
 		gaugeMetricsStorage[m.ID] = metrics.GaugeMetric{
@@ -162,7 +163,7 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := Metrics{}
+	m := common.Metrics{}
 	err = json.Unmarshal(body, &m)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -204,7 +205,7 @@ func DumpMetricsImpl(cfg Config) {
 	encoder := json.NewEncoder(f)
 
 	internalStorage := InternalStorage{
-		GaugeMetrics: gaugeMetricsStorage,
+		GaugeMetrics:   gaugeMetricsStorage,
 		CounterMetrics: counterMetricsStorage,
 	}
 
