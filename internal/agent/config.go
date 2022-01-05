@@ -19,7 +19,7 @@ const (
 	defaultAddress        = "127.0.0.1:8080"
 	defaultPollInterval   = 2 * time.Second
 	defaultReportInterval = 10 * time.Second
-	defaultKeyHash        = "abracadabra"
+	defaultKeyHash        = ""
 )
 
 func CreateConfig() Config {

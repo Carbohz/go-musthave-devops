@@ -48,9 +48,11 @@ func SendMetricsJSON(client *http.Client, runtimeMetrics []metrics.GaugeMetric,
 	allMetrics := createMetricsArr(runtimeMetrics, randomValueMetric, pollCountMetric, cfg.Key)
 
 	body := marshallMetricsJSON(allMetrics)
+
 	resp, err := client.Post(url, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		log.Println("Failed to \"Post\" metrics in JSON format")
+		return err
 	}
 	defer resp.Body.Close()
 	return err
@@ -61,7 +63,7 @@ func marshallMetricsJSON(allMetrics []common.Metrics) []byte {
 	if err != nil {
 		log.Fatalf("Error occured during metrics marshalling: %v", err)
 	}
-	fmt.Println(string(rawJSON))
+	log.Printf("Generated raw JSON: %v", string(rawJSON))
 	return rawJSON
 }
 
