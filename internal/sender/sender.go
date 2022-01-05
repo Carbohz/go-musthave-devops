@@ -78,7 +78,6 @@ func createMetricsArr(runtimeMetrics []metrics.GaugeMetric,
 		currentMetric.ID = m.Name
 		currentMetric.MType = m.Typename
 		currentMetric.Value = &m.Value
-		//currentMetric.Delta
 		currentMetric.Hash = generateHash(currentMetric, key)
 
 		metricsArr = append(metricsArr, currentMetric)
@@ -109,6 +108,7 @@ func generateHash(currentMetric common.Metrics, key string) string {
 	if err != nil {
 		return ""
 	} else {
-		return string(hash)
+		//return string(hash)
+		return fmt.Sprintf("%x", hash)
 	}
 }
