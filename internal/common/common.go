@@ -1,6 +1,7 @@
 package common
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
 )
@@ -49,7 +50,8 @@ func (m Metrics) ComputeHash(key string) ([]byte, error) {
 	//hash := h.Sum(nil)
 	//return hash, nil
 
-	h := sha256.New()
+	//h := sha256.New()
+	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(toHash))
 	hash := h.Sum(nil)
 	//log.Printf("%x", hash)
