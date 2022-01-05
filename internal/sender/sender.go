@@ -19,8 +19,6 @@ type AllMetrics struct {
 	Hash              string `json:"hash,omitempty"` // значение хеш-функции
 }
 
-//var allMetricsss []common.Metrics
-
 func SendGaugeMetric(client *http.Client, m metrics.GaugeMetric, address string) error {
 	url := fmt.Sprintf("http://%s/update/%s/%s/%f", address, m.Typename, m.Name, m.Value)
 	return Send(client, url, m.Base)
@@ -48,9 +46,9 @@ func SendMetricsJSON(client *http.Client, runtimeMetrics []metrics.GaugeMetric,
 
 	allMetrics := createMetricsArr(runtimeMetrics, randomValueMetric, pollCountMetric, cfg.Key)
 
-	body := marshallMetricsJSON(allMetrics)
+	body := bytes.NewBuffer(marshallMetricsJSON(allMetrics))
 
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(body))
+	resp, err := client.Post(url, "application/json", body)
 	if err != nil {
 		log.Println("Failed to \"Post\" metrics in JSON format")
 		return err

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
+	"github.com/Carbohz/go-musthave-devops/internal/server"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,20 +24,6 @@ var HTMLTemplate *template.Template
 type InternalStorage struct {
 	GaugeMetrics   map[string]metrics.GaugeMetric
 	CounterMetrics map[string]metrics.CounterMetric
-}
-
-//type Metrics struct {
-//	ID    string   `json:"id"`              // имя метрики
-//	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
-//	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
-//	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
-//}
-
-type Config struct {
-	Address       string        `env:"ADDRESS"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile     string        `env:"STORE_FILE"`
-	Restore       bool          `env:"RESTORE"`
 }
 
 func SetupRouters(r *chi.Mux) {
@@ -184,7 +171,7 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func DumpMetrics(cfg Config) {
+func DumpMetrics(cfg server.Config) {
 	ticker := time.NewTicker(cfg.StoreInterval)
 	for {
 		<-ticker.C
@@ -193,7 +180,7 @@ func DumpMetrics(cfg Config) {
 	}
 }
 
-func DumpMetricsImpl(cfg Config) {
+func DumpMetricsImpl(cfg server.Config) {
 	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
 	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
@@ -214,7 +201,7 @@ func DumpMetricsImpl(cfg Config) {
 	}
 }
 
-func LoadMetrics(cfg Config) {
+func LoadMetrics(cfg server.Config) {
 	log.Printf("Loading metrics from file %s", cfg.StoreFile)
 
 	flag := os.O_RDONLY
