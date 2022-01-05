@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/Carbohz/go-musthave-devops/internal/common"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -93,14 +94,14 @@ func TestGaugeMetricHandler(t *testing.T) {
 
 func TestUnknownTypeMetricHandler(t *testing.T) {
 	tests := []struct {
-		name     string
-		URL      string
+		name string
+		URL  string
 		//pattern  string
 		wantCode int
 	}{
 		{
-			name:     "update invalid type",
-			URL:      "/update/unknown/testCounter/100",
+			name: "update invalid type",
+			URL:  "/update/unknown/testCounter/100",
 			//pattern:  "/update/{metricType}/{metricName}/{metricValue}",
 			wantCode: http.StatusNotImplemented,
 		},
@@ -230,7 +231,7 @@ func TestGetMetricsJSONHandler(t *testing.T) {
 
 			// unpack result
 			body, _ := ioutil.ReadAll(res.Body)
-			m := Metrics{}
+			m := common.Metrics{}
 			json.Unmarshal(body, &m)
 			log.Print("type: ", m.MType, ", id: ", m.ID)
 

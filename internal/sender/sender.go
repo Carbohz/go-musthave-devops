@@ -2,6 +2,7 @@ package sender
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/agent"
@@ -108,7 +109,13 @@ func generateHash(currentMetric common.Metrics, key string) string {
 	if err != nil {
 		return ""
 	} else {
+		//1
 		//return string(hash)
-		return fmt.Sprintf("%x", hash)
+
+		// 2
+		//return fmt.Sprintf("%x", hash)
+
+		// 3
+		return hex.EncodeToString(hash)
 	}
 }
