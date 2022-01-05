@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 )
 
@@ -20,7 +21,7 @@ type Metrics struct {
 }
 
 // ComputeHash calculates hash for metrics
-func (m Metrics) ComputeHash(key string) ([]byte, error) {
+func (m Metrics) computeHash(key string) ([]byte, error) {
 	if key == "" {
 		return nil, fmt.Errorf("no key")
 	}
@@ -56,4 +57,35 @@ func (m Metrics) ComputeHash(key string) ([]byte, error) {
 	hash := h.Sum(nil)
 	//log.Printf("%x", hash)
 	return hash, nil
+}
+
+func (m Metrics) GenerateHash(key string) string {
+	hash, err := m.computeHash(key)
+	if err != nil {
+		return ""
+	} else {
+		//1
+		//return string(hash)
+
+		// 2
+		//return fmt.Sprintf("%x", hash)
+
+		// 3
+		return hex.EncodeToString(hash)
+	}
+}
+
+func (m Metrics) CheckHash(key string) error {
+	if key == "" {
+		return nil
+	}
+	h, err := m.computeHash(key)
+	if err != nil {
+		return err
+	}
+	hashStr := hex.EncodeToString(h)
+	if m.Hash != hashStr {
+		return fmt.Errorf("hash value incorrect")
+	}
+	return nil
 }

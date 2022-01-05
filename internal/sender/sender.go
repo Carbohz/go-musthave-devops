@@ -2,7 +2,6 @@ package sender
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/agent"
@@ -77,7 +76,8 @@ func createMetricsArr(runtimeMetrics []metrics.GaugeMetric,
 		currentMetric.ID = m.Name
 		currentMetric.MType = m.Typename
 		currentMetric.Value = &m.Value
-		currentMetric.Hash = generateHash(currentMetric, key)
+		//currentMetric.Hash = generateHash(currentMetric, key)
+		currentMetric.Hash = currentMetric.GenerateHash(key)
 
 		metricsArr = append(metricsArr, currentMetric)
 	}
@@ -86,7 +86,8 @@ func createMetricsArr(runtimeMetrics []metrics.GaugeMetric,
 	currentMetric.ID = randomValueMetric.Name
 	currentMetric.MType = randomValueMetric.Typename
 	currentMetric.Value = &randomValueMetric.Value
-	currentMetric.Hash = generateHash(currentMetric, key)
+	//currentMetric.Hash = generateHash(currentMetric, key)
+	currentMetric.Hash = currentMetric.GenerateHash(key)
 	metricsArr = append(metricsArr, currentMetric)
 
 	// bad code - resetting for correct next assignments
@@ -96,24 +97,40 @@ func createMetricsArr(runtimeMetrics []metrics.GaugeMetric,
 	currentMetric.ID = pollCountMetric.Name
 	currentMetric.MType = pollCountMetric.Typename
 	currentMetric.Delta = &pollCountMetric.Value
-	currentMetric.Hash = generateHash(currentMetric, key)
+	//currentMetric.Hash = generateHash(currentMetric, key)
+	currentMetric.Hash = currentMetric.GenerateHash(key)
 	metricsArr = append(metricsArr, currentMetric)
 
 	return metricsArr
 }
 
-func generateHash(currentMetric common.Metrics, key string) string {
-	hash, err := currentMetric.ComputeHash(key)
-	if err != nil {
-		return ""
-	} else {
-		//1
-		//return string(hash)
-
-		// 2
-		//return fmt.Sprintf("%x", hash)
-
-		// 3
-		return hex.EncodeToString(hash)
-	}
-}
+//func generateHash(currentMetric common.Metrics, key string) string {
+//	hash, err := currentMetric.ComputeHash(key)
+//	if err != nil {
+//		return ""
+//	} else {
+//		//1
+//		//return string(hash)
+//
+//		// 2
+//		//return fmt.Sprintf("%x", hash)
+//
+//		// 3
+//		return hex.EncodeToString(hash)
+//	}
+//}
+//
+//func (m common.Metrics) CheckHash(key string) error {
+//	if key == "" {
+//		return nil
+//	}
+//	h, err := m.ComputeHash(key)
+//	if err != nil {
+//		return err
+//	}
+//	hashStr := hex.EncodeToString(*h)
+//	if m.Hash != hashStr {
+//		return fmt.Errorf("hash value incorrect")
+//	}
+//	return nil
+//}
