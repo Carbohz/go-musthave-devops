@@ -159,6 +159,7 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	m := common.Metrics{}
 	err = json.Unmarshal(body, &m)
 	if err != nil {
+		log.Printf("Unmarshalling JSON error: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
