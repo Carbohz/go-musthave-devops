@@ -20,6 +20,7 @@ import (
 var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
+var secretKey string
 
 type InternalStorage struct {
 	GaugeMetrics   map[string]metrics.GaugeMetric
@@ -113,6 +114,7 @@ func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 // UpdateMetricsJSONHandler Передача метрик на сервер
 func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
+	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -124,9 +126,13 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	updateMetricsStorage(m)
-
-	w.WriteHeader(http.StatusOK)
+	err = m.CheckHash(secretKey)
+	if err == nil {
+		updateMetricsStorage(m)
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 }
 
 func updateMetricsStorage(m common.Metrics) {
@@ -222,4 +228,8 @@ func LoadMetrics(cfg server.Config) {
 	gaugeMetricsStorage = internalStorage.GaugeMetrics
 	counterMetricsStorage = internalStorage.CounterMetrics
 	log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
+}
+
+func PassSecretKey(key string) {
+	secretKey = key
 }

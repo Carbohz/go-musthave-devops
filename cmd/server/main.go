@@ -50,6 +50,9 @@ func RunServer(cfg server.Config) {
 		go handler.DumpMetrics(cfg)
 	}
 
+	// new function
+	handler.PassSecretKey(cfg.Key)
+
 	r := chi.NewRouter()
 	r.Use(middleware.Compress(5))
 	handler.SetupRouters(r)
