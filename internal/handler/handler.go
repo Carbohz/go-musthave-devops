@@ -235,6 +235,16 @@ func generateSingleMetric(body []byte) common.Metrics {
 		//http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
+	log.Println("***Initially unmarshalled single metric***")
+	switch m.MType {
+	case "gauge":
+		log.Printf("ID: %v, Type: %v, Value: %v", m.ID, m.MType, *m.Value)
+	case "counter":
+		log.Printf("ID: %v, Type: %v, Value: %v", m.ID, m.MType, *m.Delta)
+	default:
+		log.Println("Unknown metric type")
+	}
+
 	switch m.MType {
 	case metrics.Gauge:
 		v := gaugeMetricsStorage[m.ID].Value
@@ -244,6 +254,15 @@ func generateSingleMetric(body []byte) common.Metrics {
 		m.Delta = &v
 	}
 
+	log.Println("***Filled with server values single metric***")
+	switch m.MType {
+	case "gauge":
+		log.Printf("ID: %v, Type: %v, Value: %v", m.ID, m.MType, *m.Value)
+	case "counter":
+		log.Printf("ID: %v, Type: %v, Value: %v", m.ID, m.MType, *m.Delta)
+	default:
+		log.Println("Unknown metric type")
+	}
 	return m
 }
 
@@ -257,7 +276,7 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		log.Printf("Request body was: %s", string(body))
 	}
 
-	log.Println("Initially unmarshalled metrics array")
+	log.Println("***Initially unmarshalled metrics array***")
 	for _, mtrc := range mArr {
 		switch mtrc.MType {
 		case "gauge":
@@ -282,7 +301,7 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		}
 	}
 
-	log.Println("Filled with server values metrics array")
+	log.Println("***Filled with server values metrics array***")
 	for _, mtrc := range mArr {
 		switch mtrc.MType {
 		case "gauge":
