@@ -257,7 +257,17 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		log.Printf("Request body was: %s", string(body))
 	}
 
-	log.Printf("Initially unmarshalled metrics array: %v", mArr)
+	log.Println("Initially unmarshalled metrics array")
+	for _, mtrc := range mArr {
+		switch mtrc.MType {
+		case "gauge":
+			log.Printf("ID: %v, Type: %v, Value: %v", mtrc.ID, mtrc.MType, *mtrc.Value)
+		case "counter":
+			log.Printf("ID: %v, Type: %v, Value: %v", mtrc.ID, mtrc.MType, *mtrc.Delta)
+		default:
+			log.Println("Unknown metric type")
+		}
+	}
 
 	for i, m := range mArr {
 		switch m.MType {
@@ -272,6 +282,16 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		}
 	}
 
-	log.Printf("Filled with server values metrics array: %v", mArr)
+	log.Println("Filled with server values metrics array")
+	for _, mtrc := range mArr {
+		switch mtrc.MType {
+		case "gauge":
+			log.Printf("ID: %v, Type: %v, Value: %v", mtrc.ID, mtrc.MType, *mtrc.Value)
+		case "counter":
+			log.Printf("ID: %v, Type: %v, Value: %v", mtrc.ID, mtrc.MType, *mtrc.Delta)
+		default:
+			log.Println("Unknown metric type")
+		}
+	}
 	return mArr
 }
