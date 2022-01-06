@@ -4,7 +4,6 @@ import (
 	"github.com/Carbohz/go-musthave-devops/internal/handler"
 	"github.com/Carbohz/go-musthave-devops/internal/server"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -54,7 +53,7 @@ func RunServer(cfg server.Config) {
 	handler.PassSecretKey(cfg.Key)
 
 	r := chi.NewRouter()
-	r.Use(middleware.Compress(5))
+	//r.Use(middleware.Compress(5))
 	handler.SetupRouters(r)
 	server := &http.Server{
 		Addr:    cfg.Address,
