@@ -111,56 +111,57 @@ func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	HTMLTemplate.Execute(w, renderData)
 }
 
-//// UpdateMetricsJSONHandler Передача метрик на сервер /update/
-//func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
-//	body, err := ioutil.ReadAll(r.Body)
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusInternalServerError)
-//		return
-//	}
-//	w.Header().Set("Content-Type", "application/json")
-//
-//	log.Printf("/update/ handler called. Request body: %s", string(body))
-//
-//	m := common.Metrics{}
-//	err = json.Unmarshal(body, &m)
-//	if err != nil {
-//		log.Printf("Failed to unmarshal following request body: %s", string(body))
-//		http.Error(w, err.Error(), http.StatusBadRequest)
-//		return
-//	}
-//
-//	err = m.CheckHash(secretKey)
-//	if err == nil {
-//		log.Println("Hash matched, updating internal server metrics")
-//		updateMetricsStorage(m)
-//		w.WriteHeader(http.StatusOK)
-//		return
-//	} else {
-//		log.Println("Hash mismatched, bad request")
-//		w.WriteHeader(http.StatusBadRequest)
-//		return
-//	}
-//}
-
-// UpdateMetricsJSONHandler Передача метрик на сервер
+// UpdateMetricsJSONHandler Передача метрик на сервер /update/
 func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	//w.Header().Set("Content-Type", "application/json")
+
+	log.Printf("/update/ handler called. Request body: %s", string(body))
 
 	m := common.Metrics{}
 	err = json.Unmarshal(body, &m)
 	if err != nil {
+		log.Printf("Failed to unmarshal following request body: %s", string(body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	updateMetricsStorage(m)
-
-	w.WriteHeader(http.StatusOK)
+	err = m.CheckHash(secretKey)
+	if err == nil {
+		log.Println("Hash matched, updating internal server metrics")
+		updateMetricsStorage(m)
+		w.WriteHeader(http.StatusOK)
+		return
+	} else {
+		log.Println("Hash mismatched, bad request")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 }
+
+//// This version works
+//// UpdateMetricsJSONHandler Передача метрик на сервер
+//func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+//	body, err := ioutil.ReadAll(r.Body)
+//	if err != nil {
+//		http.Error(w, err.Error(), http.StatusInternalServerError)
+//		return
+//	}
+//
+//	m := common.Metrics{}
+//	err = json.Unmarshal(body, &m)
+//	if err != nil {
+//		http.Error(w, err.Error(), http.StatusBadRequest)
+//	}
+//
+//	updateMetricsStorage(m)
+//
+//	w.WriteHeader(http.StatusOK)
+//}
 
 func updateMetricsStorage(m common.Metrics) {
 	switch m.MType {
