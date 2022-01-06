@@ -66,5 +66,7 @@ func CreateConfig() Config {
 		cfg.Key = *keyHashFlagPtr
 	}
 
+	log.Printf("Final server configuration: %+v", cfg)
+
 	return cfg
 }

@@ -58,5 +58,7 @@ func CreateConfig() Config {
 		cfg.Key = *keyHashFlagPtr
 	}
 
+	log.Printf("Final Agent configuration: %+v", cfg)
+
 	return cfg
 }
