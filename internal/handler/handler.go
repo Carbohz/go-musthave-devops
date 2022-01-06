@@ -178,14 +178,16 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if string(body)[0] == '[' {
 		// body contains array of metrics
+		log.Println("Request body contains array of metrics")
 		json.NewEncoder(w).Encode(generateMultipleMetrics(body))
 	} else {
 		// body contains single metric
+		log.Println("Request body contains single metric")
 		json.NewEncoder(w).Encode(generateSingleMetric(body))
 	}
 	//json.NewEncoder(w).Encode(m)
 
-	w.WriteHeader(http.StatusOK)
+	//w.WriteHeader(http.StatusOK)
 }
 
 func DumpMetrics(cfg server.Config) {
@@ -282,11 +284,11 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		switch m.MType {
 		case metrics.Gauge:
 			v := gaugeMetricsStorage[m.ID].Value
-			m.Value = &v
+			// m.Value = &v
 			mArr[i].Value = &v
 		case metrics.Counter:
 			v := counterMetricsStorage[m.ID].Value
-			m.Delta = &v
+			// m.Delta = &v
 			mArr[i].Delta = &v
 		}
 	}
