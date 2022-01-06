@@ -156,31 +156,25 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var metricsArr []common.Metrics
-	err = json.Unmarshal(body, &metricsArr)
+	m := common.Metrics{}
+	err = json.Unmarshal(body, &m)
 	if err != nil {
 		log.Printf("Unmarshalling JSON error: %v", err)
 		log.Printf("Request body was: %s", string(body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	for _, m := range metricsArr {
-		switch m.MType {
-		case metrics.Gauge:
-			v := gaugeMetricsStorage[m.ID].Value
-			m.Value = &v
-		case metrics.Counter:
-			v := counterMetricsStorage[m.ID].Value
-			m.Delta = &v
-		}
+	switch m.MType {
+	case metrics.Gauge:
+		v := gaugeMetricsStorage[m.ID].Value
+		m.Value = &v
+	case metrics.Counter:
+		v := counterMetricsStorage[m.ID].Value
+		m.Delta = &v
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(metricsArr)
-	if err != nil {
-		log.Printf("Server failed to encode metric(s) %v to JSON format", metricsArr)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	json.NewEncoder(w).Encode(m)
 
 	w.WriteHeader(http.StatusOK)
 }
