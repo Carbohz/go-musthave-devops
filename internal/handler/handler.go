@@ -257,6 +257,8 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		log.Printf("Request body was: %s", string(body))
 	}
 
+	log.Printf("Initially unmarshalled metrics array: %v", mArr)
+
 	for i, m := range mArr {
 		switch m.MType {
 		case metrics.Gauge:
@@ -270,5 +272,6 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		}
 	}
 
+	log.Printf("Filled with server values metrics array: %v", mArr)
 	return mArr
 }
