@@ -157,38 +157,14 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//m := common.Metrics{}
-	//err = json.Unmarshal(body, &m)
-	//if err != nil {
-	//	log.Println("`GetMetricsJSONHandler` error triggered - `/value/` handler")
-	//	log.Printf("Unmarshalling JSON error: %v", err)
-	//	log.Printf("Request body was: %s", string(body))
-	//	http.Error(w, err.Error(), http.StatusBadRequest)
-	//}
-	//
-	//switch m.MType {
-	//case metrics.Gauge:
-	//	v := gaugeMetricsStorage[m.ID].Value
-	//	m.Value = &v
-	//case metrics.Counter:
-	//	v := counterMetricsStorage[m.ID].Value
-	//	m.Delta = &v
-	//}
-
 	w.Header().Set("Content-Type", "application/json")
 	if string(body)[0] == '[' {
-		// body contains array of metrics
 		log.Println("Request body contains array of metrics")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		//json.NewEncoder(w).Encode(generateMultipleMetrics(body))
+		json.NewEncoder(w).Encode(generateMultipleMetrics(body))
 	} else {
-		// body contains single metric
 		log.Println("Request body contains single metric")
 		json.NewEncoder(w).Encode(generateSingleMetric(body))
 	}
-	//json.NewEncoder(w).Encode(m)
-
-	//w.WriteHeader(http.StatusOK)
 }
 
 func DumpMetrics(cfg server.Config) {
