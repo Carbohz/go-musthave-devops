@@ -131,33 +131,33 @@ func TestUnknownTypeMetricHandler(t *testing.T) {
 }
 
 func TestUpdateMetricsJSONHandler(t *testing.T) {
-	//pattern := "/update/{metricType}/{metricName}/{metricValue}"
 	pattern := "/update/"
 
 	tests := []struct {
 		name     string
 		URL      string
-		pattern  string
+		rawJSON  []byte
 		wantCode int
 	}{
 		{
-			name:     "valid update json request",
+			name:     "update json gauge metric",
 			URL:      "/update/",
+			rawJSON:  []byte(`{"id":"llvm","type":"gauge","value":1234.567}`),
 			wantCode: 200,
 		},
-		//{
-		//	name: "invalid update json request",
-		//	URL: "/update/",
-		//	wantCode: 400,
-		//},
+		{
+			name:     "update json counter metric",
+			URL:      "/update/",
+			rawJSON:  []byte(`{"id":"llvm","type":"counter","delta":15}`),
+			wantCode: 200,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := chi.NewRouter()
 			SetupRouters(r)
 
-			rawJSON := []byte(`{"id":"llvm","type":"gauge","value":10}`)
-			req, err := http.NewRequest(http.MethodPost, tt.URL, bytes.NewBuffer(rawJSON))
+			req, err := http.NewRequest(http.MethodPost, tt.URL, bytes.NewBuffer(tt.rawJSON))
 			require.NoError(t, err)
 
 			req.Header.Set("Content-Type", "application/json")
