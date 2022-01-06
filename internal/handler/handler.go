@@ -151,31 +151,39 @@ func updateMetricsStorage(m common.Metrics) {
 // GetMetricsJSONHandler Получение метрик с сервера /value/
 func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
+	log.Printf("Initial request body is: %s", string(body))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	m := common.Metrics{}
-	err = json.Unmarshal(body, &m)
-	if err != nil {
-		log.Println("`GetMetricsJSONHandler` error triggered - `/value/` handler")
-		log.Printf("Unmarshalling JSON error: %v", err)
-		log.Printf("Request body was: %s", string(body))
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-
-	switch m.MType {
-	case metrics.Gauge:
-		v := gaugeMetricsStorage[m.ID].Value
-		m.Value = &v
-	case metrics.Counter:
-		v := counterMetricsStorage[m.ID].Value
-		m.Delta = &v
-	}
+	//m := common.Metrics{}
+	//err = json.Unmarshal(body, &m)
+	//if err != nil {
+	//	log.Println("`GetMetricsJSONHandler` error triggered - `/value/` handler")
+	//	log.Printf("Unmarshalling JSON error: %v", err)
+	//	log.Printf("Request body was: %s", string(body))
+	//	http.Error(w, err.Error(), http.StatusBadRequest)
+	//}
+	//
+	//switch m.MType {
+	//case metrics.Gauge:
+	//	v := gaugeMetricsStorage[m.ID].Value
+	//	m.Value = &v
+	//case metrics.Counter:
+	//	v := counterMetricsStorage[m.ID].Value
+	//	m.Delta = &v
+	//}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(m)
+	if string(body)[0] == '[' {
+		// body contains array of metrics
+		json.NewEncoder(w).Encode(generateMultipleMetrics(body))
+	} else {
+		// body contains single metric
+		json.NewEncoder(w).Encode(generateSingleMetric(body))
+	}
+	//json.NewEncoder(w).Encode(m)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -235,4 +243,53 @@ func LoadMetrics(cfg server.Config) {
 
 func PassSecretKey(key string) {
 	secretKey = key
+}
+
+func generateSingleMetric(body []byte) common.Metrics {
+	m := common.Metrics{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		log.Println("`GetMetricsJSONHandler` error triggered - `/value/` handler")
+		log.Println("Single metric json body error!")
+		log.Printf("Unmarshalling JSON error: %v", err)
+		log.Printf("Request body was: %s", string(body))
+		//http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	switch m.MType {
+	case metrics.Gauge:
+		v := gaugeMetricsStorage[m.ID].Value
+		m.Value = &v
+	case metrics.Counter:
+		v := counterMetricsStorage[m.ID].Value
+		m.Delta = &v
+	}
+
+	return m
+}
+
+func generateMultipleMetrics(body []byte) []common.Metrics {
+	var mArr []common.Metrics
+	err := json.Unmarshal(body, &mArr)
+	if err != nil {
+		log.Println("`GetMetricsJSONHandler` error triggered - `/value/` handler")
+		log.Println("Array of metrics json body error!")
+		log.Printf("Unmarshalling JSON error: %v", err)
+		log.Printf("Request body was: %s", string(body))
+	}
+
+	for i, m := range mArr {
+		switch m.MType {
+		case metrics.Gauge:
+			v := gaugeMetricsStorage[m.ID].Value
+			m.Value = &v
+			mArr[i].Value = &v
+		case metrics.Counter:
+			v := counterMetricsStorage[m.ID].Value
+			m.Delta = &v
+			mArr[i].Delta = &v
+		}
+	}
+
+	return mArr
 }

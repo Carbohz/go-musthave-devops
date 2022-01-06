@@ -130,6 +130,7 @@ func TestUnknownTypeMetricHandler(t *testing.T) {
 	}
 }
 
+// testing `/update/` handler
 func TestUpdateMetricsJSONHandler(t *testing.T) {
 	pattern := "/update/"
 
@@ -174,10 +175,13 @@ func TestUpdateMetricsJSONHandler(t *testing.T) {
 	}
 }
 
+// testing '/value/` handler
 func TestGetMetricsJSONHandler(t *testing.T) {
 	pattern := "/value/"
+
 	// fails with this
-	//serverDataJSON := []byte(`[{"id":"llvm","type":"gauge","value":1234.567},{"id":"PollCount","type":"counter","delta":5}]`)
+	// serverDataJSON := []byte(`[{"id":"llvm","type":"gauge","value":1234.567},{"id":"PollCount","type":"counter","delta":5}]`)
+
 	// ok with this
 	serverDataJSON := []byte(`{"id":"llvm","type":"gauge","value":1234.567}`)
 
