@@ -69,68 +69,42 @@ func createMetricsArr(runtimeMetrics []metrics.GaugeMetric,
 	randomValueMetric metrics.GaugeMetric,
 	pollCountMetric metrics.CounterMetric, key string) []common.Metrics {
 	var metricsArr []common.Metrics
-	var currentMetric common.Metrics
 
-	// add runtime metrics to array
+	metricsArr = append(metricsArr, generateCommonRuntimeMetrics(runtimeMetrics, key)...)
+
+	metricsArr = append(metricsArr, generateCommonRandomValueMetric(randomValueMetric, key))
+
+	metricsArr = append(metricsArr, generateCommonPollCountMetric(pollCountMetric, key))
+
+	return metricsArr
+}
+
+func generateCommonRuntimeMetrics(runtimeMetrics []metrics.GaugeMetric, key string) []common.Metrics {
+	var metricsArr []common.Metrics
+
 	for _, m := range runtimeMetrics {
-		currentMetric.ID = m.Name
-		currentMetric.MType = m.Typename
-		currentMetric.Value = &m.Value
-		//currentMetric.Hash = generateHash(currentMetric, key)
+		value := m.Value
+		currentMetric := common.Metrics{ID: m.Name, MType: m.Typename, Delta: nil, Value: &value, Hash: ""}
 		currentMetric.Hash = currentMetric.GenerateHash(key)
 
 		metricsArr = append(metricsArr, currentMetric)
 	}
 
-	// add random value metric to arr
-	currentMetric.ID = randomValueMetric.Name
-	currentMetric.MType = randomValueMetric.Typename
-	currentMetric.Value = &randomValueMetric.Value
-	//currentMetric.Hash = generateHash(currentMetric, key)
-	currentMetric.Hash = currentMetric.GenerateHash(key)
-	metricsArr = append(metricsArr, currentMetric)
-
-	// bad code - resetting for correct next assignments
-	currentMetric.Value = nil
-
-	// add counter metric to arr
-	currentMetric.ID = pollCountMetric.Name
-	currentMetric.MType = pollCountMetric.Typename
-	currentMetric.Delta = &pollCountMetric.Value
-	//currentMetric.Hash = generateHash(currentMetric, key)
-	currentMetric.Hash = currentMetric.GenerateHash(key)
-	metricsArr = append(metricsArr, currentMetric)
-
 	return metricsArr
 }
 
-//func generateHash(currentMetric common.Metrics, key string) string {
-//	hash, err := currentMetric.ComputeHash(key)
-//	if err != nil {
-//		return ""
-//	} else {
-//		//1
-//		//return string(hash)
-//
-//		// 2
-//		//return fmt.Sprintf("%x", hash)
-//
-//		// 3
-//		return hex.EncodeToString(hash)
-//	}
-//}
-//
-//func (m common.Metrics) CheckHash(key string) error {
-//	if key == "" {
-//		return nil
-//	}
-//	h, err := m.ComputeHash(key)
-//	if err != nil {
-//		return err
-//	}
-//	hashStr := hex.EncodeToString(*h)
-//	if m.Hash != hashStr {
-//		return fmt.Errorf("hash value incorrect")
-//	}
-//	return nil
-//}
+func generateCommonRandomValueMetric(m metrics.GaugeMetric, key string) common.Metrics {
+	value := m.Value
+	currentMetric := common.Metrics{ID: m.Name, MType: m.Typename, Delta: nil, Value: &value, Hash: ""}
+	currentMetric.Hash = currentMetric.GenerateHash(key)
+
+	return currentMetric
+}
+
+func generateCommonPollCountMetric(m metrics.CounterMetric, key string) common.Metrics {
+	delta := m.Value
+	currentMetric := common.Metrics{ID: m.Name, MType: m.Typename, Delta: &delta, Value: nil, Hash: ""}
+	currentMetric.Hash = currentMetric.GenerateHash(key)
+
+	return currentMetric
+}
