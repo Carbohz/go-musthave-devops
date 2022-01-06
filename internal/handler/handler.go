@@ -111,7 +111,7 @@ func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	HTMLTemplate.Execute(w, renderData)
 }
 
-// UpdateMetricsJSONHandler Передача метрик на сервер
+// UpdateMetricsJSONHandler Передача метрик на сервер /update/
 func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	w.Header().Set("Content-Type", "application/json")
@@ -148,7 +148,7 @@ func updateMetricsStorage(m common.Metrics) {
 	}
 }
 
-// GetMetricsJSONHandler Получение метрик с сервера
+// GetMetricsJSONHandler Получение метрик с сервера /value/
 func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -159,6 +159,7 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	m := common.Metrics{}
 	err = json.Unmarshal(body, &m)
 	if err != nil {
+		log.Println("`GetMetricsJSONHandler` error triggered - `/value/` handler")
 		log.Printf("Unmarshalling JSON error: %v", err)
 		log.Printf("Request body was: %s", string(body))
 		http.Error(w, err.Error(), http.StatusBadRequest)

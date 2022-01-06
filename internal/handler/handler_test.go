@@ -175,24 +175,45 @@ func TestUpdateMetricsJSONHandler(t *testing.T) {
 }
 
 func TestGetMetricsJSONHandler(t *testing.T) {
-	//pattern := "/update/{metricType}/{metricName}/{metricValue}"
 	pattern := "/value/"
+	// fails with this
+	//serverDataJSON := []byte(`[{"id":"llvm","type":"gauge","value":1234.567},{"id":"PollCount","type":"counter","delta":5}]`)
+	// ok with this
+	serverDataJSON := []byte(`{"id":"llvm","type":"gauge","value":1234.567}`)
 
 	tests := []struct {
-		name     string
-		URL      string
-		pattern  string
-		wantCode int
+		name      string
+		URL       string
+		rawJSON   []byte
+		wantCode  int
+		wantID    string
+		wantMType string
+		wantDelta int64
+		wantValue float64
 	}{
 		{
-			name:     "valid value json request",
-			URL:      "/value/",
-			wantCode: 200,
+			name:      "value json gauge metric",
+			URL:       "/value/",
+			rawJSON:   []byte(`{"id":"llvm","type":"gauge"}`),
+			wantCode:  200,
+			wantID:    "llvm",
+			wantMType: "gauge",
+			wantValue: 1234.567,
 		},
 		//{
-		//	name: "invalid update json request",
-		//	URL: "/update/",
-		//	wantCode: 400,
+		//	name:      "value json counter metric",
+		//	URL:       "/update/",
+		//	rawJSON:   []byte(`{"id":"PollCount","type":"counter"}`),
+		//	wantCode:  200,
+		//	wantID:    "PollCount",
+		//	wantMType: "counter",
+		//	wantDelta: 5,
+		//},
+		//{
+		//	name:     "value json multi metrics",
+		//	URL:      "/update/",
+		//	rawJSON:  []byte(`[{"id":"llvm","type":"gauge"},{"id":"PollCount","type":"counter"}]`),
+		//	wantCode: 200,
 		//},
 	}
 	for _, tt := range tests {
@@ -201,8 +222,8 @@ func TestGetMetricsJSONHandler(t *testing.T) {
 			SetupRouters(r)
 
 			// send data to storage
-			rawJSON := []byte(`{"id":"llvm","type":"gauge","value":10}`)
-			req, err := http.NewRequest(http.MethodPost, "/update/", bytes.NewBuffer(rawJSON))
+			//rawJSON := []byte(`{"id":"llvm","type":"gauge","value":10}`)
+			req, err := http.NewRequest(http.MethodPost, "/update/", bytes.NewBuffer(serverDataJSON))
 			require.NoError(t, err)
 
 			req.Header.Set("Content-Type", "application/json")
@@ -217,8 +238,8 @@ func TestGetMetricsJSONHandler(t *testing.T) {
 			defer res.Body.Close()
 
 			// get data from storage
-			rawJSON = []byte(`{"id":"llvm","type":"gauge"}`)
-			req, err = http.NewRequest(http.MethodPost, "/value/", bytes.NewBuffer(rawJSON))
+			//rawJSON = []byte(`{"id":"llvm","type":"gauge"}`)
+			req, err = http.NewRequest(http.MethodPost, "/value/", bytes.NewBuffer(tt.rawJSON))
 			require.NoError(t, err)
 
 			req.Header.Set("Content-Type", "application/json")
@@ -233,9 +254,17 @@ func TestGetMetricsJSONHandler(t *testing.T) {
 			body, _ := ioutil.ReadAll(res.Body)
 			m := common.Metrics{}
 			json.Unmarshal(body, &m)
-			log.Print("type: ", m.MType, ", id: ", m.ID)
+			log.Printf("id: %v, type: %v, value: %v", m.ID, m.MType, *m.Value)
 
 			assert.Equal(t, tt.wantCode, res.StatusCode)
+			assert.Equal(t, tt.wantID, m.ID)
+			assert.Equal(t, tt.wantMType, m.MType)
+			switch m.MType {
+			case "gauge":
+				assert.InDelta(t, tt.wantValue, *m.Value, 1e-6)
+			case "counter":
+				assert.Equal(t, tt.wantDelta, *m.Delta)
+			}
 			defer res.Body.Close()
 		})
 	}
