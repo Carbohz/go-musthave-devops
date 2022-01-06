@@ -120,17 +120,22 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("/update/ handler called. Request body: %s", string(body))
+
 	m := common.Metrics{}
 	err = json.Unmarshal(body, &m)
 	if err != nil {
+		log.Printf("Failed to unmarshal following request body: %s", string(body))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 	err = m.CheckHash(secretKey)
 	if err == nil {
+		log.Println("Hash matched, updating internal server metrics")
 		updateMetricsStorage(m)
 		w.WriteHeader(http.StatusOK)
 	} else {
+		log.Println("Hash mismatched, bad request")
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
@@ -151,11 +156,12 @@ func updateMetricsStorage(m common.Metrics) {
 // GetMetricsJSONHandler Получение метрик с сервера /value/
 func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	log.Printf("Initial request body is: %s", string(body))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("/value/ handler called. Request body: %s", string(body))
 
 	w.Header().Set("Content-Type", "application/json")
 	if string(body)[0] == '[' {
