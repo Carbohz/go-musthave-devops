@@ -118,7 +118,6 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	//w.Header().Set("Content-Type", "application/json")
 
 	log.Printf("/update/ handler called. Request body: %s", string(body))
 
