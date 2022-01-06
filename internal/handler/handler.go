@@ -179,7 +179,8 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if string(body)[0] == '[' {
 		// body contains array of metrics
 		log.Println("Request body contains array of metrics")
-		json.NewEncoder(w).Encode(generateMultipleMetrics(body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		//json.NewEncoder(w).Encode(generateMultipleMetrics(body))
 	} else {
 		// body contains single metric
 		log.Println("Request body contains single metric")
