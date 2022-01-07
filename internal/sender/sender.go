@@ -7,6 +7,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/internal/agent"
 	"github.com/Carbohz/go-musthave-devops/internal/common"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
+	"io"
 	"log"
 	"net/http"
 )
@@ -20,15 +21,15 @@ type AllMetrics struct {
 
 func SendGaugeMetric(client *http.Client, m metrics.GaugeMetric, address string) error {
 	url := fmt.Sprintf("http://%s/update/%s/%s/%f", address, m.Typename, m.Name, m.Value)
-	return Send(client, url, m.Base)
+	return SendMetric(client, url, m.Base)
 }
 
 func SendCounterMetric(client *http.Client, m metrics.CounterMetric, address string) error {
 	url := fmt.Sprintf("http://%s/update/%s/%s/%d", address, m.Typename, m.Name, m.Value)
-	return Send(client, url, m.Base)
+	return SendMetric(client, url, m.Base)
 }
 
-func Send(client *http.Client, url string, m metrics.Base) error {
+func SendMetric(client *http.Client, url string, m metrics.Base) error {
 	resp, err := client.Post(url, "text/plain", nil)
 	if err != nil {
 		log.Printf("Failed to \"Post\" request to update metric \"%s\" of type \"%s\"", m.Name, m.Typename)
@@ -146,24 +147,15 @@ func SendGaugeMetricJSON(client *http.Client, m metrics.GaugeMetric, cfg agent.C
 	url := fmt.Sprintf("http://%s/update/", cfg.Address)
 	log.Printf("Sending JSON metric to url: %s", url)
 
-	//allMetrics := createMetricsArr(runtimeMetrics, randomValueMetric, pollCountMetric, cfg.Key)
-
 	commonGaugeMetric := generateCommonGaugeMetric(m, cfg.Key)
 
-	body := bytes.NewBuffer(marshallMetricJSON(commonGaugeMetric))
+	bodyRaw := marshallMetricJSON(commonGaugeMetric)
+
+	body := bytes.NewBuffer(bodyRaw)
 
 	log.Printf("Request body (JSON): %v", body)
 
-	resp, err := client.Post(url, "application/json", body)
-	if err != nil {
-		log.Printf("Failed to \"Post\" metrics in JSON format. Error: %v", err)
-		return err
-	}
-
-	log.Printf("Response: %v", resp)
-
-	defer resp.Body.Close()
-	return err
+	return SendMetricJSON(client, url, body)
 }
 
 func SendCounterMetricJSON(client *http.Client, m metrics.CounterMetric, cfg agent.Config) error {
@@ -172,17 +164,23 @@ func SendCounterMetricJSON(client *http.Client, m metrics.CounterMetric, cfg age
 
 	commonCounterMetric := generateCommonCounterMetric(m, cfg.Key)
 
-	body := bytes.NewBuffer(marshallMetricJSON(commonCounterMetric))
+	bodyRaw := marshallMetricJSON(commonCounterMetric)
+
+	body := bytes.NewBuffer(bodyRaw)
 
 	log.Printf("Request body (JSON): %v", body)
 
+	return SendMetricJSON(client, url, body)
+}
+
+func SendMetricJSON(client *http.Client, url string, body io.Reader) error {
 	resp, err := client.Post(url, "application/json", body)
 	if err != nil {
 		log.Printf("Failed to \"Post\" metrics in JSON format. Error: %v", err)
 		return err
 	}
 
-	log.Printf("Response: %v", resp)
+	log.Printf("Response: %v", *resp)
 
 	defer resp.Body.Close()
 	return err
