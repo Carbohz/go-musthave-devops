@@ -35,13 +35,13 @@ func RunAgent(cfg agent.Config) {
 		case <-reportTicker.C:
 			log.Println("Sending Metrics")
 			for _, m := range runtimeMetrics {
-				sender.SendGaugeMetric(&client, m, cfg.Address)
+				//sender.SendGaugeMetric(&client, m, cfg.Address)
 				sender.SendGaugeMetricJSON(&client, m, cfg)
 			}
-			sender.SendGaugeMetric(&client, randomValueMetric, cfg.Address)
+			//sender.SendGaugeMetric(&client, randomValueMetric, cfg.Address)
 			sender.SendGaugeMetricJSON(&client, randomValueMetric, cfg)
 
-			sender.SendCounterMetric(&client, pollCountMetric, cfg.Address)
+			//sender.SendCounterMetric(&client, pollCountMetric, cfg.Address)
 			sender.SendCounterMetricJSON(&client, pollCountMetric, cfg)
 
 			//sender.SendMetricsJSON(&client, runtimeMetrics, randomValueMetric, pollCountMetric, cfg)
