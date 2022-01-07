@@ -130,16 +130,18 @@ func generateCommonPollCountMetric(m metrics.CounterMetric, key string) common.M
 func generateCommonGaugeMetric(m metrics.GaugeMetric, key string) common.Metrics {
 	value := m.Value
 	currentMetric := common.Metrics{ID: m.Name, MType: m.Typename, Delta: nil, Value: &value, Hash: ""}
-	currentMetric.Hash = currentMetric.GenerateHash(key)
-
+	if key != "" {
+		currentMetric.Hash = currentMetric.GenerateHash(key)
+	}
 	return currentMetric
 }
 
 func generateCommonCounterMetric(m metrics.CounterMetric, key string) common.Metrics {
 	delta := m.Value
 	currentMetric := common.Metrics{ID: m.Name, MType: m.Typename, Delta: &delta, Value: nil, Hash: ""}
-	currentMetric.Hash = currentMetric.GenerateHash(key)
-
+	if key != "" {
+		currentMetric.Hash = currentMetric.GenerateHash(key)
+	}
 	return currentMetric
 }
 
