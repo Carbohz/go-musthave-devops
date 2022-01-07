@@ -134,6 +134,17 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Hash matched, updating internal server metrics")
 		updateMetricsStorage(m)
 		w.WriteHeader(http.StatusOK)
+
+		//response := m.Hash
+		//log.Printf("Response message: %s", response)
+		//w.Write([]byte(response))
+		//w.Write(generateResponseJSON(m))
+		err = json.NewEncoder(w).Encode(m)
+		if err != nil {
+			log.Printf("Error occurred during response json encoding: %v", err)
+			return
+		}
+
 		return
 	} else {
 		log.Println("Hash mismatched, bad request")
@@ -341,4 +352,13 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		}
 	}
 	return mArr
+}
+
+func generateResponseJSON(m common.Metrics) []byte {
+	rawJSON, err := json.Marshal(m)
+	if err != nil {
+		log.Fatalf("Error occured during metrics marshalling: %v", err)
+	}
+	log.Printf("Generated JSON response: %s", string(rawJSON))
+	return rawJSON
 }
