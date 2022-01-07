@@ -42,7 +42,8 @@ func Send(client *http.Client, url string, m metrics.Base) error {
 func SendMetricsJSON(client *http.Client, runtimeMetrics []metrics.GaugeMetric,
 	randomValueMetric metrics.GaugeMetric,
 	pollCountMetric metrics.CounterMetric, cfg agent.Config) error {
-	url := fmt.Sprintf("http://%s/value/", cfg.Address)
+	//url := fmt.Sprintf("http://%s/value/", cfg.Address)
+	url := fmt.Sprintf("http://%s/update/", cfg.Address)
 	log.Printf("Sending JSON metrics to url: %s", url)
 
 	allMetrics := createMetricsArr(runtimeMetrics, randomValueMetric, pollCountMetric, cfg.Key)
