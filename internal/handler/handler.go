@@ -140,6 +140,7 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		//w.Write([]byte(response))
 		//w.Write(generateResponseJSON(m))
 		err = json.NewEncoder(w).Encode(m)
+		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
 			log.Printf("Error occurred during response json encoding: %v", err)
 			return
