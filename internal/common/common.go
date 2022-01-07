@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log"
 )
 
 const (
@@ -20,7 +21,6 @@ type Metrics struct {
 	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
-// ComputeHash calculates hash for metrics
 func (m Metrics) computeHash(key string) ([]byte, error) {
 	if key == "" {
 		return nil, fmt.Errorf("no key")
@@ -46,12 +46,6 @@ func (m Metrics) computeHash(key string) ([]byte, error) {
 		toHash = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
 	}
 
-	//h := hmac.New(sha256.New, []byte(key))
-	//h.Write([]byte(toHash))
-	//hash := h.Sum(nil)
-	//return hash, nil
-
-	//h := sha256.New()
 	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(toHash))
 	hash := h.Sum(nil)
@@ -62,6 +56,7 @@ func (m Metrics) computeHash(key string) ([]byte, error) {
 func (m Metrics) GenerateHash(key string) string {
 	hash, err := m.computeHash(key)
 	if err != nil {
+		log.Printf("Error occured during hash generation: %v", err)
 		return ""
 	} else {
 		//1
