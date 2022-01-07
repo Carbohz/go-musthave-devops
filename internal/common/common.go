@@ -22,30 +22,13 @@ type Metrics struct {
 }
 
 func (m Metrics) computeHash(key string) ([]byte, error) {
-	if key == "" {
-		// return nil, fmt.Errorf("no key")
-		// return []byte(""), fmt.Errorf("no key")
-		return []byte(""), nil
-	}
-
-	if m.ID == "" {
-		//return nil, fmt.Errorf("empty ID field")
-		return []byte(""), fmt.Errorf("empty ID field")
-	}
-
 	toHash := ""
 
 	if m.MType == KGauge {
-		if m.Value == nil {
-			return nil, fmt.Errorf("no value")
-		}
 		toHash = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
 	}
 
 	if m.MType == KCounter {
-		if m.Delta == nil {
-			return nil, fmt.Errorf("no delta")
-		}
 		toHash = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
 	}
 
@@ -77,13 +60,83 @@ func (m Metrics) CheckHash(key string) error {
 	if key == "" {
 		return nil
 	}
-	h, err := m.computeHash(key)
-	if err != nil {
-		return err
-	}
-	hashStr := hex.EncodeToString(h)
+	//h, err := m.computeHash(key)
+	//if err != nil {
+	//	return err
+	//}
+	//hashStr := hex.EncodeToString(h)
+
+	hashStr := m.GenerateHash(key)
+
 	if m.Hash != hashStr {
 		return fmt.Errorf("hash value incorrect")
 	}
 	return nil
 }
+
+//func (m Metrics) computeHash(key string) ([]byte, error) {
+//	if key == "" {
+//		// return nil, fmt.Errorf("no key")
+//		// return []byte(""), fmt.Errorf("no key")
+//		return []byte(""), nil
+//	}
+//
+//	if m.ID == "" {
+//		//return nil, fmt.Errorf("empty ID field")
+//		return []byte(""), fmt.Errorf("empty ID field")
+//	}
+//
+//	toHash := ""
+//
+//	if m.MType == KGauge {
+//		if m.Value == nil {
+//			return nil, fmt.Errorf("no value")
+//		}
+//		toHash = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
+//	}
+//
+//	if m.MType == KCounter {
+//		if m.Delta == nil {
+//			return nil, fmt.Errorf("no delta")
+//		}
+//		toHash = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
+//	}
+//
+//	h := hmac.New(sha256.New, []byte(key))
+//	h.Write([]byte(toHash))
+//	hash := h.Sum(nil)
+//	//log.Printf("%x", hash)
+//	return hash, nil
+//}
+//
+//func (m Metrics) GenerateHash(key string) string {
+//	hash, err := m.computeHash(key)
+//	if err != nil {
+//		log.Printf("Error occurred during hash generation: %v", err)
+//		return ""
+//	} else {
+//		//1
+//		//return string(hash)
+//
+//		// 2
+//		//return fmt.Sprintf("%x", hash)
+//
+//		// 3
+//		return hex.EncodeToString(hash)
+//	}
+//}
+//
+//func (m Metrics) CheckHash(key string) error {
+//	if key == "" {
+//		return nil
+//	}
+//	h, err := m.computeHash(key)
+//	if err != nil {
+//		return err
+//	}
+//	hashStr := hex.EncodeToString(h)
+//	if m.Hash != hashStr {
+//		return fmt.Errorf("hash value incorrect")
+//	}
+//	return nil
+//}
