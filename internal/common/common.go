@@ -23,11 +23,14 @@ type Metrics struct {
 
 func (m Metrics) computeHash(key string) ([]byte, error) {
 	if key == "" {
-		return nil, fmt.Errorf("no key")
+		// return nil, fmt.Errorf("no key")
+		// return []byte(""), fmt.Errorf("no key")
+		return []byte(""), nil
 	}
 
 	if m.ID == "" {
-		return nil, fmt.Errorf("empty ID field")
+		//return nil, fmt.Errorf("empty ID field")
+		return []byte(""), fmt.Errorf("empty ID field")
 	}
 
 	toHash := ""
