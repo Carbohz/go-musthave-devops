@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Carbohz/go-musthave-devops/internal/common"
 	"github.com/Carbohz/go-musthave-devops/internal/handler"
 	"github.com/Carbohz/go-musthave-devops/internal/server"
 	"github.com/go-chi/chi"
@@ -8,8 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"text/template"
 )
 
@@ -21,7 +20,7 @@ func main() {
 	cfg := server.CreateConfig()
 	PrepareHTMLPage()
 	exitChan := make(chan int, 1)
-	go AwaitInterruptSignal(exitChan)
+	go common.AwaitInterruptSignal(exitChan)
 	go RunServer(cfg)
 	exitCode := <-exitChan
 	log.Println("Dumping metrics and exiting")
@@ -65,33 +64,33 @@ func RunServer(cfg server.Config) {
 	log.Fatal(server.ListenAndServe())
 }
 
-func AwaitInterruptSignal(exitChan chan<- int) {
-	log.Println("Awaiting interrupt signal")
-
-	signalChanel := make(chan os.Signal, 1)
-	signal.Notify(signalChanel,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT)
-
-	go func() {
-		s := <-signalChanel
-		switch s {
-		case syscall.SIGINT:
-			log.Printf("%s SIGINT signal triggered.", s)
-			exitChan <- 1
-
-		case syscall.SIGTERM:
-			log.Printf("%s SIGTERM signal triggered.", s)
-			exitChan <- 2
-
-		case syscall.SIGQUIT:
-			log.Printf("%s SIGQUIT signal triggered.", s)
-			exitChan <- 3
-
-		default:
-			log.Printf("%s UNKNOWN signal triggered.", s)
-			exitChan <- 1
-		}
-	}()
-}
+//func AwaitInterruptSignal(exitChan chan<- int) {
+//	log.Println("Awaiting interrupt signal")
+//
+//	signalChanel := make(chan os.Signal, 1)
+//	signal.Notify(signalChanel,
+//		syscall.SIGINT,
+//		syscall.SIGTERM,
+//		syscall.SIGQUIT)
+//
+//	go func() {
+//		s := <-signalChanel
+//		switch s {
+//		case syscall.SIGINT:
+//			log.Printf("%s SIGINT signal triggered.", s)
+//			exitChan <- 1
+//
+//		case syscall.SIGTERM:
+//			log.Printf("%s SIGTERM signal triggered.", s)
+//			exitChan <- 2
+//
+//		case syscall.SIGQUIT:
+//			log.Printf("%s SIGQUIT signal triggered.", s)
+//			exitChan <- 3
+//
+//		default:
+//			log.Printf("%s UNKNOWN signal triggered.", s)
+//			exitChan <- 1
+//		}
+//	}()
+//}

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"github.com/Carbohz/go-musthave-devops/internal/common"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Carbohz/go-musthave-devops/internal/agent"
@@ -12,7 +14,11 @@ import (
 
 func main() {
 	cfg := agent.CreateConfig()
-	RunAgent(cfg)
+	exitChan := make(chan int, 1)
+	go common.AwaitInterruptSignal(exitChan)
+	go RunAgent(cfg)
+	exitCode := <-exitChan
+	os.Exit(exitCode)
 }
 
 func RunAgent(cfg agent.Config) {
