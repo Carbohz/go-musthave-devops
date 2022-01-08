@@ -133,7 +133,7 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		log.Println("Hash matched, updating internal server metrics")
 		updateMetricsStorage(m)
-		w.WriteHeader(http.StatusOK)
+		//w.WriteHeader(http.StatusOK)
 
 		//response := m.Hash
 		//log.Printf("Response message: %s", response)
@@ -143,13 +143,15 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
 			log.Printf("Error occurred during response json encoding: %v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
+		w.WriteHeader(http.StatusOK)
 		return
 	} else {
 		log.Println("Hash mismatched, bad request")
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 }
