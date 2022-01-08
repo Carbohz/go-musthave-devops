@@ -56,18 +56,18 @@ func AwaitInterruptSignal(exitChan chan<- int) {
 }
 
 func (m Metrics) computeHash(key string) ([]byte, error) {
-	toHash := ""
+	str := ""
 
 	if m.MType == KGauge {
-		toHash = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
+		str = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
 	}
 
 	if m.MType == KCounter {
-		toHash = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
+		str = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
 	}
 
 	h := hmac.New(sha256.New, []byte(key))
-	h.Write([]byte(toHash))
+	h.Write([]byte(str))
 	hash := h.Sum(nil)
 	//log.Printf("%x", hash)
 	return hash, nil
@@ -88,14 +88,10 @@ func (m Metrics) GenerateHash(key string) string {
 }
 
 func (m Metrics) CheckHash(key string) error {
-	if key == "" {
-		return nil
-	}
-
 	hashStr := m.GenerateHash(key)
 
 	if m.Hash != hashStr {
-		return fmt.Errorf("hash value incorrect")
+		return fmt.Errorf("fake hash value: expected %v, got %v", m.Hash, hashStr)
 	}
 	return nil
 }
