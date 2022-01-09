@@ -279,9 +279,9 @@ func generateSingleMetric(body []byte) common.Metrics {
 
 	log.Println("***Initially value-requested single metric***")
 	switch m.MType {
-	case "gauge":
+	case metrics.Gauge:
 		log.Printf("[ID: %v, Type: %v]", m.ID, m.MType)
-	case "counter":
+	case metrics.Counter:
 		log.Printf("[ID: %v, Type: %v]", m.ID, m.MType)
 	default:
 		log.Println("Unknown metric type")
@@ -296,12 +296,14 @@ func generateSingleMetric(body []byte) common.Metrics {
 		m.Delta = &v
 	}
 
+	m.Hash = m.GenerateHash(secretKey)
+
 	log.Println("***Filled with server values single metric***")
 	switch m.MType {
-	case "gauge":
-		log.Printf("[ID: %v, Type: %v, Value: %v]", m.ID, m.MType, *m.Value)
-	case "counter":
-		log.Printf("[ID: %v, Type: %v, Value: %v]", m.ID, m.MType, *m.Delta)
+	case metrics.Gauge:
+		log.Printf("[ID: %v, Type: %v, Value: %v, Hash: %s]", m.ID, m.MType, *m.Value, m.Hash)
+	case metrics.Counter:
+		log.Printf("[ID: %v, Type: %v, Value: %v, Hash: %s]", m.ID, m.MType, *m.Delta, m.Hash)
 	default:
 		log.Println("Unknown metric type")
 	}
@@ -321,9 +323,9 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 	log.Println("***Initially value-requested metrics array***")
 	for _, mtrc := range mArr {
 		switch mtrc.MType {
-		case "gauge":
+		case metrics.Gauge:
 			log.Printf("[ID: %v, Type: %v]", mtrc.ID, mtrc.MType)
-		case "counter":
+		case metrics.Counter:
 			log.Printf("[ID: %v, Type: %v]", mtrc.ID, mtrc.MType)
 		default:
 			log.Println("Unknown metric type")
@@ -334,22 +336,22 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 		switch m.MType {
 		case metrics.Gauge:
 			v := gaugeMetricsStorage[m.ID].Value
-			// m.Value = &v
 			mArr[i].Value = &v
 		case metrics.Counter:
 			v := counterMetricsStorage[m.ID].Value
-			// m.Delta = &v
 			mArr[i].Delta = &v
 		}
+
+		mArr[i].GenerateHash(secretKey)
 	}
 
 	log.Println("***Filled with server values metrics array***")
 	for _, mtrc := range mArr {
 		switch mtrc.MType {
-		case "gauge":
-			log.Printf("[ID: %v, Type: %v, Value: %v]", mtrc.ID, mtrc.MType, *mtrc.Value)
-		case "counter":
-			log.Printf("[ID: %v, Type: %v, Value: %v]", mtrc.ID, mtrc.MType, *mtrc.Delta)
+		case metrics.Gauge:
+			log.Printf("[ID: %v, Type: %v, Value: %v, Hash: %s]", mtrc.ID, mtrc.MType, *mtrc.Value, mtrc.Hash)
+		case metrics.Counter:
+			log.Printf("[ID: %v, Type: %v, Value: %v, Hash: %s]", mtrc.ID, mtrc.MType, *mtrc.Delta, mtrc.Hash)
 		default:
 			log.Println("Unknown metric type")
 		}
