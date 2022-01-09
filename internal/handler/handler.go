@@ -41,7 +41,7 @@ func SetupRouters(r *chi.Mux) {
 	r.Post("/value/", GetMetricsJSONHandler)
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
 	r.Get("/", AllMetricsHandler)
-	r.Get("/ping/", PingDBHandler)
+	r.Get("/ping", PingDBHandler)
 }
 
 func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
@@ -376,20 +376,18 @@ func PingDBHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("PingDBHandler called")
 	if db == nil {
 		log.Printf("database is not connected")
-		//writeStatus(w, http.StatusInternalServerError, "Internal Server Error", false)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
 	defer cancel()
 	if err := db.PingContext(ctx); err != nil {
-		//writeStatus(w, http.StatusInternalServerError, "Internal Server Error", false)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	//writeStatus(w, http.StatusOK, "OK", false)
 	w.WriteHeader(http.StatusOK)
+	//w.Write([]byte("200 OK"))
 }
 
 func ConnectDB(dbPath string) (*sql.DB, error) {

@@ -19,7 +19,12 @@ const (
 func main() {
 	cfg := server.CreateConfig()
 	PrepareHTMLPage()
-	db, _ := handler.ConnectDB(cfg.DBPath)
+	db, err := handler.ConnectDB(cfg.DBPath)
+	if db != nil {
+		log.Printf("Connected to db: %s", cfg.DBPath)
+	} else {
+		log.Printf("DB connection error: %v", err)
+	}
 	exitChan := make(chan int, 1)
 	go common.AwaitInterruptSignal(exitChan)
 	go RunServer(cfg)
