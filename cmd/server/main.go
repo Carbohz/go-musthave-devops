@@ -74,34 +74,3 @@ func RunServer(cfg server.Config) {
 	log.Printf("Listening on address %s", cfg.Address)
 	log.Fatal(server.ListenAndServe())
 }
-
-//func AwaitInterruptSignal(exitChan chan<- int) {
-//	log.Println("Awaiting interrupt signal")
-//
-//	signalChanel := make(chan os.Signal, 1)
-//	signal.Notify(signalChanel,
-//		syscall.SIGINT,
-//		syscall.SIGTERM,
-//		syscall.SIGQUIT)
-//
-//	go func() {
-//		s := <-signalChanel
-//		switch s {
-//		case syscall.SIGINT:
-//			log.Printf("%s SIGINT signal triggered.", s)
-//			exitChan <- 1
-//
-//		case syscall.SIGTERM:
-//			log.Printf("%s SIGTERM signal triggered.", s)
-//			exitChan <- 2
-//
-//		case syscall.SIGQUIT:
-//			log.Printf("%s SIGQUIT signal triggered.", s)
-//			exitChan <- 3
-//
-//		default:
-//			log.Printf("%s UNKNOWN signal triggered.", s)
-//			exitChan <- 1
-//		}
-//	}()
-//}

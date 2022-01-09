@@ -17,6 +17,7 @@ import (
 
 	"github.com/Carbohz/go-musthave-devops/internal/common"
 	"github.com/go-chi/chi"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
@@ -373,9 +374,9 @@ func generateResponseJSON(m common.Metrics) []byte {
 }
 
 func PingDBHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("PingDBHandler called")
+	log.Println("`/ping` handler called")
 	if db == nil {
-		log.Printf("database is not connected")
+		log.Printf("Connection error: database is not connected")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
