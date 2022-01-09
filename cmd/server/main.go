@@ -19,12 +19,16 @@ const (
 func main() {
 	cfg := server.CreateConfig()
 	PrepareHTMLPage()
+	db, _ := handler.ConnectDB(cfg.DBPath)
 	exitChan := make(chan int, 1)
 	go common.AwaitInterruptSignal(exitChan)
 	go RunServer(cfg)
 	exitCode := <-exitChan
 	log.Println("Dumping metrics and exiting")
 	handler.DumpMetricsImpl(cfg)
+	if db != nil {
+		db.Close()
+	}
 	os.Exit(exitCode)
 }
 
@@ -51,6 +55,8 @@ func RunServer(cfg server.Config) {
 
 	// new function
 	handler.PassSecretKey(cfg.Key)
+
+	//db, err := handler.ConnectDB(cfg.DBPath)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Compress(5))

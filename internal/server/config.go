@@ -14,6 +14,7 @@ type Config struct {
 	StoreFile     string        `env:"STORE_FILE"`
 	Restore       bool          `env:"RESTORE"`
 	Key           string        `env:"KEY"`
+	DBPath        string        `env:"DATABASE_DSN"`
 }
 
 const (
@@ -22,6 +23,7 @@ const (
 	defaultStoreFile     = "/tmp/devops-metrics-db.json"
 	defaultRestore       = true
 	defaultKeyHash       = ""
+	defaultDBPath        = ""
 )
 
 func CreateConfig() Config {
@@ -37,9 +39,10 @@ func CreateConfig() Config {
 	storeFileFlagPtr := flag.String("f", defaultStoreFile, "set file where metrics are stored")
 	restoreFlagPtr := flag.Bool("r", defaultRestore, "choose whether to restore server metrics from file")
 	keyHashFlagPtr := flag.String("k", defaultKeyHash, "enter key to compute hash for safe data sending")
+	dbPathPtr := flag.String("d", defaultDBPath, "set address of db to connect")
 	flag.Parse()
-	log.Printf("Server is running with command line flags: Address %v, Store Interval %v, Store File %v, Restore %v, Key %v",
-		*addressFlagPtr, *storeIntervalFlagPtr, *storeFileFlagPtr, *restoreFlagPtr, *keyHashFlagPtr)
+	log.Printf("Server is running with command line flags: Address %v, Store Interval %v, Store File %v, Restore %v, Key %v, DB: %v",
+		*addressFlagPtr, *storeIntervalFlagPtr, *storeFileFlagPtr, *restoreFlagPtr, *keyHashFlagPtr, *dbPathPtr)
 
 	_, isSet := os.LookupEnv("ADDRESS")
 	if !isSet {
@@ -64,6 +67,11 @@ func CreateConfig() Config {
 	_, isSet = os.LookupEnv("KEY")
 	if !isSet {
 		cfg.Key = *keyHashFlagPtr
+	}
+
+	_, isSet = os.LookupEnv("DATABASE_DSN")
+	if !isSet {
+		cfg.DBPath = *dbPathPtr
 	}
 
 	log.Printf("Final server configuration: %+v", cfg)

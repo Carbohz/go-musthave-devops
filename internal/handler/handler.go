@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
@@ -21,6 +23,7 @@ var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
 var secretKey string
+var db *sql.DB
 
 type InternalStorage struct {
 	GaugeMetrics   map[string]metrics.GaugeMetric
@@ -38,6 +41,7 @@ func SetupRouters(r *chi.Mux) {
 	r.Post("/value/", GetMetricsJSONHandler)
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
 	r.Get("/", AllMetricsHandler)
+	r.Get("/ping/", PingDBHandler)
 }
 
 func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
@@ -366,4 +370,33 @@ func generateResponseJSON(m common.Metrics) []byte {
 	}
 	log.Printf("Generated JSON response: %s", string(rawJSON))
 	return rawJSON
+}
+
+func PingDBHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("PingDBHandler called")
+	if db == nil {
+		log.Printf("database is not connected")
+		//writeStatus(w, http.StatusInternalServerError, "Internal Server Error", false)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		//writeStatus(w, http.StatusInternalServerError, "Internal Server Error", false)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	//writeStatus(w, http.StatusOK, "OK", false)
+	w.WriteHeader(http.StatusOK)
+}
+
+func ConnectDB(dbPath string) (*sql.DB, error) {
+	var err error
+	db, err = sql.Open("pgx", dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("database connection error: %v", err)
+	}
+	return db, nil
 }
