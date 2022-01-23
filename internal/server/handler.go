@@ -1,8 +1,8 @@
 package server
 
 import (
-	"context"
-	"database/sql"
+	//"context"
+	//"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
@@ -12,7 +12,7 @@ import (
 	//"os"
 	"strconv"
 	"text/template"
-	"time"
+	//"time"
 
 	"github.com/Carbohz/go-musthave-devops/internal/common"
 	"github.com/go-chi/chi"
@@ -22,10 +22,10 @@ import (
 //var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
 //var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
-var secretKey string
-var db *sql.DB
+//var secretKey string
+//var db *sql.DB
 
-var instance Instance
+//var instance Instance
 
 //type InternalStorage struct {
 //	GaugeMetrics   map[string]metrics.GaugeMetric
@@ -43,7 +43,7 @@ func SetupRouters(r *chi.Mux) {
 	r.Post("/value/", GetMetricsJSONHandler)
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
 	r.Get("/", AllMetricsHandler)
-	r.Get("/ping", PingDBHandler)
+	//r.Get("/ping", PingDBHandler)
 }
 
 func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +109,7 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if metricType == metrics.Gauge {
-		value, err := instance.FindCounterMetric(metricName)
+		value, err := instance.FindGaugeMetric(metricName)
 		if err == nil {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(value)))
@@ -159,7 +159,7 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.CheckHash(secretKey)
+	err = m.CheckHash(instance.Cfg.Key)
 	if err == nil {
 		log.Println("Hash matched, updating internal server metrics")
 		updateMetricsStorage(m)
@@ -279,9 +279,9 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 //	log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
 //}
 
-func PassSecretKey(key string) {
-	secretKey = key
-}
+//func PassSecretKey(key string) {
+//	secretKey = key
+//}
 
 func generateSingleMetric(body []byte) common.Metrics {
 	m := common.Metrics{}
@@ -315,7 +315,7 @@ func generateSingleMetric(body []byte) common.Metrics {
 		m.Delta = &v
 	}
 
-	m.Hash = m.GenerateHash(secretKey)
+	m.Hash = m.GenerateHash(instance.Cfg.Key)
 
 	log.Println("***Filled with server values single metric***")
 	switch m.MType {
@@ -363,7 +363,7 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 			mArr[i].Delta = &v
 		}
 
-		mArr[i].GenerateHash(secretKey)
+		mArr[i].GenerateHash(instance.Cfg.Key)
 	}
 
 	log.Println("***Filled with server values metrics array***")
@@ -389,29 +389,29 @@ func generateResponseJSON(m common.Metrics) []byte {
 	return rawJSON
 }
 
-func PingDBHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("`/ping` handler called")
-	if db == nil {
-		log.Printf("Connection error: database is not connected")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
-	defer cancel()
-	if err := db.PingContext(ctx); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	//w.Write([]byte("200 OK"))
-}
-
-func ConnectDB(dbPath string) (*sql.DB, error) {
-	var err error
-	db, err = sql.Open("pgx", dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("database connection error: %v", err)
-	}
-	return db, nil
-}
+//func PingDBHandler(w http.ResponseWriter, r *http.Request) {
+//	log.Println("`/ping` handler called")
+//	if db == nil {
+//		log.Printf("Connection error: database is not connected")
+//		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+//		return
+//	}
+//	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+//	defer cancel()
+//	if err := db.PingContext(ctx); err != nil {
+//		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+//		return
+//	}
+//
+//	w.WriteHeader(http.StatusOK)
+//	//w.Write([]byte("200 OK"))
+//}
+//
+//func ConnectDB(dbPath string) (*sql.DB, error) {
+//	var err error
+//	db, err = sql.Open("pgx", dbPath)
+//	if err != nil {
+//		return nil, fmt.Errorf("database connection error: %v", err)
+//	}
+//	return db, nil
+//}

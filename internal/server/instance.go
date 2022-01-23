@@ -17,12 +17,16 @@ type Instance struct {
 	dbs *dbStorage       // `dbs` is shortcut for database storage
 }
 
-func CreateInstance(cfg Config) Instance {
-	var instance Instance
+var instance *Instance
+
+func CreateInstance(cfg Config) *Instance {
+	// тут должен быть branching, в зависимости от того, хочу я создать базу или внутреннее хранилище
+
+	instance = new(Instance)
 	instance.Cfg = cfg
 
 	if cfg.Restore && cfg.StoreFile != "" {
-		var is internalStorage
+		is := CreateEmptyInternalStorage()
 		instance.is = &is
 		instance.LoadMetrics()
 	}

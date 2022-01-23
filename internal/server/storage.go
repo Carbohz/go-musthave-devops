@@ -13,6 +13,17 @@ type internalStorage struct {
 	CounterMetrics map[string]metrics.CounterMetric
 }
 
+//var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
+//var counterMetricsStorage = make(map[string]metrics.CounterMetric)
+//var defaultInternalStorage = {GaugeMetric: gaugeMetricsStorage, CounterMetrics: counterMetricsStorage}
+
+func CreateEmptyInternalStorage() internalStorage {
+	var is internalStorage
+	is.GaugeMetrics = make(map[string]metrics.GaugeMetric)
+	is.CounterMetrics = make(map[string]metrics.CounterMetric)
+	return is
+}
+
 // insertion into storage
 func (s internalStorage) StoreGaugeMetric(name string, value float64) {
 	s.GaugeMetrics[name] = metrics.GaugeMetric{
