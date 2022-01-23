@@ -78,3 +78,16 @@ func CreateConfig() Config {
 
 	return cfg
 }
+
+//type Config struct {
+//	Address       string        `env:"ADDRESS"`
+//	StoreInterval time.Duration `env:"STORE_INTERVAL"`
+//	StoreFile     string        `env:"STORE_FILE"`
+//	Restore       bool          `env:"RESTORE"`
+//	Key           string        `env:"KEY"`
+//	DBPath        string        `env:"DATABASE_DSN"`
+//}
+
+//func (cfg Config) GetAddress() string {
+//	return cfg.Address
+//}

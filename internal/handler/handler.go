@@ -20,16 +20,18 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
-var counterMetricsStorage = make(map[string]metrics.CounterMetric)
+//var gaugeMetricsStorage = make(map[string]metrics.GaugeMetric)
+//var counterMetricsStorage = make(map[string]metrics.CounterMetric)
 var HTMLTemplate *template.Template
 var secretKey string
 var db *sql.DB
 
-type InternalStorage struct {
-	GaugeMetrics   map[string]metrics.GaugeMetric
-	CounterMetrics map[string]metrics.CounterMetric
-}
+var instance server.Instance
+
+//type InternalStorage struct {
+//	GaugeMetrics   map[string]metrics.GaugeMetric
+//	CounterMetrics map[string]metrics.CounterMetric
+//}
 
 func SetupRouters(r *chi.Mux) {
 	r.Route("/update", func(r chi.Router) {
@@ -53,9 +55,10 @@ func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "parsing error. Bad request", http.StatusBadRequest)
 		return
 	}
-	gaugeMetricsStorage[metricName] = metrics.GaugeMetric{
-		Base:  metrics.Base{Name: metricName, Typename: metrics.Gauge},
-		Value: value}
+	//gaugeMetricsStorage[metricName] = metrics.GaugeMetric{
+	//	Base:  metrics.Base{Name: metricName, Typename: metrics.Gauge},
+	//	Value: value}
+	instance.StoreGaugeMetric(metricName, value)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -67,9 +70,10 @@ func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "parsing error", http.StatusBadRequest)
 		return
 	}
-	counterMetricsStorage[metricName] = metrics.CounterMetric{
-		Base:  metrics.Base{Name: metricName, Typename: metrics.Counter},
-		Value: counterMetricsStorage[metricName].Value + value}
+	//counterMetricsStorage[metricName] = metrics.CounterMetric{
+	//	Base:  metrics.Base{Name: metricName, Typename: metrics.Counter},
+	//	Value: counterMetricsStorage[metricName].Value + value}
+	instance.StoreCounterMetric(metricName, value)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -86,32 +90,54 @@ func SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
 
 	if metricType == metrics.Counter {
-		if val, found := counterMetricsStorage[metricName]; found {
+		value, err := instance.FindCounterMetric(metricName)
+		if err == nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprint(val.Value)))
+			w.Write([]byte(fmt.Sprint(value)))
 			return
 		}
-		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-		http.Error(w, reason, http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
+
+		//if val, found := counterMetricsStorage[metricName]; found {
+		//	w.WriteHeader(http.StatusOK)
+		//	w.Write([]byte(fmt.Sprint(val.Value)))
+		//	return
+		//}
+		//reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+		//http.Error(w, reason, http.StatusNotFound)
+		//return
 	}
 
 	if metricType == metrics.Gauge {
-		if val, found := gaugeMetricsStorage[metricName]; found {
+		value, err := instance.FindCounterMetric(metricName)
+		if err == nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprint(val.Value)))
+			w.Write([]byte(fmt.Sprint(value)))
 			return
 		}
-		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-		http.Error(w, reason, http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+
+		//if val, found := gaugeMetricsStorage[metricName]; found {
+		//	w.WriteHeader(http.StatusOK)
+		//	w.Write([]byte(fmt.Sprint(val.Value)))
+		//	return
+		//}
+		//reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+		//http.Error(w, reason, http.StatusNotFound)
 	}
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
+	//renderData := map[string]interface{}{
+	//	"gaugeMetrics":   gaugeMetricsStorage,
+	//	"counterMetrics": counterMetricsStorage,
+	//}
 	renderData := map[string]interface{}{
-		"gaugeMetrics":   gaugeMetricsStorage,
-		"counterMetrics": counterMetricsStorage,
+		"gaugeMetrics":   instance.LoadGaugeMetrics(),
+		"counterMetrics": instance.LoadCounterMetrics(),
 	}
 	HTMLTemplate.Execute(w, renderData)
 }
@@ -161,36 +187,23 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//// This version works
-//// UpdateMetricsJSONHandler Передача метрик на сервер
-//func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
-//	body, err := ioutil.ReadAll(r.Body)
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusInternalServerError)
-//		return
-//	}
-//
-//	m := common.Metrics{}
-//	err = json.Unmarshal(body, &m)
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusBadRequest)
-//	}
-//
-//	updateMetricsStorage(m)
-//
-//	w.WriteHeader(http.StatusOK)
-//}
-
 func updateMetricsStorage(m common.Metrics) {
+	//switch m.MType {
+	//case metrics.Gauge:
+	//	gaugeMetricsStorage[m.ID] = metrics.GaugeMetric{
+	//		Base:  metrics.Base{Name: m.ID, Typename: metrics.Gauge},
+	//		Value: *m.Value}
+	//case metrics.Counter:
+	//	counterMetricsStorage[m.ID] = metrics.CounterMetric{
+	//		Base:  metrics.Base{Name: m.ID, Typename: metrics.Counter},
+	//		Value: counterMetricsStorage[m.ID].Value + *m.Delta}
+	//}
+
 	switch m.MType {
 	case metrics.Gauge:
-		gaugeMetricsStorage[m.ID] = metrics.GaugeMetric{
-			Base:  metrics.Base{Name: m.ID, Typename: metrics.Gauge},
-			Value: *m.Value}
+		instance.UpdateGaugeMetrics(m.ID, *m.Value)
 	case metrics.Counter:
-		counterMetricsStorage[m.ID] = metrics.CounterMetric{
-			Base:  metrics.Base{Name: m.ID, Typename: metrics.Counter},
-			Value: counterMetricsStorage[m.ID].Value + *m.Delta}
+		instance.UpdateCounterMetrics(m.ID, *m.Delta)
 	}
 }
 
