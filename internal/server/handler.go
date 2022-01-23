@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	//"os"
 	"strconv"
 	"text/template"
 	"time"
@@ -25,7 +25,7 @@ var HTMLTemplate *template.Template
 var secretKey string
 var db *sql.DB
 
-var instance server.Instance
+var instance Instance
 
 //type InternalStorage struct {
 //	GaugeMetrics   map[string]metrics.GaugeMetric

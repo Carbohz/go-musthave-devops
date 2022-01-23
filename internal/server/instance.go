@@ -22,6 +22,8 @@ func CreateInstance(cfg Config) Instance {
 	instance.Cfg = cfg
 
 	if cfg.Restore && cfg.StoreFile != "" {
+		var is internalStorage
+		instance.is = &is
 		instance.LoadMetrics()
 	}
 
@@ -38,7 +40,7 @@ func CreateInstance(cfg Config) Instance {
 func (instance Instance) RunInstance() {
 	r := chi.NewRouter()
 	r.Use(middleware.Compress(5))
-	server.SetupRouters(r)
+	SetupRouters(r)
 	server := &http.Server{
 		Addr:    instance.Cfg.Address,
 		Handler: r,

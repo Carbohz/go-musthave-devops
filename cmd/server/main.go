@@ -20,11 +20,12 @@ func main() {
 	go common.AwaitInterruptSignal(exitChan)
 	//go RunServer(cfg)
 	go instance.RunInstance()
-	defer instance.BeforeShutDown()
+	//defer instance.BeforeShutDown()
 	exitCode := <-exitChan
 	//log.Println("Dumping metrics and exiting")
 	//handler.DumpMetricsImpl(cfg)
 
+	instance.BeforeShutDown()
 	os.Exit(exitCode)
 }
 
@@ -34,7 +35,7 @@ func PrepareHTMLPage() {
 	if err != nil {
 		log.Fatal("Error occurred while reading HTML file: ", err)
 	}
-	handler.HTMLTemplate, err = template.New("").Parse(string(bytes))
+	server.HTMLTemplate, err = template.New("").Parse(string(bytes))
 	if err != nil {
 		log.Fatal("Error occurred while parsing HTML file: ", err)
 	}
