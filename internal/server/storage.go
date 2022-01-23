@@ -1,8 +1,11 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
+	"log"
+	"os"
 )
 
 type internalStorage struct {
@@ -40,12 +43,12 @@ func (s internalStorage) FindCounterMetric(name string) (int64, error) {
 	return -1, err
 }
 
-// load data
-func (s internalStorage) LoadGaugeMetrics() map[string]metrics.GaugeMetric {
+// get data
+func (s internalStorage) GetGaugeMetrics() map[string]metrics.GaugeMetric {
 	return s.GaugeMetrics
 }
 
-func (s internalStorage) LoadCounterMetrics() map[string]metrics.CounterMetric {
+func (s internalStorage) GetCounterMetrics() map[string]metrics.CounterMetric {
 	return s.CounterMetrics
 }
 
@@ -62,3 +65,51 @@ func (s internalStorage) UpdateCounterMetrics(name string, value int64) {
 		Value: s.CounterMetrics[name].Value + value}
 }
 
+// dump data to file
+func (s internalStorage) DumpMetricsToFile(instance Instance) {
+	cfg := instance.Cfg
+
+	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+
+	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
+	if err != nil {
+		log.Fatal("Can't open file for dumping: ", err)
+	}
+	defer f.Close()
+
+	encoder := json.NewEncoder(f)
+
+	//internalStorage := InternalStorage{
+	//	GaugeMetrics:   gaugeMetricsStorage,
+	//	CounterMetrics: counterMetricsStorage,
+	//}
+
+	if err := encoder.Encode(s); err != nil {
+		log.Fatal("Can't encode server's metrics: ", err)
+	}
+}
+
+// load data from file
+func (s internalStorage) LoadMetricsFromFile(instance Instance) {
+	cfg := instance.Cfg
+	log.Printf("Loading metrics from file %s", cfg.StoreFile)
+
+	flag := os.O_RDONLY
+
+	f, err := os.OpenFile(cfg.StoreFile, flag, 0)
+	if err != nil {
+		log.Print("Can't open file for loading metrics: ", err)
+		return
+	}
+	defer f.Close()
+
+	var internalStorage internalStorage
+
+	if err := json.NewDecoder(f).Decode(&internalStorage); err != nil {
+		log.Fatal("Can't decode metrics: ", err)
+	}
+
+	s.GaugeMetrics = internalStorage.GaugeMetrics
+	s.CounterMetrics = internalStorage.CounterMetrics
+	log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
+}

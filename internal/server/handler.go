@@ -1,4 +1,4 @@
-package handler
+package server
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/internal/metrics"
-	"github.com/Carbohz/go-musthave-devops/internal/server"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -136,8 +135,8 @@ func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	//	"counterMetrics": counterMetricsStorage,
 	//}
 	renderData := map[string]interface{}{
-		"gaugeMetrics":   instance.LoadGaugeMetrics(),
-		"counterMetrics": instance.LoadCounterMetrics(),
+		"gaugeMetrics":   instance.GetGaugeMetrics(),
+		"counterMetrics": instance.GetCounterMetrics(),
 	}
 	HTMLTemplate.Execute(w, renderData)
 }
@@ -227,58 +226,58 @@ func GetMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func DumpMetrics(cfg server.Config) {
-	ticker := time.NewTicker(cfg.StoreInterval)
-	for {
-		<-ticker.C
-		log.Printf("Dumping metrics to file %s", cfg.StoreFile)
-		DumpMetricsImpl(cfg)
-	}
-}
+//func DumpMetrics(cfg server.Config) {
+//	ticker := time.NewTicker(cfg.StoreInterval)
+//	for {
+//		<-ticker.C
+//		log.Printf("Dumping metrics to file %s", cfg.StoreFile)
+//		DumpMetricsImpl(cfg)
+//	}
+//}
 
-func DumpMetricsImpl(cfg server.Config) {
-	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+//func DumpMetricsImpl(cfg server.Config) {
+//	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+//
+//	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
+//	if err != nil {
+//		log.Fatal("Can't open file for dumping: ", err)
+//	}
+//	defer f.Close()
+//
+//	encoder := json.NewEncoder(f)
+//
+//	internalStorage := InternalStorage{
+//		GaugeMetrics:   gaugeMetricsStorage,
+//		CounterMetrics: counterMetricsStorage,
+//	}
+//
+//	if err := encoder.Encode(internalStorage); err != nil {
+//		log.Fatal("Can't encode server's metrics: ", err)
+//	}
+//}
 
-	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
-	if err != nil {
-		log.Fatal("Can't open file for dumping: ", err)
-	}
-	defer f.Close()
-
-	encoder := json.NewEncoder(f)
-
-	internalStorage := InternalStorage{
-		GaugeMetrics:   gaugeMetricsStorage,
-		CounterMetrics: counterMetricsStorage,
-	}
-
-	if err := encoder.Encode(internalStorage); err != nil {
-		log.Fatal("Can't encode server's metrics: ", err)
-	}
-}
-
-func LoadMetrics(cfg server.Config) {
-	log.Printf("Loading metrics from file %s", cfg.StoreFile)
-
-	flag := os.O_RDONLY
-
-	f, err := os.OpenFile(cfg.StoreFile, flag, 0)
-	if err != nil {
-		log.Print("Can't open file for loading metrics: ", err)
-		return
-	}
-	defer f.Close()
-
-	var internalStorage InternalStorage
-
-	if err := json.NewDecoder(f).Decode(&internalStorage); err != nil {
-		log.Fatal("Can't decode metrics: ", err)
-	}
-
-	gaugeMetricsStorage = internalStorage.GaugeMetrics
-	counterMetricsStorage = internalStorage.CounterMetrics
-	log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
-}
+//func LoadMetrics(cfg server.Config) {
+//	log.Printf("Loading metrics from file %s", cfg.StoreFile)
+//
+//	flag := os.O_RDONLY
+//
+//	f, err := os.OpenFile(cfg.StoreFile, flag, 0)
+//	if err != nil {
+//		log.Print("Can't open file for loading metrics: ", err)
+//		return
+//	}
+//	defer f.Close()
+//
+//	var internalStorage InternalStorage
+//
+//	if err := json.NewDecoder(f).Decode(&internalStorage); err != nil {
+//		log.Fatal("Can't decode metrics: ", err)
+//	}
+//
+//	gaugeMetricsStorage = internalStorage.GaugeMetrics
+//	counterMetricsStorage = internalStorage.CounterMetrics
+//	log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
+//}
 
 func PassSecretKey(key string) {
 	secretKey = key
@@ -307,10 +306,12 @@ func generateSingleMetric(body []byte) common.Metrics {
 
 	switch m.MType {
 	case metrics.Gauge:
-		v := gaugeMetricsStorage[m.ID].Value
+		//v := gaugeMetricsStorage[m.ID].Value
+		v, _ := instance.FindGaugeMetric(m.ID)
 		m.Value = &v
 	case metrics.Counter:
-		v := counterMetricsStorage[m.ID].Value
+		//v := counterMetricsStorage[m.ID].Value
+		v, _ := instance.FindCounterMetric(m.ID)
 		m.Delta = &v
 	}
 
@@ -353,10 +354,12 @@ func generateMultipleMetrics(body []byte) []common.Metrics {
 	for i, m := range mArr {
 		switch m.MType {
 		case metrics.Gauge:
-			v := gaugeMetricsStorage[m.ID].Value
+			//v := gaugeMetricsStorage[m.ID].Value
+			v, _ := instance.FindGaugeMetric(m.ID)
 			mArr[i].Value = &v
 		case metrics.Counter:
-			v := counterMetricsStorage[m.ID].Value
+			//v := counterMetricsStorage[m.ID].Value
+			v, _ := instance.FindCounterMetric(m.ID)
 			mArr[i].Delta = &v
 		}
 

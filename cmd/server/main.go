@@ -2,12 +2,8 @@ package main
 
 import (
 	"github.com/Carbohz/go-musthave-devops/internal/common"
-	"github.com/Carbohz/go-musthave-devops/internal/handler"
 	"github.com/Carbohz/go-musthave-devops/internal/server"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"log"
-	"net/http"
 	"os"
 	"text/template"
 )
@@ -19,21 +15,16 @@ const (
 func main() {
 	cfg := server.CreateConfig()
 	PrepareHTMLPage()
-	db, err := handler.ConnectDB(cfg.DBPath)
-	if db != nil {
-		log.Printf("Connected to db: %s", cfg.DBPath)
-	} else {
-		log.Printf("DB connection error: %v", err)
-	}
+	instance := server.CreateInstance(cfg)
 	exitChan := make(chan int, 1)
 	go common.AwaitInterruptSignal(exitChan)
-	go RunServer(cfg)
+	//go RunServer(cfg)
+	go instance.RunInstance()
+	defer instance.BeforeShutDown()
 	exitCode := <-exitChan
-	log.Println("Dumping metrics and exiting")
-	handler.DumpMetricsImpl(cfg)
-	if db != nil {
-		db.Close()
-	}
+	//log.Println("Dumping metrics and exiting")
+	//handler.DumpMetricsImpl(cfg)
+
 	os.Exit(exitCode)
 }
 
@@ -49,28 +40,28 @@ func PrepareHTMLPage() {
 	}
 }
 
-func RunServer(cfg server.Config) {
-	if cfg.Restore && cfg.StoreFile != "" {
-		handler.LoadMetrics(cfg)
-	}
-
-	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
-		go handler.DumpMetrics(cfg)
-	}
-
-	// new function
-	handler.PassSecretKey(cfg.Key)
-
-	//db, err := handler.ConnectDB(cfg.DBPath)
-
-	r := chi.NewRouter()
-	r.Use(middleware.Compress(5))
-	handler.SetupRouters(r)
-	server := &http.Server{
-		Addr:    cfg.Address,
-		Handler: r,
-	}
-	server.SetKeepAlivesEnabled(false)
-	log.Printf("Listening on address %s", cfg.Address)
-	log.Fatal(server.ListenAndServe())
-}
+//func RunServer(cfg server.Config) {
+//	if cfg.Restore && cfg.StoreFile != "" {
+//		handler.LoadMetrics(cfg)
+//	}
+//
+//	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
+//		go handler.DumpMetrics(cfg)
+//	}
+//
+//	// new function
+//	handler.PassSecretKey(cfg.Key)
+//
+//	//db, err := handler.ConnectDB(cfg.DBPath)
+//
+//	r := chi.NewRouter()
+//	r.Use(middleware.Compress(5))
+//	handler.SetupRouters(r)
+//	server := &http.Server{
+//		Addr:    cfg.Address,
+//		Handler: r,
+//	}
+//	server.SetKeepAlivesEnabled(false)
+//	log.Printf("Listening on address %s", cfg.Address)
+//	log.Fatal(server.ListenAndServe())
+//}
