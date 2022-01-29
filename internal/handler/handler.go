@@ -82,7 +82,7 @@ func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 		Value: counterMetricsStorage[metricName].Value + value}
 
 	if serverConfig.DBPath != "" {
-		err := storeCounterDB(metricName, value)
+		err := storeCounterDB(metricName, counterMetricsStorage[metricName].Value)
 		if err != nil {
 			log.Printf("Error occurred in /update/gauge/%s/%s handler call: %v", metricName, metricValue, err)
 		}
