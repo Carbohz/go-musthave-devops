@@ -223,12 +223,14 @@ func DumpMetrics(cfg server.Config) {
 	ticker := time.NewTicker(cfg.StoreInterval)
 	for {
 		<-ticker.C
-		log.Printf("Dumping metrics to file %s", cfg.StoreFile)
+		//log.Printf("Dumping metrics to file %s", cfg.StoreFile)
 		DumpMetricsImpl(cfg)
 	}
 }
 
 func DumpMetricsImpl(cfg server.Config) {
+	log.Printf("Dumping metrics to file %s", cfg.StoreFile)
+	
 	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
 	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
@@ -247,6 +249,8 @@ func DumpMetricsImpl(cfg server.Config) {
 	if err := encoder.Encode(internalStorage); err != nil {
 		log.Fatal("Can't encode server's metrics: ", err)
 	}
+
+	log.Printf("Metrics to be stored to file are: %v", internalStorage)
 }
 
 func LoadMetrics(cfg server.Config) {
