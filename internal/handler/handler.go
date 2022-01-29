@@ -230,7 +230,7 @@ func DumpMetrics(cfg server.Config) {
 
 func DumpMetricsImpl(cfg server.Config) {
 	log.Printf("Dumping metrics to file %s", cfg.StoreFile)
-	
+
 	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
 	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
@@ -274,6 +274,8 @@ func LoadMetrics(cfg server.Config) {
 	gaugeMetricsStorage = internalStorage.GaugeMetrics
 	counterMetricsStorage = internalStorage.CounterMetrics
 	log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
+	log.Printf("Loaded gauge metrics are: %v", gaugeMetricsStorage)
+	log.Printf("Loaded counter metrics are: %v", counterMetricsStorage)
 }
 
 func PassSecretKey(key string) {
@@ -444,6 +446,8 @@ func storeCounterDB(name string, counter int64) error {
 }
 
 func LoadStatsDB() error {
+	log.Println("Loading metrics from db")
+
 	var name string
 	var gauge float64
 	var counter int64
@@ -481,13 +485,17 @@ func LoadStatsDB() error {
 			return err
 		}
 		//statistics.Counters[name] = counter
+		//counterMetricsStorage[name] = metrics.CounterMetric{
+		//	Base:  metrics.Base{Name: name, Typename: metrics.Counter},
+		//	Value: counterMetricsStorage[name].Value + counter}
 		counterMetricsStorage[name] = metrics.CounterMetric{
 			Base:  metrics.Base{Name: name, Typename: metrics.Counter},
-			Value: counterMetricsStorage[name].Value + counter}
+			Value: counter}
 	}
 	if err = cRows.Err(); err != nil {
 		return err
 	}
 
+	log.Println("Loaded metrics from db")
 	return nil
 }
