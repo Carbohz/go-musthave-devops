@@ -183,7 +183,7 @@ func updateMetricsStorage(m common.Metrics) {
 		if serverConfig.DBPath != "" {
 			err := storeGaugeDB(m.ID, *m.Value)
 			if err != nil {
-				log.Printf("Error occurred in /update/ handler call: %v", err)
+				log.Printf("Error occurred in /update(s)/ handler call: %v", err)
 			}
 		}
 	case metrics.Counter:
@@ -194,7 +194,7 @@ func updateMetricsStorage(m common.Metrics) {
 		if serverConfig.DBPath != "" {
 			err := storeCounterDB(m.ID, *m.Delta)
 			if err != nil {
-				log.Printf("Error occurred in /update/ handler call: %v", err)
+				log.Printf("Error occurred in /update(s)/ handler call: %v", err)
 			}
 		}
 	}
@@ -223,20 +223,22 @@ func UpdatesMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Hash matched, updating internal server metrics")
 			updateMetricsStorage(m)
 			err = json.NewEncoder(w).Encode(m)
-			w.Header().Set("Content-Type", "application/json")
+			//w.Header().Set("Content-Type", "application/json")
 			if err != nil {
 				log.Printf("Error occurred during response json encoding: %v", err)
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			w.WriteHeader(http.StatusOK)
-			return
+			//w.WriteHeader(http.StatusOK)
+			//return
 		} else {
 			log.Println("Hash mismatched, bad request")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 // GetMetricsJSONHandler Получение метрик с сервера /value/
