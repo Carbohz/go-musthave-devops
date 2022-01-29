@@ -45,6 +45,7 @@ func SetupRouters(r *chi.Mux) {
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler)
 	r.Get("/", AllMetricsHandler)
 	r.Get("/ping", PingDBHandler)
+	r.Post("/updates/", UpdatesMetricsJSONHandler)
 }
 
 func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
@@ -195,6 +196,45 @@ func updateMetricsStorage(m common.Metrics) {
 			if err != nil {
 				log.Printf("Error occurred in /update/ handler call: %v", err)
 			}
+		}
+	}
+}
+
+func UpdatesMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("/updates/ handler called. Request body: %s", string(body))
+
+	var metrics []common.Metrics
+	err = json.Unmarshal(body, &metrics)
+	if err != nil {
+		log.Printf("Failed to unmarshal following request body: %s", string(body))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, m := range metrics {
+		err = m.CheckHash(secretKey)
+		if err == nil {
+			log.Println("Hash matched, updating internal server metrics")
+			updateMetricsStorage(m)
+			err = json.NewEncoder(w).Encode(m)
+			w.Header().Set("Content-Type", "application/json")
+			if err != nil {
+				log.Printf("Error occurred during response json encoding: %v", err)
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			return
+		} else {
+			log.Println("Hash mismatched, bad request")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 	}
 }
