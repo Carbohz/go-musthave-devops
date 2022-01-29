@@ -54,15 +54,15 @@ func RunServer(cfg server.Config) {
 	handler.PassSecretKey(cfg.Key)
 	handler.PassServerConfig(cfg)
 
-	if cfg.Restore && cfg.StoreFile != "" {
-		handler.LoadMetrics(cfg)
-	}
-
-	if cfg.Restore && cfg.DBPath != "" {
-		if err := handler.LoadStatsDB(); err != nil {
-			log.Printf("Failed to load stats from Database: %v",err)
-		}
-	}
+	//if cfg.Restore && cfg.StoreFile != "" {
+	//	handler.LoadMetrics(cfg)
+	//}
+	//
+	//if cfg.Restore && cfg.DBPath != "" {
+	//	if err := handler.LoadStatsDB(); err != nil {
+	//		log.Printf("Failed to load stats from Database: %v",err)
+	//	}
+	//}
 
 	//if cfg.Restore {
 	//	if cfg.DBPath != "" {
@@ -73,6 +73,16 @@ func RunServer(cfg server.Config) {
 	//		handler.LoadMetrics(cfg)
 	//	}
 	//}
+
+	if cfg.Restore {
+		if cfg.StoreFile != "" {
+			handler.LoadMetrics(cfg)
+		} else if cfg.DBPath != "" {
+			if err := handler.LoadStatsDB(); err != nil {
+				log.Printf("Failed to load stats from Database: %v",err)
+			}
+		}
+	}
 
 	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
 		go handler.DumpMetrics(cfg)
