@@ -26,6 +26,8 @@ var HTMLTemplate *template.Template
 var secretKey string
 var db *sql.DB
 
+var serverConfig server.Config
+
 type InternalStorage struct {
 	GaugeMetrics   map[string]metrics.GaugeMetric
 	CounterMetrics map[string]metrics.CounterMetric
@@ -56,6 +58,14 @@ func GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 	gaugeMetricsStorage[metricName] = metrics.GaugeMetric{
 		Base:  metrics.Base{Name: metricName, Typename: metrics.Gauge},
 		Value: value}
+
+	if serverConfig.DBPath != "" {
+		err := storeGaugeDB(metricName, value)
+		if err != nil {
+			log.Printf("Error occurred in /update/gauge/%s/%s handler call: %v", metricName, metricValue, err)
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -70,6 +80,14 @@ func CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 	counterMetricsStorage[metricName] = metrics.CounterMetric{
 		Base:  metrics.Base{Name: metricName, Typename: metrics.Counter},
 		Value: counterMetricsStorage[metricName].Value + value}
+
+	if serverConfig.DBPath != "" {
+		err := storeCounterDB(metricName, value)
+		if err != nil {
+			log.Printf("Error occurred in /update/gauge/%s/%s handler call: %v", metricName, metricValue, err)
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -138,12 +156,6 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		log.Println("Hash matched, updating internal server metrics")
 		updateMetricsStorage(m)
-		//w.WriteHeader(http.StatusOK)
-
-		//response := m.Hash
-		//log.Printf("Response message: %s", response)
-		//w.Write([]byte(response))
-		//w.Write(generateResponseJSON(m))
 		err = json.NewEncoder(w).Encode(m)
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
@@ -151,7 +163,6 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
 		w.WriteHeader(http.StatusOK)
 		return
 	} else {
@@ -161,36 +172,30 @@ func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//// This version works
-//// UpdateMetricsJSONHandler Передача метрик на сервер
-//func UpdateMetricsJSONHandler(w http.ResponseWriter, r *http.Request) {
-//	body, err := ioutil.ReadAll(r.Body)
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusInternalServerError)
-//		return
-//	}
-//
-//	m := common.Metrics{}
-//	err = json.Unmarshal(body, &m)
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusBadRequest)
-//	}
-//
-//	updateMetricsStorage(m)
-//
-//	w.WriteHeader(http.StatusOK)
-//}
-
 func updateMetricsStorage(m common.Metrics) {
 	switch m.MType {
 	case metrics.Gauge:
 		gaugeMetricsStorage[m.ID] = metrics.GaugeMetric{
 			Base:  metrics.Base{Name: m.ID, Typename: metrics.Gauge},
 			Value: *m.Value}
+
+		if serverConfig.DBPath != "" {
+			err := storeGaugeDB(m.ID, *m.Value)
+			if err != nil {
+				log.Printf("Error occurred in /update/ handler call: %v", err)
+			}
+		}
 	case metrics.Counter:
 		counterMetricsStorage[m.ID] = metrics.CounterMetric{
 			Base:  metrics.Base{Name: m.ID, Typename: metrics.Counter},
 			Value: counterMetricsStorage[m.ID].Value + *m.Delta}
+
+		if serverConfig.DBPath != "" {
+			err := storeCounterDB(m.ID, *m.Delta)
+			if err != nil {
+				log.Printf("Error occurred in /update/ handler call: %v", err)
+			}
+		}
 	}
 }
 
@@ -218,29 +223,33 @@ func DumpMetrics(cfg server.Config) {
 	ticker := time.NewTicker(cfg.StoreInterval)
 	for {
 		<-ticker.C
-		log.Printf("Dumping metrics to file %s", cfg.StoreFile)
-		DumpMetricsImpl(cfg)
+		if serverConfig.DBPath == "" {
+			log.Printf("Dumping metrics to file %s", cfg.StoreFile)
+			DumpMetricsImpl(cfg)
+		}
 	}
 }
 
 func DumpMetricsImpl(cfg server.Config) {
-	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	if serverConfig.DBPath == "" {
+		flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
-	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
-	if err != nil {
-		log.Fatal("Can't open file for dumping: ", err)
-	}
-	defer f.Close()
+		f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
+		if err != nil {
+			log.Fatal("Can't open file for dumping: ", err)
+		}
+		defer f.Close()
 
-	encoder := json.NewEncoder(f)
+		encoder := json.NewEncoder(f)
 
-	internalStorage := InternalStorage{
-		GaugeMetrics:   gaugeMetricsStorage,
-		CounterMetrics: counterMetricsStorage,
-	}
+		internalStorage := InternalStorage{
+			GaugeMetrics:   gaugeMetricsStorage,
+			CounterMetrics: counterMetricsStorage,
+		}
 
-	if err := encoder.Encode(internalStorage); err != nil {
-		log.Fatal("Can't encode server's metrics: ", err)
+		if err := encoder.Encode(internalStorage); err != nil {
+			log.Fatal("Can't encode server's metrics: ", err)
+		}
 	}
 }
 
@@ -269,6 +278,10 @@ func LoadMetrics(cfg server.Config) {
 
 func PassSecretKey(key string) {
 	secretKey = key
+}
+
+func PassServerConfig(config server.Config) {
+	serverConfig = config
 }
 
 func generateSingleMetric(body []byte) common.Metrics {
@@ -398,4 +411,83 @@ func ConnectDB(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("database connection error: %v", err)
 	}
 	return db, nil
+}
+
+func InitDBTable() error {
+	_, err := db.Exec("CREATE TABLE IF NOT EXISTS gauges (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value DOUBLE PRECISION NOT NULL)")
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS counters (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value BIGINT NOT NULL)")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func storeGaugeDB(name string, gauge float64) error {
+	_, err := db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", name, gauge)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func storeCounterDB(name string, counter int64) error {
+	_, err := db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", name, counter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func LoadStatsDB() error {
+	var name string
+	var gauge float64
+	var counter int64
+
+	//mu.Lock()
+	//defer mu.Unlock()
+
+	gRows, err := db.Query("SELECT name, value FROM gauges")
+	if err != nil {
+		return err
+	}
+	defer gRows.Close()
+	for gRows.Next() {
+		if err = gRows.Scan(&name, &gauge); err != nil {
+			log.Print(err)
+			return err
+		}
+		//statistics.Gauges[name] = gauge
+		gaugeMetricsStorage[name] = metrics.GaugeMetric{
+			Base:  metrics.Base{Name: name, Typename: metrics.Gauge},
+			Value: gauge}
+	}
+	if err = gRows.Err(); err != nil {
+		return err
+	}
+
+	cRows, err := db.Query("SELECT name, value FROM counters")
+	if err != nil {
+		return err
+	}
+	defer cRows.Close()
+	for cRows.Next() {
+		if err = cRows.Scan(&name, &counter); err != nil {
+			log.Print(err)
+			return err
+		}
+		//statistics.Counters[name] = counter
+		counterMetricsStorage[name] = metrics.CounterMetric{
+			Base:  metrics.Base{Name: name, Typename: metrics.Counter},
+			Value: counterMetricsStorage[name].Value + counter}
+	}
+	if err = cRows.Err(); err != nil {
+		return err
+	}
+
+	return nil
 }
