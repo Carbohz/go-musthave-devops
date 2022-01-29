@@ -223,33 +223,29 @@ func DumpMetrics(cfg server.Config) {
 	ticker := time.NewTicker(cfg.StoreInterval)
 	for {
 		<-ticker.C
-		if serverConfig.DBPath == "" {
-			log.Printf("Dumping metrics to file %s", cfg.StoreFile)
-			DumpMetricsImpl(cfg)
-		}
+		log.Printf("Dumping metrics to file %s", cfg.StoreFile)
+		DumpMetricsImpl(cfg)
 	}
 }
 
 func DumpMetricsImpl(cfg server.Config) {
-	if serverConfig.DBPath == "" {
-		flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
-		f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
-		if err != nil {
-			log.Fatal("Can't open file for dumping: ", err)
-		}
-		defer f.Close()
+	f, err := os.OpenFile(cfg.StoreFile, flag, 0644)
+	if err != nil {
+		log.Fatal("Can't open file for dumping: ", err)
+	}
+	defer f.Close()
 
-		encoder := json.NewEncoder(f)
+	encoder := json.NewEncoder(f)
 
-		internalStorage := InternalStorage{
-			GaugeMetrics:   gaugeMetricsStorage,
-			CounterMetrics: counterMetricsStorage,
-		}
+	internalStorage := InternalStorage{
+		GaugeMetrics:   gaugeMetricsStorage,
+		CounterMetrics: counterMetricsStorage,
+	}
 
-		if err := encoder.Encode(internalStorage); err != nil {
-			log.Fatal("Can't encode server's metrics: ", err)
-		}
+	if err := encoder.Encode(internalStorage); err != nil {
+		log.Fatal("Can't encode server's metrics: ", err)
 	}
 }
 

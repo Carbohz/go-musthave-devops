@@ -50,23 +50,29 @@ func PrepareHTMLPage() {
 }
 
 func RunServer(cfg server.Config) {
-	//if cfg.Restore && cfg.StoreFile != "" {
-	//	handler.LoadMetrics(cfg)
-	//}
-
 	// new function
 	handler.PassSecretKey(cfg.Key)
 	handler.PassServerConfig(cfg)
 
-	if cfg.Restore {
-		if cfg.DBPath != "" {
-			if err := handler.LoadStatsDB(); err != nil {
-				log.Printf("Failed to load stats from Database: %v",err)
-			}
-		} else if cfg.StoreFile != "" {
-			handler.LoadMetrics(cfg)
+	if cfg.Restore && cfg.StoreFile != "" {
+		handler.LoadMetrics(cfg)
+	}
+
+	if cfg.Restore && cfg.DBPath != "" {
+		if err := handler.LoadStatsDB(); err != nil {
+			log.Printf("Failed to load stats from Database: %v",err)
 		}
 	}
+
+	//if cfg.Restore {
+	//	if cfg.DBPath != "" {
+	//		if err := handler.LoadStatsDB(); err != nil {
+	//			log.Printf("Failed to load stats from Database: %v",err)
+	//		}
+	//	} else if cfg.StoreFile != "" {
+	//		handler.LoadMetrics(cfg)
+	//	}
+	//}
 
 	if cfg.StoreInterval > 0 && cfg.StoreFile != "" {
 		go handler.DumpMetrics(cfg)
