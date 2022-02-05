@@ -22,7 +22,7 @@ const (
 	defaultKeyHash        = ""
 )
 
-func CreateConfig() Config {
+func createConfig() Config {
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {
