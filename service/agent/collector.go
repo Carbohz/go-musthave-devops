@@ -18,7 +18,7 @@ func collectMemStats() []model.GaugeMetric {
 	runtime.ReadMemStats(&rtm)
 
 	m := []model.GaugeMetric{
-		{model.Common{Name: "Alloc", Typename: model.Gauge}, float64(rtm.Alloc)},
+		{Common: model.Common{Name: "Alloc", Typename: model.Gauge}, float64(rtm.Alloc)},
 		{model.Common{Name: "BuckHashSys", Typename: model.Gauge}, float64(rtm.BuckHashSys)},
 		{model.Common{Name: "Frees", Typename: model.Gauge},float64(rtm.Frees)},
 		{model.Common{Name: "GCCPUFraction", Typename: model.Gauge}, rtm.GCCPUFraction},

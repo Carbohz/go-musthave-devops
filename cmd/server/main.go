@@ -11,13 +11,13 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(
+	ctx, ctxCancel  := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT,
 	)
-	defer stop()
+	defer ctxCancel()
 
 	// init storage
 	storage, _ := inmemory.NewMetricsStorage()
@@ -29,7 +29,10 @@ func main() {
 		log.Fatalf("Failed to create a server: %v", err)
 	}
 
-	if err := apiServer.Run(ctx); err != nil {
-		log.Fatalf("Failed to run a server: %v", err)
-	}
+	go func() {
+		if err := apiServer.Run(ctx); err != nil {
+			log.Fatalf("Failed to run a server: %v", err)
+		}
+	}()
+	<-ctx.Done()
 }

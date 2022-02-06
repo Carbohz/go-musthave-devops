@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(
+	ctx, ctxCancel  := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT,
 	)
-	defer stop()
+	defer ctxCancel()
 
 	config := agent.CreateConfig()
 	agent, err := agent.NewAgent(config)

@@ -38,15 +38,10 @@ func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer,
 }
 
 func (s *APIServer) Run(ctx context.Context) error {
-
-	//select {
-	//case <-ctx.Done():
-	//	return nil
-	//}
-
-
-	s.httpServer.SetKeepAlivesEnabled(false)
+	//s.httpServer.SetKeepAlivesEnabled(false)
 	log.Println("Server is listening")
-	log.Fatal(s.httpServer.ListenAndServe())
+	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		return err
+	}
 	return nil
 }
