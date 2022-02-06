@@ -23,7 +23,7 @@ type APIServer struct {
 }
 
 func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer, error) {
-	h, _ := handler.NewHandler(serverSvc)
+	h, _ := handler.NewHandler(&serverSvc)
 
 	srv := &APIServer{
 		serverSvc: serverSvc,
@@ -46,7 +46,7 @@ func (s *APIServer) Run(ctx context.Context) error {
 
 
 	s.httpServer.SetKeepAlivesEnabled(false)
-	log.Println("asdasdasd")
+	log.Println("Server is listening")
 	log.Fatal(s.httpServer.ListenAndServe())
 	return nil
 }
