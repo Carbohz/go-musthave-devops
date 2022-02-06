@@ -26,7 +26,7 @@ const (
 	defaultDBPath        = ""
 )
 
-func createConfig() Config {
+func CreateConfig() Config {
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {

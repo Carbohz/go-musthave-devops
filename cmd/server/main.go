@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"flag"
-	"github.com/caarlos0/env/v6"
+	"github.com/Carbohz/go-musthave-devops/api/rest"
+	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
+	"github.com/Carbohz/go-musthave-devops/storage/inmemory"
 	"log"
 	"os/signal"
 	"syscall"
@@ -18,21 +19,10 @@ func main() {
 	)
 	defer stop()
 
-	config := restServerConfig{
-		ShutdownTimeout: defaultShutdownTimeout,
-	}
+	storage, _ := inmemory.NewMetricsStorage()
+	processor, _ := v1.NewService(storage)
 
-	flag.StringVar(&config.ServerAddress, "a", defaultServerAddress, "ADDRESS")
-	flag.BoolVar(&config.InitStore, "r", defaultInitStore, "RESTORE")
-	flag.DurationVar(&config.StoreInterval, "i", defaultStoreInterval, "STORE_INTERVAL")
-	flag.StringVar(&config.StoreFile, "f", defaultStoreFile, "STORE_FILE")
-	flag.Parse()
-
-	if err := env.Parse(&config); err != nil {
-		log.Fatalf("Failed to parse REST server config options: %v", err)
-	}
-
-	server, err := newRestServer(config)
+	server, err := rest.NewAPIServer("127.0.0.1:8080", processor)
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)
 	}

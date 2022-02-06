@@ -3,6 +3,7 @@ package inmemory
 import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
+	"log"
 	"sync"
 )
 
@@ -16,6 +17,7 @@ type MetricsStorage struct {
 }
 
 func NewMetricsStorage() (*MetricsStorage, error) {
+	log.Println("Created NewMetricsStorage")
 	storage := &MetricsStorage{
 		gauges: make(map[string]model.GaugeMetric),
 		counters: make(map[string]model.CounterMetric),
@@ -29,6 +31,7 @@ func (s *MetricsStorage) SaveGaugeMetric(m model.GaugeMetric) {
 	defer s.mu.Unlock()
 
 	s.gauges[m.Name] = m
+	log.Println("Saved gauge metric")
 }
 
 func (s *MetricsStorage) SaveCounterMetric(m model.CounterMetric) {
@@ -36,6 +39,7 @@ func (s *MetricsStorage) SaveCounterMetric(m model.CounterMetric) {
 	defer s.mu.Unlock()
 
 	s.counters[m.Name] = m
+	log.Println("Saved counter metric")
 }
 
 func (s *MetricsStorage) LoadGaugeMetric(name string) model.GaugeMetric {
