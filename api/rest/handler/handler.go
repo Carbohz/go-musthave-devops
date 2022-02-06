@@ -49,6 +49,8 @@ func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("GaugeMetricHandler called. Requested metric %s with value %s", metricName, metricValue)
+
 	request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
 	gauge := request.ToModelGaugeMetric()
 
