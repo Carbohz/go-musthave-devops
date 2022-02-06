@@ -19,18 +19,11 @@ type Handler struct {
 
 func NewHandler(serverSvc *server.Processor) (*Handler, error) {
 	r := chi.NewRouter()
-	//r.Use(middleware.RequestID)
-	//r.Use(middleware.RealIP)
-	//r.Use(middleware.Logger)
-	//r.Use(middleware.Recoverer)
-
 	handler := &Handler{
 		serverSvc: serverSvc,
 		Router: r,
 	}
-
 	handler.setupRouters()
-
 	return handler, nil
 }
 
@@ -42,13 +35,12 @@ func (h *Handler) setupRouters() {
 		r.Post("/{metricName}/", h.NotFoundHandler)
 		r.Post("/*", h.UnknownTypeMetricHandler)
 	})
-	r.Get("/", h.AllMetricsHandler)
 	r.Get("/value/{metricType}/{metricName}", h.SpecificMetricHandler)
+	r.Get("/", h.AllMetricsHandler)
 }
 
 
 func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("GaugeMetricHandler called")
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
 	value, err := strconv.ParseFloat(metricValue, 64)
@@ -69,7 +61,6 @@ func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("CounterMetricHandler called")
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
 	value, err := strconv.ParseInt(metricValue, 10, 64)
@@ -98,28 +89,22 @@ func (h *Handler) UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *Handler) AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("AllMetricsHandler called")
-
-	//w.Header().Set("Content-Type", "text/html")
-	//renderData := map[string]interface{}{
-	//	"gaugeMetrics":   gaugeMetricsStorage,
-	//	"counterMetrics": counterMetricsStorage,
-	//}
-	//HTMLTemplate.Execute(w, renderData)
-
 	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
 }
 
 func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("SpecificMetricHandler called")
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 
 	service := *h.serverSvc
 
 	if metricType == model.Counter {
+		log.Println("Handling counter metric")
 		if value, found := service.GetGaugeMetric(metricName); found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(value)))
+			log.Printf("returned counter metric is %v", value)
 			return
 		}
 		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
@@ -128,9 +113,9 @@ func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if metricType == model.Gauge {
-		if val, found := service.GetCounterMetric(metricName); found {
+		if value, found := service.GetCounterMetric(metricName); found {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprint(val)))
+			w.Write([]byte(fmt.Sprint(value)))
 			return
 		}
 		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)

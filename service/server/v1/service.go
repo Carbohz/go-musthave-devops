@@ -30,11 +30,9 @@ func (s *Service) ProcessCounterMetric(ctx context.Context, m model.CounterMetri
 }
 
 func (s *Service) GetGaugeMetric(name string) (float64, bool) {
-	g := s.storage.LoadGaugeMetric(name)
-	return g.Value, true
+	return s.storage.GetGaugeMetric(name)
 }
 
 func (s *Service) GetCounterMetric(name string) (int64, bool) {
-	c := s.storage.LoadCounterMetric(name)
-	return c.Value, true
+	return s.storage.GetCounterMetric(name)
 }

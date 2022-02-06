@@ -38,16 +38,17 @@ func (s *MetricsStorage) SaveCounterMetric(m model.CounterMetric) {
 	s.counters[m.Name] = m
 }
 
-func (s *MetricsStorage) LoadGaugeMetric(name string) model.GaugeMetric {
+func (s *MetricsStorage) GetGaugeMetric(name string) (float64, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return s.gauges[name]
+	v, found := s.gauges[name]
+	return v.Value, found
 }
 
-func (s *MetricsStorage) LoadCounterMetric(name string) model.CounterMetric {
+func (s *MetricsStorage) GetCounterMetric(name string) (int64, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	return s.counters[name]
+	v, found := s.counters[name]
+	return v.Value, found
 }
