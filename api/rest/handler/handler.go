@@ -119,9 +119,12 @@ func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) 
 		if value, found := service.GetGaugeMetric(metricName); found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(value)))
+			log.Printf("Returned value from storage is %v", value)
 			return
 		}
+		log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
 		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
 		http.Error(w, reason, http.StatusNotFound)
+		return
 	}
 }

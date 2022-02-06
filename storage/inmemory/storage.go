@@ -28,14 +28,14 @@ func (s *MetricsStorage) SaveGaugeMetric(m model.GaugeMetric) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.gauges[m.Name] = m.Value
+	s.gauges[m.Name] += m.Value
 }
 
 func (s *MetricsStorage) SaveCounterMetric(m model.CounterMetric) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.counters[m.Name] = m.Value
+	s.counters[m.Name] += m.Value
 }
 
 func (s *MetricsStorage) GetGaugeMetric(name string) (float64, bool) {
