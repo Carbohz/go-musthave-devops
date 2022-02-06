@@ -7,6 +7,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -68,6 +69,8 @@ func (h *Handler) CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("CounterMetricHandler called. Requested metric %s with value %s", metricName, metricValue)
+
 	request := models.CounterMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
 	counter := request.ToModelCounterMetric()
 
@@ -95,14 +98,18 @@ func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) 
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 
+	log.Printf("SpecificMetricHandler called. Requested metric type is %s, name is %s", metricType, metricName)
+
 	service := *h.serverSvc
 
 	if metricType == model.Counter {
 		if value, found := service.GetCounterMetric(metricName); found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(value)))
+			log.Printf("Returned value from storage is %v", value)
 			return
 		}
+		log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
 		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
 		http.Error(w, reason, http.StatusNotFound)
 		return
