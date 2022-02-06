@@ -7,20 +7,22 @@ const (
 	Counter = "counter"
 )
 
-type Common struct {
-	Name string
-	Typename string
-}
+type (
+	Common struct {
+		Name string
+		Typename string
+	}
 
-type GaugeMetric struct {
-	Common
-	Value float64
-}
+	GaugeMetric struct {
+		Common
+		Value float64
+	}
 
-type CounterMetric struct {
-	Common
-	Value int64
-}
+	CounterMetric struct {
+		Common
+		Value int64
+	}
+)
 
 func (m GaugeMetric) String() string {
 	return strconv.FormatFloat(m.Value, 'f', -1, 64)

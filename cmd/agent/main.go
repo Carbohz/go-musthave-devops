@@ -17,7 +17,8 @@ func main() {
 	)
 	defer stop()
 
-	agent, err := agent.NewAgent()
+	config := agent.CreateConfig()
+	agent, err := agent.NewAgent(config)
 
 	if err != nil {
 		log.Fatalf("Failed to create an agent: %v", err)

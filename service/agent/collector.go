@@ -2,7 +2,6 @@ package agent
 
 import (
 	"github.com/Carbohz/go-musthave-devops/model"
-	"log"
 	"math/rand"
 	"runtime"
 	"time"
@@ -12,7 +11,6 @@ func (agent *Agent) collectMetrics() {
 	agent.metrics.memStats = collectMemStats()
 	agent.metrics.randomValue = collectRandomValue()
 	agent.metrics.pollCount.Value += 1
-	log.Println(agent.metrics.pollCount.Value)
 }
 
 func collectMemStats() []model.GaugeMetric {

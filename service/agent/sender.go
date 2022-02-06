@@ -8,7 +8,7 @@ import (
 
 func (agent *Agent) sendMetrics() {
 	go agent.sendMemStats()
-	agent.sendGaugeMetric(agent.metrics.randomValue)
+	go agent.sendGaugeMetric(agent.metrics.randomValue)
 	go agent.sendCounterMetric(agent.metrics.pollCount)
 }
 

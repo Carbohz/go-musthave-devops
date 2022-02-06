@@ -17,11 +17,10 @@ type metrics struct {
 type Agent struct {
 	config Config
 	metrics metrics
-	client http.Client
+	client *http.Client
 }
 
-func NewAgent() (*Agent, error) {
-	config := createConfig()
+func NewAgent(config Config) (*Agent, error) {
 	client := http.Client{Timeout: 2 * time.Second}
 
 	var m metrics
@@ -30,7 +29,7 @@ func NewAgent() (*Agent, error) {
 	agent := &Agent{
 		config: config,
 		metrics: m,
-		client: client,
+		client: &client,
 	}
 
 	return agent, nil
