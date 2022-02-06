@@ -7,7 +7,6 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 	"strconv"
@@ -20,10 +19,10 @@ type Handler struct {
 
 func NewHandler(serverSvc *server.Processor) (*Handler, error) {
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	//r.Use(middleware.RequestID)
+	//r.Use(middleware.RealIP)
+	//r.Use(middleware.Logger)
+	//r.Use(middleware.Recoverer)
 
 	handler := &Handler{
 		serverSvc: serverSvc,
@@ -41,6 +40,8 @@ func (h *Handler) setupRouters() {
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/gauge/{metricName}/{metricValue}", h.GaugeMetricHandler)
 		r.Post("/counter/{metricName}/{metricValue}", h.CounterMetricHandler)
+		r.Post("/{metricName}/", h.NotFoundHandler)
+		r.Post("/*", h.UnknownTypeMetricHandler)
 	})
 	r.Get("/", h.AllMetricsHandler)
 
@@ -90,6 +91,14 @@ func (h *Handler) CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 	//h.serverSvc.ProcessCounterMetric(ctx, counter)
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not Found", http.StatusNotFound)
+}
+
+func (h *Handler) UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Unknown type", http.StatusNotImplemented)
 }
 
 func (h *Handler) AllMetricsHandler(w http.ResponseWriter, r *http.Request) {

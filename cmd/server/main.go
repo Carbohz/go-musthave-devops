@@ -19,15 +19,17 @@ func main() {
 	)
 	defer stop()
 
+	// init storage
 	storage, _ := inmemory.NewMetricsStorage()
-	processor, _ := v1.NewService(storage)
-
-	server, err := rest.NewAPIServer("127.0.0.1:8080", processor)
+	// init server
+	processor, _ := v1.NewService(storage) // serve
+	// init apiServer
+	apiServer, err := rest.NewAPIServer("127.0.0.1:8080", processor)
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)
 	}
 
-	if err := server.Run(ctx); err != nil {
+	if err := apiServer.Run(ctx); err != nil {
 		log.Fatalf("Failed to run a server: %v", err)
 	}
 }
