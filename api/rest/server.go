@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/Carbohz/go-musthave-devops/api/rest/handler"
 	"github.com/Carbohz/go-musthave-devops/service/server"
-	"log"
 	"net/http"
 )
 
@@ -33,13 +32,10 @@ func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer,
 		},
 	}
 
-	log.Println("Created NewAPIServer")
 	return srv, nil
 }
 
 func (s *APIServer) Run(ctx context.Context) error {
-	//s.httpServer.SetKeepAlivesEnabled(false)
-	log.Println("Server is listening")
 	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 		return err
 	}

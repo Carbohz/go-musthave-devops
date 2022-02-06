@@ -10,4 +10,7 @@ type Processor interface {
 	// сохраняет метрики в хранилище
 	ProcessGaugeMetric(ctx context.Context, m model.GaugeMetric) error
 	ProcessCounterMetric(ctx context.Context, m model.CounterMetric) error
+
+	GetGaugeMetric(name string) (float64, bool)
+	GetCounterMetric(name string) (int64, bool)
 }

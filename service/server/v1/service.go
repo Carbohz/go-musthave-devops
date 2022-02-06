@@ -5,7 +5,6 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/Carbohz/go-musthave-devops/storage"
-	"log"
 )
 
 var _ server.Processor = (*Service)(nil)
@@ -16,21 +15,26 @@ type Service struct {
 }
 
 func NewService(storage storage.MetricsStorager) (*Service, error) {
-	log.Println("Created NewService")
 	svc := &Service{storage: storage}
 	return svc, nil
 }
 
-// сохраняет gauge метрики в хранилище
 func (s *Service) ProcessGaugeMetric(ctx context.Context, m model.GaugeMetric) error {
 	s.storage.SaveGaugeMetric(m)
 	return nil
 }
 
-// сохраняет counter метрики в хранилище
 func (s *Service) ProcessCounterMetric(ctx context.Context, m model.CounterMetric) error {
-	log.Println("Called ProcessCounterMetric in Service")
 	s.storage.SaveCounterMetric(m)
 	return nil
 }
 
+func (s *Service) GetGaugeMetric(name string) (float64, bool) {
+	g := s.storage.LoadGaugeMetric(name)
+	return g.Value, true
+}
+
+func (s *Service) GetCounterMetric(name string) (int64, bool) {
+	c := s.storage.LoadCounterMetric(name)
+	return c.Value, true
+}

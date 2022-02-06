@@ -31,7 +31,6 @@ func NewHandler(serverSvc *server.Processor) (*Handler, error) {
 
 	handler.setupRouters()
 
-	log.Println("Created NewHandler")
 	return handler, nil
 }
 
@@ -44,8 +43,7 @@ func (h *Handler) setupRouters() {
 		r.Post("/*", h.UnknownTypeMetricHandler)
 	})
 	r.Get("/", h.AllMetricsHandler)
-
-	log.Println("Routers set up")
+	r.Get("/value/{metricType}/{metricName}", h.SpecificMetricHandler)
 }
 
 
@@ -59,11 +57,10 @@ func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-
 	request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
 	gauge := request.ToModelGaugeMetric()
 
+	ctx := context.Background()
 	service := *h.serverSvc
 	service.ProcessGaugeMetric(ctx, gauge)
 	//h.serverSvc.ProcessGaugeMetric(ctx, gauge)
@@ -81,11 +78,10 @@ func (h *Handler) CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
-
 	request := models.CounterMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
 	counter := request.ToModelCounterMetric()
 
+	ctx := context.Background()
 	service := *h.serverSvc
 	service.ProcessCounterMetric(ctx, counter)
 	//h.serverSvc.ProcessCounterMetric(ctx, counter)
@@ -112,4 +108,32 @@ func (h *Handler) AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	//HTMLTemplate.Execute(w, renderData)
 
 	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
+}
+
+func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
+	metricType := chi.URLParam(r, "metricType")
+	metricName := chi.URLParam(r, "metricName")
+
+	service := *h.serverSvc
+
+	if metricType == model.Counter {
+		if value, found := service.GetGaugeMetric(metricName); found {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(fmt.Sprint(value)))
+			return
+		}
+		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+		http.Error(w, reason, http.StatusNotFound)
+		return
+	}
+
+	if metricType == model.Gauge {
+		if val, found := service.GetCounterMetric(metricName); found {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(fmt.Sprint(val)))
+			return
+		}
+		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+		http.Error(w, reason, http.StatusNotFound)
+	}
 }
