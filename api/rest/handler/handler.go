@@ -7,7 +7,6 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -93,18 +92,15 @@ func (h *Handler) AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("SpecificMetricHandler called")
 	metricType := chi.URLParam(r, "metricType")
 	metricName := chi.URLParam(r, "metricName")
 
 	service := *h.serverSvc
 
 	if metricType == model.Counter {
-		log.Println("Handling counter metric")
-		if value, found := service.GetGaugeMetric(metricName); found {
+		if value, found := service.GetCounterMetric(metricName); found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(value)))
-			log.Printf("returned counter metric is %v", value)
 			return
 		}
 		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
@@ -113,7 +109,7 @@ func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if metricType == model.Gauge {
-		if value, found := service.GetCounterMetric(metricName); found {
+		if value, found := service.GetGaugeMetric(metricName); found {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprint(value)))
 			return
