@@ -2,9 +2,10 @@ package rest
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Carbohz/go-musthave-devops/api/rest/handler"
 	"github.com/Carbohz/go-musthave-devops/service/server"
-	"net/http"
 )
 
 //type Config struct {
@@ -17,18 +18,21 @@ import (
 //}
 
 type APIServer struct {
-	serverSvc server.Processor
+	serverSvc  server.Processor
 	httpServer *http.Server
 }
 
 func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer, error) {
-	h, _ := handler.NewHandler(&serverSvc)
+	//создаю Roter, регестрирую handler'ы
+	//
+
+	h, _ := handler.NewHandler(&serverSvc) // ?
 
 	srv := &APIServer{
 		serverSvc: serverSvc,
 		httpServer: &http.Server{
-			Addr: serverAddress,
-			Handler: h.Router,
+			Addr:    serverAddress,
+			Handler: h.Router, //должен создаваться в этой ф-ии
 		},
 	}
 

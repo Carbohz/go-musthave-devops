@@ -1,9 +1,10 @@
 package inmemory
 
 import (
+	"sync"
+
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
-	"sync"
 )
 
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
@@ -11,13 +12,13 @@ var _ storage.MetricsStorager = (*MetricsStorage)(nil)
 type MetricsStorage struct {
 	mu sync.RWMutex
 
-	gauges map[string]float64
+	gauges   map[string]float64 //map[string]model.Gauge
 	counters map[string]int64
 }
 
 func NewMetricsStorage() (*MetricsStorage, error) {
 	storage := &MetricsStorage{
-		gauges: make(map[string]float64),
+		gauges:   make(map[string]float64),
 		counters: make(map[string]int64),
 	}
 

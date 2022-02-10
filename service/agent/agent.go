@@ -3,15 +3,16 @@ package agent
 import (
 	"context"
 	"github.com/Carbohz/go-musthave-devops/model"
+	"github.com/markphelps/optional"
 	"log"
 	"net/http"
 	"time"
 )
 
 type metrics struct {
-	memStats    []model.GaugeMetric
-	randomValue model.GaugeMetric
-	pollCount   model.CounterMetric
+	memStats    []model.Metric
+	randomValue model.Metric
+	pollCount   model.Metric
 }
 
 type Agent struct {
@@ -24,7 +25,9 @@ func NewAgent(config Config) (*Agent, error) {
 	client := http.Client{Timeout: 2 * time.Second}
 
 	var m metrics
-	m.pollCount = model.CounterMetric{Common: model.Common{Name: "PollCount", Typename: model.Counter}}
+	//m.pollCount = model.Metric{Common: model.Common{Name: "PollCount", Typename: model.Counter}}
+	pollCount := optional.NewInt64(0)
+	m.pollCount = model.Metric{Name: "PollCount", Type: model.KCounter, Delta: pollCount}
 
 	agent := &Agent{
 		config: config,

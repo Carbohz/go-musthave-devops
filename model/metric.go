@@ -1,33 +1,38 @@
 package model
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/markphelps/optional"
+)
+
 
 const (
-	Gauge   = "gauge"
-	Counter = "counter"
+	KGauge   = "gauge"
+	KCounter = "counter"
 )
 
 type (
-	Common struct {
+	Metric struct {
 		Name string
-		Typename string
-	}
-
-	GaugeMetric struct {
-		Common
-		Value float64
-	}
-
-	CounterMetric struct {
-		Common
-		Value int64
+		Type string
+		Delta optional.Int64
+		Value optional.Float64
 	}
 )
 
-func (m GaugeMetric) String() string {
-	return strconv.FormatFloat(m.Value, 'f', -1, 64)
-}
+func (m Metric) String() string {
+	delta, err := m.Delta.Get()
+	if err == nil {
+		return strconv.FormatInt(delta, 10)
+	}
 
-func (m CounterMetric) String() string {
-	return strconv.FormatInt(m.Value, 10)
+	value, _ := m.Value.Get()
+	return strconv.FormatFloat(value, 'f', -1, 64)
+
+	//if m.Delta != nil {
+	//	return strconv.FormatInt(*m.Delta, 10)
+	//}
+	//
+	//return strconv.FormatFloat(*m.Value, 'f', -1, 64)
 }

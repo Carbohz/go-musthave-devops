@@ -1,27 +1,28 @@
 package handler
 
 import (
-	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
-	"log"
-	"net/http"
-	"strconv"
 )
 
+// не нужен -> router + mw + handler'ы
 type Handler struct {
 	serverSvc *server.Processor
-	Router *chi.Mux
+	Router    *chi.Mux //отдельно хранить не нужно
 }
 
 func NewHandler(serverSvc *server.Processor) (*Handler, error) {
 	r := chi.NewRouter()
 	handler := &Handler{
 		serverSvc: serverSvc,
-		Router: r,
+		Router:    r,
 	}
 	handler.setupRouters()
 	return handler, nil
@@ -39,7 +40,6 @@ func (h *Handler) setupRouters() {
 	r.Get("/", h.AllMetricsHandler)
 }
 
-
 func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 	metricName := chi.URLParam(r, "metricName")
 	metricValue := chi.URLParam(r, "metricValue")
@@ -54,9 +54,8 @@ func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 	request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
 	gauge := request.ToModelGaugeMetric()
 
-	ctx := context.Background()
 	service := *h.serverSvc
-	service.ProcessGaugeMetric(ctx, gauge)
+	service.ProcessGaugeMetric(r.Context(), gauge)
 	//h.serverSvc.ProcessGaugeMetric(ctx, gauge)
 
 	w.WriteHeader(http.StatusOK)
@@ -76,9 +75,8 @@ func (h *Handler) CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 	request := models.CounterMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
 	counter := request.ToModelCounterMetric()
 
-	ctx := context.Background()
 	service := *h.serverSvc
-	service.ProcessCounterMetric(ctx, counter)
+	service.ProcessCounterMetric(r.Context(), counter)
 	//h.serverSvc.ProcessCounterMetric(ctx, counter)
 
 	w.WriteHeader(http.StatusOK)
