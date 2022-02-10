@@ -2,11 +2,11 @@ package handler
 
 import (
 	"fmt"
+	"github.com/markphelps/optional"
 	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
@@ -51,12 +51,19 @@ func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("GaugeMetricHandler called. Requested metric %s with value %s", metricName, metricValue)
 
-	request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
-	gauge := request.ToModelGaugeMetric()
+	//request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
+	//gauge := request.ToModelGaugeMetric()
+	//
+	//service := *h.serverSvc
+	//service.ProcessGaugeMetric(r.Context(), gauge)
+
+	//request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
+	//gauge := request.ToModelGaugeMetric()
+
+	gauge := model.Metric{Name: metricName, Type: model.KGauge, Value: optional.NewFloat64(value)}
 
 	service := *h.serverSvc
-	service.ProcessGaugeMetric(r.Context(), gauge)
-	//h.serverSvc.ProcessGaugeMetric(ctx, gauge)
+	service.ProcessMetric(r.Context(), gauge)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -72,12 +79,16 @@ func (h *Handler) CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("CounterMetricHandler called. Requested metric %s with value %s", metricName, metricValue)
 
-	request := models.CounterMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
-	counter := request.ToModelCounterMetric()
+	//request := models.CounterMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
+	//counter := request.ToModelCounterMetric()
+	//
+	//service := *h.serverSvc
+	//service.ProcessCounterMetric(r.Context(), counter)
+
+	counter := model.Metric{Name: metricName, Type: model.KCounter, Delta: optional.NewInt64(value)}
 
 	service := *h.serverSvc
-	service.ProcessCounterMetric(r.Context(), counter)
-	//h.serverSvc.ProcessCounterMetric(ctx, counter)
+	service.ProcessMetric(r.Context(), counter)
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -102,29 +113,48 @@ func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) 
 
 	service := *h.serverSvc
 
-	if metricType == model.Counter {
-		if value, found := service.GetCounterMetric(metricName); found {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprint(value)))
-			log.Printf("Returned value from storage is %v", value)
-			return
-		}
-		log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
-		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-		http.Error(w, reason, http.StatusNotFound)
-		return
-	}
+	//if metricType == model.Counter {
+	//	if value, found := service.GetCounterMetric(metricName); found {
+	//		w.WriteHeader(http.StatusOK)
+	//		w.Write([]byte(fmt.Sprint(value)))
+	//		log.Printf("Returned value from storage is %v", value)
+	//		return
+	//	}
+	//	log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
+	//	reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+	//	http.Error(w, reason, http.StatusNotFound)
+	//	return
+	//}
+	//
+	//if metricType == model.Gauge {
+	//	if value, found := service.GetGaugeMetric(metricName); found {
+	//		w.WriteHeader(http.StatusOK)
+	//		w.Write([]byte(fmt.Sprint(value)))
+	//		log.Printf("Returned value from storage is %v", value)
+	//		return
+	//	}
+	//	log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
+	//	reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+	//	http.Error(w, reason, http.StatusNotFound)
+	//	return
+	//}
 
-	if metricType == model.Gauge {
-		if value, found := service.GetGaugeMetric(metricName); found {
-			w.WriteHeader(http.StatusOK)
+	if m, found := service.GetMetric(metricName); found {
+		w.WriteHeader(http.StatusOK)
+		if delta, err := m.Delta.Get(); err == nil {
+			w.Write([]byte(fmt.Sprint(delta)))
+			log.Printf("Returned value from storage is %v", delta)
+			return
+		} else {
+			value, _ := m.Value.Get()
 			w.Write([]byte(fmt.Sprint(value)))
 			log.Printf("Returned value from storage is %v", value)
 			return
 		}
-		log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
-		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-		http.Error(w, reason, http.StatusNotFound)
-		return
 	}
+	log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
+	reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+	http.Error(w, reason, http.StatusNotFound)
+	return
+
 }

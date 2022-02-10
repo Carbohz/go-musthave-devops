@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/Carbohz/go-musthave-devops/model"
-)
-
 // если есть тело запроса (например, JSON), то создаем структуру. Иначе излишне
 
 // представления для api
@@ -27,10 +23,10 @@ type CounterMetricRequest struct {
 
 // converter from GaugeMetricRequest to models.GaugeMetric
 
-func (m *GaugeMetricRequest) ToModelGaugeMetric() model.GaugeMetric {
-	return model.GaugeMetric{Common: model.Common{Name: m.Name, Typename: m.MType}, Value: m.Value}
-}
-
-func (m *CounterMetricRequest) ToModelCounterMetric() model.CounterMetric {
-	return model.CounterMetric{Common: model.Common{Name: m.Name, Typename: m.MType}, Value: m.Value}
-}
+//func (m *GaugeMetricRequest) ToModelGaugeMetric() model.GaugeMetric {
+//	return model.GaugeMetric{Common: model.Common{Name: m.Name, Typename: m.MType}, Value: m.Value}
+//}
+//
+//func (m *CounterMetricRequest) ToModelCounterMetric() model.CounterMetric {
+//	return model.CounterMetric{Common: model.Common{Name: m.Name, Typename: m.MType}, Value: m.Value}
+//}
