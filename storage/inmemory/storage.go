@@ -1,6 +1,8 @@
 package inmemory
 
 import (
+	"github.com/markphelps/optional"
+	"log"
 	"sync"
 
 	"github.com/Carbohz/go-musthave-devops/model"
@@ -52,7 +54,9 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 			// уже есть в хранилище
 			newValue, _ := m.Delta.Get()
 			oldValue, _ := v.Delta.Get()
-			v.Delta.Set(oldValue + newValue)
+			log.Printf("Stored counter value was %v, incoming value is %v, so result is %v", oldValue, newValue, oldValue + newValue)
+			s.metrics[m.Name] = model.Metric{Name: m.Name, Type: model.KCounter, Delta: optional.NewInt64(oldValue + newValue)}
+			//v.Delta.Set(oldValue + newValue)
 		} else {
 			// новая метрика
 			s.metrics[m.Name] = m

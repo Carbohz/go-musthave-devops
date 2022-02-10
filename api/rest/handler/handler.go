@@ -155,6 +155,4 @@ func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) 
 	log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
 	reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
 	http.Error(w, reason, http.StatusNotFound)
-	return
-
 }
