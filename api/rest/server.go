@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
 
@@ -29,8 +30,9 @@ func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer,
 }
 
 func (s *APIServer) Run(ctx context.Context) error {
-	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
-		return err
+	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return fmt.Errorf("listen: %s\n", err)
 	}
+
 	return nil
 }
