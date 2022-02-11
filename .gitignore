@@ -26,3 +26,5 @@ vendor/
 
 # directory with temporary storage
 tmp/
+
+curlRequests.txt

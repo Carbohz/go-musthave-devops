@@ -113,24 +113,16 @@ func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 		}
 
 		modelMetric := m.ToModelMetric()
-		err = service.ProcessMetric(r.Context(), modelMetric)
+		service.ProcessMetric(r.Context(), modelMetric)
+		err = json.NewEncoder(w).Encode(m)
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
 			log.Printf("Failed to update metric on storage")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
+		} else {
+			log.Println("Metric updated")
 		}
-		w.WriteHeader(http.StatusOK)
-
-		//err = json.NewEncoder(w).Encode(m)
-		//w.Header().Set("Content-Type", "application/json")
-		//if err != nil {
-		//	log.Printf("Error occurred during response json encoding: %v", err)
-		//	http.Error(w, err.Error(), http.StatusBadRequest)
-		//	return
-		//}
-		//w.WriteHeader(http.StatusOK)
-		//return
 	}
 }
 
@@ -142,18 +134,14 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 			return
 		}
 
-		//log.Printf("/value/ handler called. Request body: %s", string(body))
 		log.Printf("Request to return metric from storage. Request body: %s", string(body))
 
 		w.Header().Set("Content-Type", "application/json")
 		if string(body)[0] == '[' {
 			log.Println("Request body contains array of metrics. Currently not supported")
-			//http.Error(w, err.Error(), http.StatusBadRequest)
 			http.Error(w, "Request body contains array of metrics. Currently not supported", http.StatusBadRequest)
-			//json.NewEncoder(w).Encode(generateMultipleMetrics(body))
 		} else {
 			log.Println("Request body contains single metric")
-			//json.NewEncoder(w).Encode(generateSingleMetric(body))
 
 			var requestedMetric models.Metrics
 			if err := json.Unmarshal(body, &requestedMetric); err != nil {
@@ -163,8 +151,11 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 			}
 
 			if modelMetric, ok := service.GetMetric(requestedMetric.ID); ok {
+				log.Println("Found metric in storage")
 				responseMetric := models.FromModelMetrics(modelMetric)
 				json.NewEncoder(w).Encode(responseMetric)
+			} else {
+				log.Println("Metric not found in storage")
 			}
 		}
 	}
