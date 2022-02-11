@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/Carbohz/go-musthave-devops/api/rest"
 	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
 	"github.com/Carbohz/go-musthave-devops/storage/inmemory"
@@ -39,4 +40,10 @@ func main() {
 	go apiServer.Run(ctx)
 	<-ctx.Done()
 	log.Println("Done main")
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovering from panic in main. Error is: %v \n", r)
+		}
+	}()
 }
