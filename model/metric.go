@@ -20,7 +20,15 @@ type (
 	}
 )
 
-func MustGetInt(m Metric) int64 {
+//func MustGetInt(m Metric) int64 {
+//	value, err := m.Delta.Get()
+//	if err != nil {
+//		panic("value not present")
+//	}
+//	return value
+//}
+
+func (m Metric) MustGetInt() int64 {
 	value, err := m.Delta.Get()
 	if err != nil {
 		panic("value not present")
@@ -28,7 +36,15 @@ func MustGetInt(m Metric) int64 {
 	return value
 }
 
-func MustGetFloat(m Metric) float64 {
+//func MustGetFloat(m Metric) float64 {
+//	value, err := m.Value.Get()
+//	if err != nil {
+//		panic("value not present")
+//	}
+//	return value
+//}
+
+func (m Metric) MustGetFloat() float64 {
 	value, err := m.Value.Get()
 	if err != nil {
 		panic("value not present")
@@ -38,10 +54,10 @@ func MustGetFloat(m Metric) float64 {
 
 func (m Metric) String() string {
 	if m.Delta.Present() {
-		delta := MustGetInt(m)
+		delta := m.MustGetInt()
 		return strconv.FormatInt(delta, 10)
 	}
 
-	value := MustGetFloat(m)
+	value := m.MustGetFloat()
 	return strconv.FormatFloat(value, 'f', -1, 64)
 }

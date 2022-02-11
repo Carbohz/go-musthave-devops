@@ -22,10 +22,10 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 	var url string
 
 	if m.Delta.Present() {
-		delta := model.MustGetInt(m)
+		delta := m.MustGetInt()
 		url = fmt.Sprintf("http://%s/update/%s/%s/%d", agent.config.Address, model.KCounter, m.Name, delta)
 	} else {
-		value := model.MustGetFloat(m)
+		value := m.MustGetFloat()
 		url = fmt.Sprintf("http://%s/update/%s/%s/%f", agent.config.Address, model.KCounter, m.Name, value)
 	}
 

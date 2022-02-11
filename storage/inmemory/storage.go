@@ -31,8 +31,8 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 
 	if m.Delta.Present() {
 		if v, found := s.metrics[m.Name]; found {
-			newValue := model.MustGetInt(m)
-			oldValue := model.MustGetInt(v)
+			newValue := m.MustGetInt()
+			oldValue := v.MustGetInt()
 			log.Printf("Stored counter value was %v, incoming value is %v, so result is %v", oldValue, newValue, oldValue + newValue)
 			s.metrics[m.Name] = model.Metric{Name: m.Name, Type: model.KCounter, Delta: optional.NewInt64(oldValue + newValue)}
 			return
