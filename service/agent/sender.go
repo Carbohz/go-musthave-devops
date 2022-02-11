@@ -67,7 +67,7 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 
 	resp, err := agent.client.Post(url, "application/json", body)
 	if err != nil {
-		log.Printf("Failed to \"Post\" request to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
+		log.Printf("Failed to \"Post\" json to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
 		log.Printf("Error: %v", err)
 		return err
 	}

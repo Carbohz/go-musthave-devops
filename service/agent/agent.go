@@ -48,7 +48,7 @@ func (agent *Agent) Run(ctx context.Context) error {
 			agent.collectMetrics()
 		case <-reportTicker.C:
 			log.Println("Sending Metrics")
-			agent.sendMetrics()
+			//agent.sendMetrics()
 			agent.sendMetricsJSON()
 		case <-ctx.Done():
 			return nil
