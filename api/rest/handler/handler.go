@@ -51,15 +51,6 @@ func (h *Handler) GaugeMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("GaugeMetricHandler called. Requested metric %s with value %s", metricName, metricValue)
 
-	//request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
-	//gauge := request.ToModelGaugeMetric()
-	//
-	//service := *h.serverSvc
-	//service.ProcessGaugeMetric(r.Context(), gauge)
-
-	//request := models.GaugeMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
-	//gauge := request.ToModelGaugeMetric()
-
 	gauge := model.Metric{Name: metricName, Type: model.KGauge, Value: optional.NewFloat64(value)}
 
 	service := *h.serverSvc
@@ -78,12 +69,6 @@ func (h *Handler) CounterMetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("CounterMetricHandler called. Requested metric %s with value %s", metricName, metricValue)
-
-	//request := models.CounterMetricRequest{MType: model.Gauge, Name: metricName, Value: value}
-	//counter := request.ToModelCounterMetric()
-	//
-	//service := *h.serverSvc
-	//service.ProcessCounterMetric(r.Context(), counter)
 
 	counter := model.Metric{Name: metricName, Type: model.KCounter, Delta: optional.NewInt64(value)}
 
@@ -112,32 +97,6 @@ func (h *Handler) SpecificMetricHandler(w http.ResponseWriter, r *http.Request) 
 	log.Printf("SpecificMetricHandler called. Requested metric type is %s, name is %s", metricType, metricName)
 
 	service := *h.serverSvc
-
-	//if metricType == model.Counter {
-	//	if value, found := service.GetCounterMetric(metricName); found {
-	//		w.WriteHeader(http.StatusOK)
-	//		w.Write([]byte(fmt.Sprint(value)))
-	//		log.Printf("Returned value from storage is %v", value)
-	//		return
-	//	}
-	//	log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
-	//	reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-	//	http.Error(w, reason, http.StatusNotFound)
-	//	return
-	//}
-	//
-	//if metricType == model.Gauge {
-	//	if value, found := service.GetGaugeMetric(metricName); found {
-	//		w.WriteHeader(http.StatusOK)
-	//		w.Write([]byte(fmt.Sprint(value)))
-	//		log.Printf("Returned value from storage is %v", value)
-	//		return
-	//	}
-	//	log.Printf("No metric with type %s, name %s is storage", metricType, metricName)
-	//	reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-	//	http.Error(w, reason, http.StatusNotFound)
-	//	return
-	//}
 
 	if m, found := service.GetMetric(metricName); found {
 		w.WriteHeader(http.StatusOK)

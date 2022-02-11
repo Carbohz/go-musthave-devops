@@ -8,8 +8,6 @@ import (
 
 func (agent *Agent) sendMetrics() {
 	go agent.sendMemStats()
-	//go agent.sendGaugeMetric(agent.metrics.randomValue)
-	//go agent.sendCounterMetric(agent.metrics.pollCount)
 	go agent.sendMetric(agent.metrics.randomValue)
 	go agent.sendMetric(agent.metrics.pollCount)
 }
@@ -20,26 +18,14 @@ func (agent *Agent) sendMemStats() {
 	}
 }
 
-//func (agent *Agent) sendGaugeMetric(m model.GaugeMetric) error {
-//	url := fmt.Sprintf("http://%s/update/%s/%s/%f", agent.config.Address, m.Typename, m.Name, m.Value)
-//	return agent.sendMetric(url, m.Common)
-//}
-//
-//func (agent *Agent) sendCounterMetric(m model.CounterMetric) error {
-//	url := fmt.Sprintf("http://%s/update/%s/%s/%d", agent.config.Address, m.Typename, m.Name, m.Value)
-//	return agent.sendMetric(url, m.Common)
-//}
-
 func (agent *Agent) sendMetric(m model.Metric) error {
 	var url string
 
-	delta, err := m.Delta.Get()
-	if err == nil {
-		// Counter
+	if m.Delta.Present() {
+		delta := model.MustGetInt(m)
 		url = fmt.Sprintf("http://%s/update/%s/%s/%d", agent.config.Address, model.KCounter, m.Name, delta)
 	} else {
-		// Gauge
-		value, _ := m.Value.Get()
+		value := model.MustGetFloat(m)
 		url = fmt.Sprintf("http://%s/update/%s/%s/%f", agent.config.Address, model.KCounter, m.Name, value)
 	}
 

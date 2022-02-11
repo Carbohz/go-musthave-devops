@@ -25,7 +25,6 @@ func NewAgent(config Config) (*Agent, error) {
 	client := http.Client{Timeout: 2 * time.Second}
 
 	var m metrics
-	//m.pollCount = model.Metric{Common: model.Common{Name: "PollCount", Typename: model.Counter}}
 	pollCount := optional.NewInt64(0)
 	m.pollCount = model.Metric{Name: "PollCount", Type: model.KCounter, Delta: pollCount}
 

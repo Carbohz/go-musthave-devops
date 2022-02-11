@@ -8,15 +8,6 @@ import (
 	"github.com/Carbohz/go-musthave-devops/service/server"
 )
 
-//type Config struct {
-//	Address       string        `env:"ADDRESS"`
-//	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-//	StoreFile     string        `env:"STORE_FILE"`
-//	Restore       bool          `env:"RESTORE"`
-//	Key           string        `env:"KEY"`
-//	DBPath        string        `env:"DATABASE_DSN"`
-//}
-
 type APIServer struct {
 	serverSvc  server.Processor
 	httpServer *http.Server
