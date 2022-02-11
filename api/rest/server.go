@@ -2,9 +2,9 @@ package rest
 
 import (
 	"context"
+	"github.com/go-chi/chi"
 	"net/http"
 
-	"github.com/Carbohz/go-musthave-devops/api/rest/handler"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 )
 
@@ -14,16 +14,14 @@ type APIServer struct {
 }
 
 func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer, error) {
-	//создаю Roter, регестрирую handler'ы
-	//
-
-	h, _ := handler.NewHandler(&serverSvc) // ?
+	r := chi.NewRouter()
+	setupRouters(r, serverSvc)
 
 	srv := &APIServer{
 		serverSvc: serverSvc,
 		httpServer: &http.Server{
 			Addr:    serverAddress,
-			Handler: h.Router, //должен создаваться в этой ф-ии
+			Handler: r,
 		},
 	}
 
