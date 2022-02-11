@@ -121,7 +121,6 @@ func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		return
 
 		//err = json.NewEncoder(w).Encode(m)
 		//w.Header().Set("Content-Type", "application/json")
@@ -149,7 +148,8 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		if string(body)[0] == '[' {
 			log.Println("Request body contains array of metrics. Currently not supported")
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			//http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, "Request body contains array of metrics. Currently not supported", http.StatusBadRequest)
 			//json.NewEncoder(w).Encode(generateMultipleMetrics(body))
 		} else {
 			log.Println("Request body contains single metric")
