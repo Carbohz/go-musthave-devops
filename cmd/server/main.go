@@ -29,10 +29,14 @@ func main() {
 		log.Fatalf("Failed to create a server: %v", err)
 	}
 
-	go func() {
-		if err := apiServer.Run(ctx); err != nil {
-			log.Fatalf("Failed to run a server: %v", err)
-		}
-	}()
+	//go func() {
+	//	if err := apiServer.Run(ctx); err != nil {
+	//		log.Fatalf("Failed to run a server: %v", err)
+	//	}
+	//}()
+	//<-ctx.Done()
+
+	go apiServer.Run(ctx)
 	<-ctx.Done()
+	log.Println("Done main")
 }
