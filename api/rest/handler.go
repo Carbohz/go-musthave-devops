@@ -94,13 +94,13 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 
 func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		log.Printf("Request to update server's storage. Request body: %s", string(body))
+		//body, err := ioutil.ReadAll(r.Body)
+		//if err != nil {
+		//	http.Error(w, err.Error(), http.StatusInternalServerError)
+		//	return
+		//}
+		//
+		//log.Printf("Request to update server's storage. Request body: %s", string(body))
 		w.Header().Set("Content-Type", "application/json")
 
 		//var m models.Metrics
