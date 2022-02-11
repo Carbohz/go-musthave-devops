@@ -47,24 +47,38 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	//if m.Delta.Present() {
+	//	// Значит это counter метрика
+	//	v, found := s.metrics[m.Name]
+	//	if found {
+	//		// уже есть в хранилище
+	//		newValue, _ := m.Delta.Get()
+	//		oldValue, _ := v.Delta.Get()
+	//		log.Printf("Stored counter value was %v, incoming value is %v, so result is %v", oldValue, newValue, oldValue + newValue)
+	//		s.metrics[m.Name] = model.Metric{Name: m.Name, Type: model.KCounter, Delta: optional.NewInt64(oldValue + newValue)}
+	//		//v.Delta.Set(oldValue + newValue)
+	//	} else {
+	//		// новая метрика
+	//		s.metrics[m.Name] = m
+	//	}
+	//} else {
+	//	// Значит это gauge метрика
+	//	s.metrics[m.Name] = m
+	//}
+
 	if m.Delta.Present() {
-		// Значит это counter метрика
+		// Counter metric
 		v, found := s.metrics[m.Name]
 		if found {
-			// уже есть в хранилище
-			newValue, _ := m.Delta.Get()
-			oldValue, _ := v.Delta.Get()
+			newValue := model.MustGetInt(m)
+			oldValue := model.MustGetInt(v)
 			log.Printf("Stored counter value was %v, incoming value is %v, so result is %v", oldValue, newValue, oldValue + newValue)
 			s.metrics[m.Name] = model.Metric{Name: m.Name, Type: model.KCounter, Delta: optional.NewInt64(oldValue + newValue)}
-			//v.Delta.Set(oldValue + newValue)
-		} else {
-			// новая метрика
-			s.metrics[m.Name] = m
+			return
 		}
-	} else {
-		// Значит это gauge метрика
-		s.metrics[m.Name] = m
 	}
+
+	s.metrics[m.Name] = m
 }
 
 func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {

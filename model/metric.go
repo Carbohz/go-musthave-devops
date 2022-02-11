@@ -36,3 +36,19 @@ func (m Metric) String() string {
 	//
 	//return strconv.FormatFloat(*m.Value, 'f', -1, 64)
 }
+
+func MustGetInt(m Metric) int64 {
+	value, err := m.Delta.Get()
+	if err != nil {
+		panic("value not present")
+	}
+	return value
+}
+
+func MustGetFloat(m Metric) float64 {
+	value, err := m.Value.Get()
+	if err != nil {
+		panic("value not present")
+	}
+	return value
+}
