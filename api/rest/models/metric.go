@@ -60,3 +60,10 @@ func (m Metrics) Validate() error {
 	}
 	return nil
 }
+
+func (m Metrics) String() string {
+	if m.Delta != nil {
+		return fmt.Sprintf("[ID: %s, MType: %s, Delta: %v, Value: nil]", m.ID, m.MType, *m.Delta)
+	}
+	return fmt.Sprintf("[ID: %s, MType: %s, Delta: nil, Value: %v]", m.ID, m.MType, *m.Value)
+}

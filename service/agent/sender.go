@@ -65,12 +65,23 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	}
 	body := bytes.NewBuffer(rawJSON)
 
+	log.Printf("Sending following body %v in JSON request", body)
+
+	//unmarshal trick
+	var unmarshalled models.Metrics
+	json.Unmarshal(rawJSON, &unmarshalled)
+	log.Printf("Unmarshalled json: %v", unmarshalled)
+	//unmarshal trick
+
 	resp, err := agent.client.Post(url, "application/json", body)
 	if err != nil {
 		log.Printf("Failed to \"Post\" json to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
 		log.Printf("Error: %v", err)
 		return err
 	}
+
+	log.Printf("Response: %v", resp)
+
 	defer resp.Body.Close()
 	return err
 }
