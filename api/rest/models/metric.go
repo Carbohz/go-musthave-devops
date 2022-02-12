@@ -15,21 +15,26 @@ type Metrics struct {
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-func (m Metrics) ToModelMetric() model.Metric {
+func (m Metrics) ToModelMetric() (model.Metric, error) {
 	var modelMetric model.Metric
 	modelMetric.Name = m.ID
 	modelMetric.Type = m.MType
 
 	if m.Delta != nil {
 		modelMetric.Delta = optional.NewInt64(*m.Delta)
-	} else {
-		modelMetric.Value = optional.NewFloat64(*m.Value)
+		return modelMetric, nil
 	}
 
-	return modelMetric
+	if m.Value != nil {
+		modelMetric.Value = optional.NewFloat64(*m.Value)
+		return modelMetric, nil
+	}
+
+	err := fmt.Errorf("serialization to model.Metric failed: missing Delta or Value")
+	return modelMetric, err
 }
 
-func FromModelMetrics(modelMetric model.Metric) Metrics {
+func FromModelMetrics(modelMetric model.Metric) (Metrics, error) {
 	var m Metrics
 	m.ID = modelMetric.Name
 	m.MType = modelMetric.Type
@@ -37,12 +42,17 @@ func FromModelMetrics(modelMetric model.Metric) Metrics {
 	if modelMetric.Delta.Present() {
 		delta := modelMetric.MustGetInt()
 		m.Delta = &delta
-		return m
+		return m, nil
 	}
 
-	value := modelMetric.MustGetFloat()
-	m.Value = &value
-	return m
+	if modelMetric.Value.Present() {
+		value := modelMetric.MustGetFloat()
+		m.Value = &value
+		return m, nil
+	}
+
+	err := fmt.Errorf("deserialization from model.Metric failed: missing Delta or Value")
+	return m, err
 }
 
 func (m Metrics) Validate() error {
@@ -65,5 +75,8 @@ func (m Metrics) String() string {
 	if m.Delta != nil {
 		return fmt.Sprintf("[ID: %s, MType: %s, Delta: %v, Value: nil]", m.ID, m.MType, *m.Delta)
 	}
-	return fmt.Sprintf("[ID: %s, MType: %s, Delta: nil, Value: %v]", m.ID, m.MType, *m.Value)
+	if m.Value != nil {
+		return fmt.Sprintf("[ID: %s, MType: %s, Delta: nil, Value: %v]", m.ID, m.MType, *m.Value)
+	}
+	return ""
 }

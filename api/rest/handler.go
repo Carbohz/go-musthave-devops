@@ -118,7 +118,11 @@ func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 			return
 		}
 
-		modelMetric := m.ToModelMetric()
+		modelMetric, err := m.ToModelMetric()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		service.ProcessMetric(r.Context(), modelMetric)
 		err = json.NewEncoder(w).Encode(m)
 		w.Header().Set("Content-Type", "application/json")
@@ -158,7 +162,10 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 
 			if modelMetric, ok := service.GetMetric(requestedMetric.ID); ok {
 				log.Println("Found metric in storage")
-				responseMetric := models.FromModelMetrics(modelMetric)
+				responseMetric, err := models.FromModelMetrics(modelMetric)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+				}
 				json.NewEncoder(w).Encode(responseMetric)
 			} else {
 				log.Println("Metric not found in storage")
