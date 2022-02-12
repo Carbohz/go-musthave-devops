@@ -1,36 +1,170 @@
 package rest
 
 import (
+	"bytes"
+	"encoding/json"
+	"github.com/Carbohz/go-musthave-devops/api/rest/models"
+	"github.com/Carbohz/go-musthave-devops/model"
+	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
+	"github.com/go-chi/chi"
+	"github.com/golang/mock/gomock"
+	"github.com/markphelps/optional"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	storagemock "github.com/Carbohz/go-musthave-devops/storage/mock"
 )
 
-func TestSum(t *testing.T) {
+func TestUpdateMetricWithURL(t *testing.T) {
+	type want struct {
+		code int
+	}
 	tests := []struct {
 		name string
-		a int
-		b int
-		want int
+		path string
+		want want
 	}{
 		{
-			name: "dummy sum",
-			a: 1,
-			b: 2,
-			want: 3,
+			name: "Valid gauge metric1",
+			path: "/update/gauge/metric1/123.45",
+			want: want{
+				code: http.StatusOK,
+			},
 		},
 		{
-			name: "negative num",
-			a: 1,
-			b: -1,
-			want: 0,
+			name: "Valid counter metric2",
+			path: "/update/counter/metric2/123",
+			want: want{
+				code: http.StatusOK,
+			},
+		},
+		{
+			name: "Invalid MType",
+			path: "/update/abcdef/metric3/123",
+			want: want{
+				code: http.StatusNotImplemented,
+			},
 		},
 	}
+
+	mockCtrl := gomock.NewController(t)
+
+	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
+	processor, _ := v1.NewService(metricStorage)
+	r := chi.NewRouter()
+	setupRouters(r, processor)
+
+	server := httptest.NewServer(r)
+	defer server.Close()
+
+	metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
+	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
+
+	gomock.InOrder(
+		metricStorage.EXPECT().SaveMetric(metric1),
+		metricStorage.EXPECT().SaveMetric(metric2),
+	)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.a + tt.b
-			if got != tt.want {
-				t.Error("Sum test failed")
-			}
+			statusCode, _ := helperDoRequest(t, server, http.MethodPost, tt.path, nil)
+			assert.Equal(t, tt.want.code, statusCode)
 		})
 	}
+}
+
+func TestUpdateMetricWithBody(t *testing.T) {
+	metric1Value := 123.45
+	var metric2Delta int64 = 123
+
+	type want struct {
+		code int
+	}
+	tests := []struct {
+		name   string
+		path   string
+		metric models.Metrics
+		want   want
+	}{
+		{
+			name:   "Valid gauge metric1",
+			path:   "/update/",
+			//metric: model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)},
+			metric: models.Metrics{ID: "metric1", MType: model.KGauge, Value: &metric1Value},
+			want: want{
+				code: http.StatusOK,
+			},
+		},
+		{
+			name:   "Valid counter metric2",
+			path:   "/update/",
+			//metric: model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)},
+			metric: models.Metrics{ID: "metric2", MType: model.KCounter, Delta: &metric2Delta},
+			want: want{
+				code: http.StatusOK,
+			},
+		},
+		//{
+		//	name: "Invalid MType",
+		//	path: "/update/",
+		//	//metric: model.Metric{ID: "metric3", MType: model.MetricType("abcdef")},
+		//	metric: model.Metric{Name: "metric3", Type: "abcdef"},
+		//	want: want{
+		//		code: http.StatusNotImplemented,
+		//	},
+		//},
+	}
+
+	mockCtrl := gomock.NewController(t)
+
+	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
+	processor, _ := v1.NewService(metricStorage)
+	r := chi.NewRouter()
+	setupRouters(r, processor)
+
+	server := httptest.NewServer(r)
+	defer server.Close()
+
+	metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
+	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
+
+	gomock.InOrder(
+		metricStorage.EXPECT().SaveMetric(metric1),
+		metricStorage.EXPECT().SaveMetric(metric2),
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(tt.metric)
+			log.Printf("Marshalled data: %s", string(data))
+			require.NoError(t, err)
+			statusCode, _ := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			assert.Equal(t, tt.want.code, statusCode)
+		})
+	}
+}
+
+func helperDoRequest(t *testing.T, server *httptest.Server, method, path string, data *[]byte) (int, string) {
+	var body io.Reader
+	if data != nil {
+		body = bytes.NewBuffer(*data)
+	}
+	request, err := http.NewRequest(method, server.URL+path, body)
+	require.NoError(t, err)
+
+	response, err := http.DefaultClient.Do(request)
+	require.NoError(t, err)
+
+	responseBody, err := ioutil.ReadAll(response.Body)
+	require.NoError(t, err)
+
+	defer response.Body.Close()
+
+	return response.StatusCode, string(responseBody)
 }

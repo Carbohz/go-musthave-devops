@@ -1,7 +1,9 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/markphelps/optional"
 	"io/ioutil"
 	"log"
@@ -94,34 +96,34 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 
 func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//body, err := ioutil.ReadAll(r.Body)
-		//if err != nil {
-		//	http.Error(w, err.Error(), http.StatusInternalServerError)
-		//	return
-		//}
-		//
-		//log.Printf("Request to update server's storage. Request body: %s", string(body))
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("Request to update server's storage. Request body: %s", string(body))
 		w.Header().Set("Content-Type", "application/json")
 
-		//var m models.Metrics
-		//err = json.Unmarshal(body, &m)
-		//if err != nil {
-		//	log.Printf("Failed to unmarshal following request body: %s", string(body))
-		//	http.Error(w, err.Error(), http.StatusBadRequest)
-		//	return
-		//}
-		//
-		//modelMetric := m.ToModelMetric()
-		//service.ProcessMetric(r.Context(), modelMetric)
-		//err = json.NewEncoder(w).Encode(m)
-		//w.Header().Set("Content-Type", "application/json")
-		//if err != nil {
-		//	log.Printf("Failed to update metric on storage")
-		//	http.Error(w, err.Error(), http.StatusBadRequest)
-		//	return
-		//} else {
-		//	log.Println("Metric updated")
-		//}
+		var m models.Metrics
+		err = json.Unmarshal(body, &m)
+		if err != nil {
+			log.Printf("Failed to unmarshal following request body: %s", string(body))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		modelMetric := m.ToModelMetric()
+		service.ProcessMetric(r.Context(), modelMetric)
+		err = json.NewEncoder(w).Encode(m)
+		w.Header().Set("Content-Type", "application/json")
+		if err != nil {
+			log.Printf("Failed to update metric on storage")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		} else {
+			log.Println("Metric updated")
+		}
 	}
 }
 
@@ -136,26 +138,26 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 		log.Printf("Request to return metric from storage. Request body: %s", string(body))
 
 		w.Header().Set("Content-Type", "application/json")
-		//if string(body)[0] == '[' {
-		//	log.Println("Request body contains array of metrics. Currently not supported")
-		//	http.Error(w, "Request body contains array of metrics. Currently not supported", http.StatusBadRequest)
-		//} else {
-		//	log.Println("Request body contains single metric")
-		//
-		//	var requestedMetric models.Metrics
-		//	if err := json.Unmarshal(body, &requestedMetric); err != nil {
-		//		log.Printf("Failed to unmarshal following request body: %s", string(body))
-		//		http.Error(w, err.Error(), http.StatusBadRequest)
-		//		return
-		//	}
-		//
-		//	if modelMetric, ok := service.GetMetric(requestedMetric.ID); ok {
-		//		log.Println("Found metric in storage")
-		//		responseMetric := models.FromModelMetrics(modelMetric)
-		//		json.NewEncoder(w).Encode(responseMetric)
-		//	} else {
-		//		log.Println("Metric not found in storage")
-		//	}
-		//}
+		if string(body)[0] == '[' {
+			log.Println("Request body contains array of metrics. Currently not supported")
+			http.Error(w, "Request body contains array of metrics. Currently not supported", http.StatusBadRequest)
+		} else {
+			log.Println("Request body contains single metric")
+
+			var requestedMetric models.Metrics
+			if err := json.Unmarshal(body, &requestedMetric); err != nil {
+				log.Printf("Failed to unmarshal following request body: %s", string(body))
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if modelMetric, ok := service.GetMetric(requestedMetric.ID); ok {
+				log.Println("Found metric in storage")
+				responseMetric := models.FromModelMetrics(modelMetric)
+				json.NewEncoder(w).Encode(responseMetric)
+			} else {
+				log.Println("Metric not found in storage")
+			}
+		}
 	}
 }
