@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/markphelps/optional"
@@ -20,34 +21,20 @@ type (
 	}
 )
 
-//func MustGetInt(m Metric) int64 {
-//	value, err := m.Delta.Get()
-//	if err != nil {
-//		panic("value not present")
-//	}
-//	return value
-//}
-
 func (m Metric) MustGetInt() int64 {
 	value, err := m.Delta.Get()
 	if err != nil {
-		panic("value not present")
+		//panic("value not present")
+		log.Println("value not present")
 	}
 	return value
 }
 
-//func MustGetFloat(m Metric) float64 {
-//	value, err := m.Value.Get()
-//	if err != nil {
-//		panic("value not present")
-//	}
-//	return value
-//}
-
 func (m Metric) MustGetFloat() float64 {
 	value, err := m.Value.Get()
 	if err != nil {
-		panic("value not present")
+		//panic("value not present")
+		log.Println("value not present")
 	}
 	return value
 }
