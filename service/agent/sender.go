@@ -17,8 +17,8 @@ func (agent *Agent) sendMetrics() {
 }
 
 func (agent *Agent) sendMetricsJSON() {
-	go agent.sendMemStatsJSON()
-	go agent.sendMetricJSON(agent.metrics.randomValue)
+	//go agent.sendMemStatsJSON()
+	//go agent.sendMetricJSON(agent.metrics.randomValue)
 	go agent.sendMetricJSON(agent.metrics.pollCount)
 }
 
