@@ -110,20 +110,30 @@ func TestUpdateMetricWithBody(t *testing.T) {
 				code: http.StatusOK,
 			},
 		},
-		//{
-		//	name: "Invalid MType",
-		//	path: "/update/",
-		//	//metric: model.Metric{ID: "metric3", MType: model.MetricType("abcdef")},
-		//	metric: model.Metric{Name: "metric3", Type: "abcdef"},
-		//	want: want{
-		//		code: http.StatusNotImplemented,
-		//	},
-		//},
+		{
+			name: "Invalid MType",
+			path: "/update/",
+			//metric: model.Metric{ID: "metric3", MType: model.MetricType("abcdef")},
+			//metric: model.Metric{Name: "metric3", Type: "abcdef"},
+			metric: models.Metrics{ID: "metric3", MType: "abcdef"},
+			want: want{
+				code: http.StatusNotImplemented,
+			},
+		},
 	}
 
 	mockCtrl := gomock.NewController(t)
 
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
+	metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
+	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
+	//metric3 := model.Metric{Name: "metric3", Type: "abcdef"}
+
+	gomock.InOrder(
+		metricStorage.EXPECT().SaveMetric(metric1),
+		metricStorage.EXPECT().SaveMetric(metric2),
+		//metricStorage.EXPECT().SaveMetric(metric3),
+	)
 	processor, _ := v1.NewService(metricStorage)
 	r := chi.NewRouter()
 	setupRouters(r, processor)
@@ -131,13 +141,6 @@ func TestUpdateMetricWithBody(t *testing.T) {
 	server := httptest.NewServer(r)
 	defer server.Close()
 
-	metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
-	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
-
-	gomock.InOrder(
-		metricStorage.EXPECT().SaveMetric(metric1),
-		metricStorage.EXPECT().SaveMetric(metric2),
-	)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

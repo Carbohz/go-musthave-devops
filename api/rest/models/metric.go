@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
 )
@@ -42,4 +43,20 @@ func FromModelMetrics(modelMetric model.Metric) Metrics {
 	value := modelMetric.MustGetFloat()
 	m.Value = &value
 	return m
+}
+
+func (m Metrics) Validate() error {
+	switch m.MType {
+	case model.KGauge:
+		if m.Value == nil {
+			return fmt.Errorf("invalid Value == nil for MType: %s", m.MType)
+		}
+	case model.KCounter:
+		if m.Delta == nil {
+			return fmt.Errorf("invalid Delta == nil for MType: %s", m.MType)
+		}
+	default:
+		return fmt.Errorf("unkown MType: %s", m.MType)
+	}
+	return nil
 }

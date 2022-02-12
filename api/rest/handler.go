@@ -106,10 +106,15 @@ func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 
 		var m models.Metrics
-		err = json.Unmarshal(body, &m)
-		if err != nil {
+		if err = json.Unmarshal(body, &m); err != nil {
 			log.Printf("Failed to unmarshal following request body: %s", string(body))
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err = m.Validate(); err != nil {
+			log.Printf("Invalid metric in incoming request. Type %s is not implemented", m.MType)
+			http.Error(w, err.Error(), http.StatusNotImplemented)
 			return
 		}
 
