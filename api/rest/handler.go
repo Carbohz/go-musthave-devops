@@ -67,6 +67,12 @@ func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
 }
 
+func DumbHandler(w http.ResponseWriter, r *http.Request)  {
+	log.Println("Dumb handler called. Not implemented")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		metricType := chi.URLParam(r, "metricType")
