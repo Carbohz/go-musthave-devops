@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/Carbohz/go-musthave-devops/model"
+	"github.com/go-resty/resty/v2"
 	"log"
 )
 
@@ -44,13 +45,18 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 		url = fmt.Sprintf("http://%s/update/%s/%s/%f", agent.config.Address, model.KCounter, m.Name, value)
 	}
 
-	resp, err := agent.client.Post(url, "text/plain", nil)
+	//resp, err := agent.client.Post(url, "text/plain", nil)
+	resp, err := agent.client.R().
+		SetHeader("Content-Type", "text/plain").
+		Post(url)
 	if err != nil {
 		log.Printf("Failed to \"Post\" request to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
 		log.Printf("Error: %v", err)
 		return err
 	}
-	defer resp.Body.Close()
+	logResponse(resp, err)
+
+	//defer resp.Body.Close()
 	return err
 }
 
@@ -73,15 +79,55 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	log.Printf("Unmarshalled json: %v", unmarshalled)
 	//unmarshal trick
 
-	resp, err := agent.client.Post(url, "application/json", body)
+	//resp, err := agent.client.Post(url, "application/json", body)
+	//if err != nil {
+	//	log.Printf("Failed to \"Post\" json to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
+	//	log.Printf("Error: %v", err)
+	//	return err
+	//}
+	resp, err := agent.client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		EnableTrace().
+		Post(url)
 	if err != nil {
 		log.Printf("Failed to \"Post\" json to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
 		log.Printf("Error: %v", err)
 		return err
 	}
 
-	log.Printf("Response: %v", resp)
+	//log.Printf("Response: %v", resp)
+	logResponse(resp, err)
 
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
 	return err
+}
+
+func logResponse(resp *resty.Response, err error) {
+	// Explore response object
+	fmt.Println("Response Info:")
+	fmt.Println("  Error      :", err)
+	fmt.Println("  Status Code:", resp.StatusCode())
+	fmt.Println("  Status     :", resp.Status())
+	fmt.Println("  Proto      :", resp.Proto())
+	fmt.Println("  Time       :", resp.Time())
+	fmt.Println("  Received At:", resp.ReceivedAt())
+	fmt.Println("  Body       :\n", resp)
+	fmt.Println()
+
+	// Explore trace info
+	fmt.Println("Request Trace Info:")
+	ti := resp.Request.TraceInfo()
+	fmt.Println("  DNSLookup     :", ti.DNSLookup)
+	fmt.Println("  ConnTime      :", ti.ConnTime)
+	fmt.Println("  TCPConnTime   :", ti.TCPConnTime)
+	fmt.Println("  TLSHandshake  :", ti.TLSHandshake)
+	fmt.Println("  ServerTime    :", ti.ServerTime)
+	fmt.Println("  ResponseTime  :", ti.ResponseTime)
+	fmt.Println("  TotalTime     :", ti.TotalTime)
+	fmt.Println("  IsConnReused  :", ti.IsConnReused)
+	fmt.Println("  IsConnWasIdle :", ti.IsConnWasIdle)
+	fmt.Println("  ConnIdleTime  :", ti.ConnIdleTime)
+	fmt.Println("  RequestAttempt:", ti.RequestAttempt)
+	fmt.Println("  RemoteAddr    :", ti.RemoteAddr.String())
 }

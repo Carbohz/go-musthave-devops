@@ -5,8 +5,9 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
 	"log"
-	"net/http"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type metrics struct {
@@ -18,20 +19,30 @@ type metrics struct {
 type Agent struct {
 	config Config
 	metrics metrics
-	client *http.Client
+	client *resty.Client
 }
 
 func NewAgent(config Config) (*Agent, error) {
-	client := http.Client{Timeout: 2 * time.Second}
+	//client := http.Client{Timeout: 2 * time.Second}
 
 	var m metrics
 	pollCount := optional.NewInt64(0)
 	m.pollCount = model.Metric{Name: "PollCount", Type: model.KCounter, Delta: pollCount}
 
+	//t := &http.Transport{}
+	//t.MaxIdleConns = config.MaxIdleConns
+	//t.MaxIdleConnsPerHost = config.MaxIdleConnsPerHost
+	//
+	//httpClient := &http.Client{
+	//	Transport: t,
+	//}
+	//client := resty.NewWithClient(httpClient)
+	client := resty.New()
+
 	agent := &Agent{
 		config: config,
 		metrics: m,
-		client: &client,
+		client: client,
 	}
 
 	return agent, nil
