@@ -62,10 +62,14 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	url := fmt.Sprintf("http://%s/update/", agent.config.Address)
 
-	metricToSend := models.FromModelMetrics(m)
+	metricToSend, err := models.FromModelMetrics(m)
+	if err != nil {
+		log.Printf("Error occured in agent.sendMetricJSON: %v", err)
+		return fmt.Errorf("sendMetricJSON failed: %w", err)
+	}
 	rawJSON, err := json.Marshal(metricToSend)
 	if err != nil {
-		log.Fatalf("Error occured during metrics marshalling: %v", err)
+		log.Printf("Error occured during metrics marshalling: %v", err)
 	}
 	body := bytes.NewBuffer(rawJSON)
 
