@@ -45,6 +45,10 @@ func (m Metric) String() string {
 		return strconv.FormatInt(delta, 10)
 	}
 
-	value := m.MustGetFloat()
-	return strconv.FormatFloat(value, 'f', -1, 64)
+	if m.Value.Present() {
+		value := m.MustGetFloat()
+		return strconv.FormatFloat(value, 'f', -1, 64)
+	}
+
+	return ""
 }
