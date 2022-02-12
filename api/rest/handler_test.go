@@ -153,6 +153,111 @@ func TestUpdateMetricWithBody(t *testing.T) {
 	}
 }
 
+func TestGetMetricWithBody(t *testing.T) {
+	type want struct {
+		code int
+		body string
+	}
+	tests := []struct {
+		name   string
+		path   string
+		metric models.Metrics
+		want   want
+	}{
+		{
+			name:   "Valid gauge metric1",
+			path:   "/value/",
+			//metric: model.Metric{ID: "metric1", MType: model.MetricTypeGauge},
+			metric: models.Metrics{ID: "metric1", MType: model.KGauge},
+			want: want{
+				code: http.StatusOK,
+				body: "{\"id\":\"metric1\",\"type\":\"gauge\",\"value\":123.45}",
+			},
+		},
+		{
+			name:   "Valid counter metric2",
+			path:   "/value/",
+			//metric: model.Metric{ID: "metric2", MType: model.MetricTypeCounter},
+			metric: models.Metrics{ID: "metric2", MType: model.KCounter},
+			want: want{
+				code: http.StatusOK,
+				body: "{\"id\":\"metric2\",\"type\":\"counter\",\"delta\":123}",
+			},
+		},
+		{
+			name:   "Invalid MType",
+			path:   "/value/",
+			//metric: model.Metric{ID: "metric3", MType: model.MetricType("abrakadabra")},
+			metric: models.Metrics{ID: "metric3", MType: "abrakadabra"},
+			want: want{
+				code: http.StatusNotImplemented,
+				body: "unkown MType: abrakadabra\n",
+			},
+		},
+	}
+
+	//mockCtrl := gomock.NewController(t)
+	//
+	//metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
+	//metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
+	//metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
+	////metric3 := model.Metric{Name: "metric3", Type: "abcdef"}
+	//
+	//gomock.InOrder(
+	//	metricStorage.EXPECT().SaveMetric(metric1),
+	//	metricStorage.EXPECT().SaveMetric(metric2),
+	//	//metricStorage.EXPECT().SaveMetric(metric3),
+	//)
+	//processor, _ := v1.NewService(metricStorage)
+	//r := chi.NewRouter()
+	//setupRouters(r, processor)
+	//
+	//server := httptest.NewServer(r)
+	//defer server.Close()
+
+	mockCtrl := gomock.NewController(t)
+	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
+	processor, _ := v1.NewService(metricStorage)
+	r := chi.NewRouter()
+	setupRouters(r, processor)
+
+	server := httptest.NewServer(r)
+	defer server.Close()
+
+	//metric1 := model.MetricFromGauge("metric1", model.Gauge(123.45))
+	//metric2 := model.MetricFromCounter("metric2", model.Counter(123))
+	metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
+	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
+
+	gomock.InOrder(
+		//metricStorage.EXPECT().LoadMetric(
+		//	gomock.Any(),
+		//	gomock.Any(),
+		//	gomock.Any(),
+		//).Return(&metric1, nil),
+
+		//metricStorage.EXPECT().LoadMetric(
+		//	gomock.Any(),
+		//	gomock.Any(),
+		//	gomock.Any(),
+		//).Return(&metric2, nil),
+
+		//GetMetric(name string) (model.Metric, bool)
+		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric1, true),
+		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric2, true),
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(tt.metric)
+			require.NoError(t, err)
+			statusCode, body := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			assert.Equal(t, tt.want.code, statusCode)
+			assert.Equal(t, tt.want.body, body)
+		})
+	}
+}
+
 func helperDoRequest(t *testing.T, server *httptest.Server, method, path string, data *[]byte) (int, string) {
 	var body io.Reader
 	if data != nil {
