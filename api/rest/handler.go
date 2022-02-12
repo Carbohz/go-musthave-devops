@@ -172,7 +172,16 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
 				}
-				json.NewEncoder(w).Encode(responseMetric)
+				//json.NewEncoder(w).Encode(responseMetric)
+
+				data, err := json.Marshal(responseMetric)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				w.Header().Set("content-type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprint(w, string(data))
 			} else {
 				log.Println("Metric not found in storage")
 				http.Error(w, "Metric not found in storage", http.StatusNotImplemented)
