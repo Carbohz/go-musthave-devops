@@ -167,7 +167,6 @@ func TestGetMetricWithBody(t *testing.T) {
 		{
 			name:   "Valid gauge metric1",
 			path:   "/value/",
-			//metric: model.Metric{ID: "metric1", MType: model.MetricTypeGauge},
 			metric: models.Metrics{ID: "metric1", MType: model.KGauge},
 			want: want{
 				code: http.StatusOK,
@@ -177,7 +176,6 @@ func TestGetMetricWithBody(t *testing.T) {
 		{
 			name:   "Valid counter metric2",
 			path:   "/value/",
-			//metric: model.Metric{ID: "metric2", MType: model.MetricTypeCounter},
 			metric: models.Metrics{ID: "metric2", MType: model.KCounter},
 			want: want{
 				code: http.StatusOK,
@@ -187,33 +185,13 @@ func TestGetMetricWithBody(t *testing.T) {
 		{
 			name:   "Invalid MType",
 			path:   "/value/",
-			//metric: model.Metric{ID: "metric3", MType: model.MetricType("abrakadabra")},
 			metric: models.Metrics{ID: "metric3", MType: "abrakadabra"},
 			want: want{
 				code: http.StatusNotImplemented,
-				body: "unkown MType: abrakadabra\n",
+				body: "Metric not found in storage\n",
 			},
 		},
 	}
-
-	//mockCtrl := gomock.NewController(t)
-	//
-	//metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
-	//metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
-	//metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
-	////metric3 := model.Metric{Name: "metric3", Type: "abcdef"}
-	//
-	//gomock.InOrder(
-	//	metricStorage.EXPECT().SaveMetric(metric1),
-	//	metricStorage.EXPECT().SaveMetric(metric2),
-	//	//metricStorage.EXPECT().SaveMetric(metric3),
-	//)
-	//processor, _ := v1.NewService(metricStorage)
-	//r := chi.NewRouter()
-	//setupRouters(r, processor)
-	//
-	//server := httptest.NewServer(r)
-	//defer server.Close()
 
 	mockCtrl := gomock.NewController(t)
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
@@ -224,27 +202,14 @@ func TestGetMetricWithBody(t *testing.T) {
 	server := httptest.NewServer(r)
 	defer server.Close()
 
-	//metric1 := model.MetricFromGauge("metric1", model.Gauge(123.45))
-	//metric2 := model.MetricFromCounter("metric2", model.Counter(123))
 	metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
 	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
+	metric3 := model.Metric{Name: "metric3", Type: "abrakadabra"}
 
 	gomock.InOrder(
-		//metricStorage.EXPECT().LoadMetric(
-		//	gomock.Any(),
-		//	gomock.Any(),
-		//	gomock.Any(),
-		//).Return(&metric1, nil),
-
-		//metricStorage.EXPECT().LoadMetric(
-		//	gomock.Any(),
-		//	gomock.Any(),
-		//	gomock.Any(),
-		//).Return(&metric2, nil),
-
-		//GetMetric(name string) (model.Metric, bool)
 		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric1, true),
 		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric2, true),
+		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric3, false),
 	)
 
 	for _, tt := range tests {

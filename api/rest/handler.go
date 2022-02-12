@@ -175,6 +175,7 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 				json.NewEncoder(w).Encode(responseMetric)
 			} else {
 				log.Println("Metric not found in storage")
+				http.Error(w, "Metric not found in storage", http.StatusNotImplemented)
 			}
 		}
 	}
