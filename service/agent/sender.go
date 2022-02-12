@@ -45,7 +45,6 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 		url = fmt.Sprintf("http://%s/update/%s/%s/%f", agent.config.Address, model.KCounter, m.Name, value)
 	}
 
-	//resp, err := agent.client.Post(url, "text/plain", nil)
 	resp, err := agent.client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(url)
@@ -56,7 +55,6 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 	}
 	logResponse(resp, err)
 
-	//defer resp.Body.Close()
 	return err
 }
 
@@ -79,12 +77,6 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	log.Printf("Unmarshalled json: %v", unmarshalled)
 	//unmarshal trick
 
-	//resp, err := agent.client.Post(url, "application/json", body)
-	//if err != nil {
-	//	log.Printf("Failed to \"Post\" json to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
-	//	log.Printf("Error: %v", err)
-	//	return err
-	//}
 	resp, err := agent.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(body).
@@ -96,10 +88,8 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 		return err
 	}
 
-	//log.Printf("Response: %v", resp)
 	logResponse(resp, err)
 
-	//defer resp.Body.Close()
 	return err
 }
 

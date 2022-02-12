@@ -23,20 +23,10 @@ type Agent struct {
 }
 
 func NewAgent(config Config) (*Agent, error) {
-	//client := http.Client{Timeout: 2 * time.Second}
-
 	var m metrics
 	pollCount := optional.NewInt64(0)
 	m.pollCount = model.Metric{Name: "PollCount", Type: model.KCounter, Delta: pollCount}
 
-	//t := &http.Transport{}
-	//t.MaxIdleConns = config.MaxIdleConns
-	//t.MaxIdleConnsPerHost = config.MaxIdleConnsPerHost
-	//
-	//httpClient := &http.Client{
-	//	Transport: t,
-	//}
-	//client := resty.NewWithClient(httpClient)
 	client := resty.New()
 
 	agent := &Agent{
