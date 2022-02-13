@@ -39,7 +39,13 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 func (s *MetricsStorage) SaveMetric(m model.Metric) {
 	log.Printf("Saving metric %s to db", m.Name)
 	if m.Type == model.KCounter {
-		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, m.MustGetInt())
+		valueToStore := m.MustGetInt()
+		metricFromDB, found := s.GetMetric(m.Name)
+		if found {
+			valueToStore += metricFromDB.MustGetInt()
+		}
+		
+		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, valueToStore)
 		log.Println(err)
 		return
 	}
