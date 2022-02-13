@@ -26,3 +26,11 @@ func (s *Service) ProcessMetric(ctx context.Context, m model.Metric) error {
 func (s *Service) GetMetric(name string) (model.Metric, bool) {
 	return s.storage.GetMetric(name)
 }
+
+func (s *Service) LoadOnStart() {
+	s.storage.LoadOnStart()
+}
+
+func (s *Service) Dump() {
+	s.storage.Dump()
+}

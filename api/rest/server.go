@@ -6,21 +6,24 @@ import (
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
 	"net/http"
+	"time"
 )
 
 type APIServer struct {
+	config server.Config
 	serverSvc  server.Processor
 	httpServer *http.Server
 }
 
-func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer, error) {
+func NewAPIServer(config server.Config, serverSvc server.Processor) (*APIServer, error) {
 	r := chi.NewRouter()
 	setupRouters(r, serverSvc)
 
 	srv := &APIServer{
+		config: config,
 		serverSvc: serverSvc,
 		httpServer: &http.Server{
-			Addr:    serverAddress,
+			Addr:    config.Address,
 			Handler: r,
 		},
 	}
@@ -30,15 +33,32 @@ func NewAPIServer(serverAddress string, serverSvc server.Processor) (*APIServer,
 
 func (s *APIServer) Run(ctx context.Context) error {
 
-	//go func() {
-	//	for {
-	//		select {
-	//		case <-ctx.Done():
-	//			log.Println("Done sub")
-	//			return
-	//		}
+	go func() {
+		storeTicker := time.NewTicker(s.config.StoreInterval)
+		defer storeTicker.Stop()
+		for {
+			select {
+			case <-storeTicker.C:
+				s.serverSvc.Dump()
+			//case <-ctx.Done():
+			//	log.Println("Dumping and exiting")
+			//	s.serverSvc.Dump()
+			//	return
+			}
+		}
+	}()
+
+	//storeTicker := time.NewTicker(s.config.StoreInterval)
+	//defer storeTicker.Stop()
+	//for {
+	//	select {
+	//	case <-storeTicker.C:
+	//		s.serverSvc.Dump()
+	//	case <-ctx.Done():
+	//		log.Println("Dumping and exiting")
+	//		s.serverSvc.Dump()
 	//	}
-	//}()
+	//}
 
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("listen: %s", err)

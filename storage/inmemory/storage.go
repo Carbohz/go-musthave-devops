@@ -49,3 +49,20 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 	v, found := s.metrics[name]
 	return v, found
 }
+
+func (s *MetricsStorage) GetAllMetrics() map[string]model.Metric {
+	//var metrics []model.Metric
+	//
+	//for _, value := range s.metrics {
+	//	metrics = append(metrics, value)
+	//}
+	//return metrics
+
+	return s.metrics
+}
+
+func (s *MetricsStorage) LoadOnStart() {
+}
+
+func (s *MetricsStorage) Dump() {
+}

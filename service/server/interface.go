@@ -8,4 +8,6 @@ import (
 type Processor interface {
 	ProcessMetric(ctx context.Context, m model.Metric) error
 	GetMetric(name string) (model.Metric, bool)
+	LoadOnStart()
+	Dump()
 }
