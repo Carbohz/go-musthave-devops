@@ -184,7 +184,8 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 				fmt.Fprint(w, string(data))
 			} else {
 				log.Println("Metric not found in storage")
-				http.Error(w, "Metric not found in storage", http.StatusNotImplemented)
+				//http.Error(w, "Metric not found in storage", http.StatusNotImplemented)
+				http.Error(w, "Metric not found in storage", http.StatusNotFound)
 			}
 		}
 	}

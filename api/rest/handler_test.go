@@ -187,7 +187,8 @@ func TestGetMetricWithBody(t *testing.T) {
 			path:   "/value/",
 			metric: models.Metrics{ID: "metric3", MType: "abrakadabra"},
 			want: want{
-				code: http.StatusNotImplemented,
+				//code: http.StatusNotImplemented,
+				code: http.StatusNotFound,
 				body: "Metric not found in storage\n",
 			},
 		},
