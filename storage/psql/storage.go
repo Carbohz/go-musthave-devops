@@ -66,7 +66,7 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 	if gauge, found := s.getGauge(name); found {
 		res := model.Metric{
 			Name: name,
-			Type: model.KCounter,
+			Type: model.KGauge,
 			Value: optional.NewFloat64(gauge),
 		}
 		return res, true
@@ -105,6 +105,7 @@ func (s *MetricsStorage) initTable() error {
 }
 
 func (s *MetricsStorage) getGauge(name string) (float64, bool) {
+	log.Println("Getting gauge value from db")
 	var gauge float64
 
 	gRows, err := s.db.Query("SELECT name, value FROM gauges")
@@ -128,6 +129,8 @@ func (s *MetricsStorage) getGauge(name string) (float64, bool) {
 }
 
 func (s *MetricsStorage) getCounter(name string) (int64, bool) {
+	log.Println("Getting counter value from db")
+
 	var counter int64
 
 	cRows, err := s.db.Query("SELECT name, value FROM counters")
