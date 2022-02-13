@@ -39,18 +39,20 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 func (s *MetricsStorage) SaveMetric(m model.Metric) {
 	log.Printf("Saving metric %s to db", m.Name)
 	if m.Type == model.KCounter {
+		log.Println("Saving counter metric")
 		valueToStore := m.MustGetInt()
 		metricFromDB, found := s.GetMetric(m.Name)
 		if found {
 			valueToStore += metricFromDB.MustGetInt()
 		}
-		
+
 		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, valueToStore)
 		log.Println(err)
 		return
 	}
 
 	if m.Type == model.KGauge {
+		log.Println("Saving gauge metric")
 		_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
 		log.Println(err)
 		return
