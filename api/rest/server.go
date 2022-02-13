@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 	"time"
@@ -18,6 +19,7 @@ type APIServer struct {
 
 func NewAPIServer(config server.Config, serverSvc server.Processor) (*APIServer, error) {
 	r := chi.NewRouter()
+	r.Use(middleware.Compress(5))
 	setupRouters(r, serverSvc)
 
 	srv := &APIServer{
