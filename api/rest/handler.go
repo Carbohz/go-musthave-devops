@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
+	"github.com/Carbohz/go-musthave-devops/model"
+	"github.com/Carbohz/go-musthave-devops/service/server"
+	"github.com/go-chi/chi"
 	"github.com/markphelps/optional"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/Carbohz/go-musthave-devops/model"
-	"github.com/Carbohz/go-musthave-devops/service/server"
-	"github.com/go-chi/chi"
 )
 
 func GaugeMetricHandler(service server.Processor) http.HandlerFunc {
@@ -215,5 +214,29 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 				http.Error(w, "Metric not found in storage", http.StatusNotFound)
 			}
 		}
+	}
+}
+
+func PingDBHandler(service server.Processor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r * http.Request) {
+		log.Println("`/ping` handler called")
+		//if db == nil {
+		//	log.Printf("Connection error: database is not connected")
+		//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		//	return
+		//}
+		//ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+		//defer cancel()
+		//if err := db.PingContext(ctx); err != nil {
+		//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		//	return
+		//}
+
+		if err := service.Ping(); err != nil {
+			http.Error(w, "Failed to ping database", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }

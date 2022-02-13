@@ -56,3 +56,7 @@ func (s *MetricsStorage) GetAllMetrics() map[string]model.Metric {
 
 func (s *MetricsStorage) Dump() {
 }
+
+func (s *MetricsStorage) Ping() error {
+	return nil
+}

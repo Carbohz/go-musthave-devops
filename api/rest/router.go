@@ -16,4 +16,5 @@ func setupRouters(r *chi.Mux, serverSvc server.Processor, key string) {
 	r.Post("/value/", GetMetricsJSONHandler(serverSvc, key))
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler(serverSvc))
 	r.Get("/", AllMetricsHandler)
+	r.Get("/ping", PingDBHandler(serverSvc))
 }

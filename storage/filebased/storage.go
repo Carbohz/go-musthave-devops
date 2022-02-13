@@ -87,3 +87,7 @@ func (s *MetricsStorage) Dump() {
 		log.Fatal("Can't encode server's metrics: ", err)
 	}
 }
+
+func (s *MetricsStorage) Ping() error {
+	return nil
+}

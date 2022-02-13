@@ -20,6 +20,7 @@ type APIServer struct {
 func NewAPIServer(config server.Config, serverSvc server.Processor) (*APIServer, error) {
 	r := chi.NewRouter()
 	r.Use(middleware.Compress(5))
+
 	setupRouters(r, serverSvc, config.Key)
 
 	srv := &APIServer{

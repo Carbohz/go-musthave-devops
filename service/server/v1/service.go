@@ -30,3 +30,7 @@ func (s *Service) GetMetric(name string) (model.Metric, bool) {
 func (s *Service) Dump() {
 	s.storage.Dump()
 }
+
+func (s *Service) Ping() error {
+	return s.storage.Ping()
+}

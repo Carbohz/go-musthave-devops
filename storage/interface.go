@@ -7,4 +7,5 @@ type MetricsStorager interface {
 	SaveMetric(m model.Metric)
 	GetMetric(name string) (model.Metric, bool)
 	Dump()
+	Ping() error
 }
