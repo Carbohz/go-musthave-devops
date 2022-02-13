@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/markphelps/optional"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -64,8 +65,31 @@ func UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r * http.Request) {
+	htmlTemplate := `
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Dummy Page</title>
+	</head>
+	<body>
+		Mock dummy page
+	</body>
+	</html>`
+
+	t, err := template.New("getMetricList").Parse(htmlTemplate)
+	if err != nil {
+		errCode := http.StatusInternalServerError
+		http.Error(w, err.Error(), errCode)
+		return
+	}
+
+	data := "AC/DC"
+
 	w.Header().Set("Content-Type", "text/html")
-	w.Header().Set("Content-Encoding", "gzip")
+	//w.Header().Set("Content-Encoding", "gzip")
+	w.WriteHeader(http.StatusOK)
+	_ = t.Execute(w, data)
 }
 
 func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
