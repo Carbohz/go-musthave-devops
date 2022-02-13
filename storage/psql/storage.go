@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
