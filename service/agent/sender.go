@@ -71,7 +71,7 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	if err != nil {
 		log.Printf("Error occured during metrics marshalling: %v", err)
 	}
-	log.Printf("Sending following body %v in JSON request", rawJSON)
+	log.Printf("Sending following body %v in JSON request", string(rawJSON))
 
 	resp, err := agent.client.R().
 		SetHeader("Content-Type", "application/json").
