@@ -12,7 +12,6 @@ func setupRouters(r *chi.Mux, serverSvc server.Processor) {
 		r.Post("/{metricName}/", NotFoundHandler)
 		r.Post("/*", UnknownTypeMetricHandler)
 		r.Post("/", UpdateMetricsJSONHandler(serverSvc))
-		//r.Post("/", DumbHandler)
 	})
 	r.Post("/value/", GetMetricsJSONHandler(serverSvc))
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler(serverSvc))
