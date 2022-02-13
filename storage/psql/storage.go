@@ -33,13 +33,16 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 }
 
 func (s *MetricsStorage) SaveMetric(m model.Metric) {
+	log.Printf("Saving metric %s to db", m.Name)
 	if m.Name == model.KCounter {
-		s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, m.MustGetInt())
+		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, m.MustGetInt())
+		log.Println(err)
 		return
 	}
 
 	if m.Name == model.KGauge {
-		s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
+		_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
+		log.Println(err)
 		return
 	}
 }
@@ -84,11 +87,13 @@ func (s *MetricsStorage) Ping() error {
 func (s *MetricsStorage) initTable() error {
 	_, err := s.db.Exec("CREATE TABLE IF NOT EXISTS gauges (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value DOUBLE PRECISION NOT NULL)")
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	_, err = s.db.Exec("CREATE TABLE IF NOT EXISTS counters (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value BIGINT NOT NULL)")
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
