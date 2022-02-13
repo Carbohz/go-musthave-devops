@@ -34,6 +34,18 @@ func (m *MockMetricsStorager) EXPECT() *MockMetricsStoragerMockRecorder {
 	return m.recorder
 }
 
+// Dump mocks base method.
+func (m *MockMetricsStorager) Dump() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Dump")
+}
+
+// Dump indicates an expected call of Dump.
+func (mr *MockMetricsStoragerMockRecorder) Dump() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dump", reflect.TypeOf((*MockMetricsStorager)(nil).Dump))
+}
+
 // GetMetric mocks base method.
 func (m *MockMetricsStorager) GetMetric(name string) (model.Metric, bool) {
 	m.ctrl.T.Helper()
@@ -47,6 +59,18 @@ func (m *MockMetricsStorager) GetMetric(name string) (model.Metric, bool) {
 func (mr *MockMetricsStoragerMockRecorder) GetMetric(name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetric", reflect.TypeOf((*MockMetricsStorager)(nil).GetMetric), name)
+}
+
+// LoadOnStart mocks base method.
+func (m *MockMetricsStorager) LoadOnStart() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "LoadOnStart")
+}
+
+// LoadOnStart indicates an expected call of LoadOnStart.
+func (mr *MockMetricsStoragerMockRecorder) LoadOnStart() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOnStart", reflect.TypeOf((*MockMetricsStorager)(nil).LoadOnStart))
 }
 
 // SaveMetric mocks base method.
