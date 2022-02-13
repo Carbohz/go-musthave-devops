@@ -47,6 +47,9 @@ func main() {
 			Restore: config.Restore,
 			DBPath: config.DBPath}
 	storage, err := hybrid.NewMetricsStorage(hybridConfig)
+	if err != nil {
+		log.Println("Failed to create hybrid config")
+	}
 
 	// init server
 	processor, _ := v1.NewService(storage)

@@ -1,10 +1,12 @@
 package hybrid
 
 import (
+	"fmt"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
 	"github.com/Carbohz/go-musthave-devops/storage/filebased"
 	"github.com/Carbohz/go-musthave-devops/storage/psql"
+	"log"
 	"time"
 )
 
@@ -29,8 +31,16 @@ func NewMetricsStorage(config Config) (*MetricsStorage, error) {
 		StoreFile: config.StoreFile,
 		Restore: config.Restore,
 	}
-	fbs, _ := filebased.NewMetricsStorage(fbsConfig)
-	dbs, _ := psql.NewMetricsStorage(config.DBPath)
+
+	fbs, err := filebased.NewMetricsStorage(fbsConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create filebased storage in hybrid storage Ctor: %w", err)
+	}
+
+	dbs, err := psql.NewMetricsStorage(config.DBPath)
+	if err != nil {
+		log.Printf("failed to create database storage in hybrid storage Ctor")
+	}
 
 	storage := &MetricsStorage{
 		config:           config,
@@ -42,7 +52,7 @@ func NewMetricsStorage(config Config) (*MetricsStorage, error) {
 }
 
 func (s *MetricsStorage) SaveMetric(m model.Metric) {
-	if s.config.DBPath != "" {
+	if s.databaseStorage != nil {
 		s.databaseStorage.SaveMetric(m)
 	} else {
 		s.fileBasedStorage.SaveMetric(m)
@@ -50,7 +60,7 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 }
 
 func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
-	if s.config.DBPath != "" {
+	if s.databaseStorage != nil {
 		return s.databaseStorage.GetMetric(name)
 	} else {
 		return s.fileBasedStorage.GetMetric(name)
@@ -58,7 +68,7 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 }
 
 func (s *MetricsStorage) Dump() {
-	if s.config.DBPath != "" {
+	if s.databaseStorage != nil {
 		s.databaseStorage.Dump()
 	} else {
 		s.fileBasedStorage.Dump()
@@ -66,7 +76,7 @@ func (s *MetricsStorage) Dump() {
 }
 
 func (s *MetricsStorage) Ping() error {
-	if s.config.DBPath != "" {
+	if s.databaseStorage != nil {
 		return s.databaseStorage.Ping()
 	} else {
 		return s.fileBasedStorage.Ping()
