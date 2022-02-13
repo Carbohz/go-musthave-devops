@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
+	"log"
 	"net/http"
 	"time"
 )
@@ -62,4 +63,9 @@ func (s *APIServer) Run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *APIServer) DumpBeforeExit() {
+	log.Println("Dumping and exiting")
+	s.serverSvc.Dump()
 }

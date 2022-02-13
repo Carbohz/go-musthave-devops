@@ -46,10 +46,6 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 	return s.inMemoryStorage.GetMetric(name)
 }
 
-func (s *MetricsStorage) LoadOnStart() {
-
-}
-
 func (s *MetricsStorage) LoadMetrics() {
 	log.Printf("Loading metrics from file %s", s.config.StoreFile)
 

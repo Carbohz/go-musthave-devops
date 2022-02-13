@@ -29,8 +29,10 @@ func main() {
 		StoreFile: config.StoreFile,
 		Restore: config.Restore}
 	storage, _ := filebased.NewMetricsStorage(storageConfig)
+
 	// init server
-	processor, _ := v1.NewService(storage) // serve
+	processor, _ := v1.NewService(storage)
+
 	// init apiServer
 	apiServer, err := rest.NewAPIServer(config, processor)
 	if err != nil {
@@ -39,6 +41,6 @@ func main() {
 
 	go apiServer.Run(ctx)
 	<-ctx.Done()
-	log.Println("Dumping and exiting")
-	processor.Dump()
+
+	apiServer.DumpBeforeExit()
 }

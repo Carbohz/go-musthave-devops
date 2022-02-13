@@ -61,18 +61,6 @@ func (mr *MockMetricsStoragerMockRecorder) GetMetric(name interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetric", reflect.TypeOf((*MockMetricsStorager)(nil).GetMetric), name)
 }
 
-// LoadOnStart mocks base method.
-func (m *MockMetricsStorager) LoadOnStart() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "LoadOnStart")
-}
-
-// LoadOnStart indicates an expected call of LoadOnStart.
-func (mr *MockMetricsStoragerMockRecorder) LoadOnStart() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOnStart", reflect.TypeOf((*MockMetricsStorager)(nil).LoadOnStart))
-}
-
 // SaveMetric mocks base method.
 func (m_2 *MockMetricsStorager) SaveMetric(m model.Metric) {
 	m_2.ctrl.T.Helper()
