@@ -220,23 +220,65 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 func PingDBHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r * http.Request) {
 		log.Println("`/ping` handler called")
-		//if db == nil {
-		//	log.Printf("Connection error: database is not connected")
-		//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		//	return
-		//}
-		//ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
-		//defer cancel()
-		//if err := db.PingContext(ctx); err != nil {
-		//	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		//	return
-		//}
 
 		if err := service.Ping(); err != nil {
 			http.Error(w, "Failed to ping database", http.StatusInternalServerError)
 			return
 		}
 
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func UpdatesMetricsJSONHandler(service server.Processor, key string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r * http.Request) {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("/updates/ handler called. Request body: %s", string(body))
+
+		var metrics []models.Metrics
+		err = json.Unmarshal(body, &metrics)
+		if err != nil {
+			log.Printf("Failed to unmarshal following request body: %s", string(body))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		for _, m := range metrics {
+			if err := m.Validate(); err != nil {
+				log.Printf("Invalid metric in incoming request. Type %s is not implemented", m.MType)
+				http.Error(w, err.Error(), http.StatusNotImplemented)
+				return
+			}
+
+			if err := m.ValidateHash(key); err != nil {
+				log.Println("Hash mismatched")
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			modelMetric, err := m.ToModelMetric()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			service.ProcessMetric(r.Context(), modelMetric)
+			err = json.NewEncoder(w).Encode(m)
+			w.Header().Set("Content-Type", "application/json")
+			if err != nil {
+				log.Printf("Failed to update metric on storage")
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			} else {
+				log.Println("Metric updated")
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 	}
 }
