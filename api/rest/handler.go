@@ -65,6 +65,7 @@ func UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 func AllMetricsHandler(w http.ResponseWriter, r * http.Request) {
 	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Encoding", "gzip")
 }
 
 func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
