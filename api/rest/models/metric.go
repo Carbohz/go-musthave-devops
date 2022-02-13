@@ -87,9 +87,9 @@ func (m Metrics) String() string {
 }
 
 func (m Metrics) GenerateHash(key string) string {
-	//if key == "" {
-	//	return ""
-	//}
+	if key == "" {
+		return ""
+	}
 
 	hash, err := m.computeHash(key)
 	if err != nil {

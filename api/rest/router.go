@@ -13,7 +13,7 @@ func setupRouters(r *chi.Mux, serverSvc server.Processor, key string) {
 		r.Post("/*", UnknownTypeMetricHandler)
 		r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
 	})
-	r.Post("/value/", GetMetricsJSONHandler(serverSvc))
+	r.Post("/value/", GetMetricsJSONHandler(serverSvc, key))
 	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler(serverSvc))
 	r.Get("/", AllMetricsHandler)
 }

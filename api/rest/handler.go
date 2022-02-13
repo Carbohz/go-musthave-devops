@@ -167,7 +167,7 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 	}
 }
 
-func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
+func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r * http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -190,6 +190,13 @@ func GetMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+
+			//if err := requestedMetric.ValidateHash(key); err != nil {
+			//	log.Println("Hash mismatched")
+			//	http.Error(w, err.Error(), http.StatusBadRequest)
+			//	return
+			//}
+			requestedMetric.Hash = requestedMetric.GenerateHash(key)
 
 			if modelMetric, ok := service.GetMetric(requestedMetric.ID); ok {
 				log.Println("Found metric in storage")
