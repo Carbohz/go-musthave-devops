@@ -87,7 +87,6 @@ func AllMetricsHandler(w http.ResponseWriter, r * http.Request) {
 	data := "AC/DC"
 
 	w.Header().Set("Content-Type", "text/html")
-	//w.Header().Set("Content-Encoding", "gzip")
 	w.WriteHeader(http.StatusOK)
 	_ = t.Execute(w, data)
 }
@@ -119,7 +118,7 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 	}
 }
 
-func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
+func UpdateMetricsJSONHandler(service server.Processor, key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -137,9 +136,15 @@ func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 			return
 		}
 
-		if err = m.Validate(); err != nil {
+		if err := m.Validate(); err != nil {
 			log.Printf("Invalid metric in incoming request. Type %s is not implemented", m.MType)
 			http.Error(w, err.Error(), http.StatusNotImplemented)
+			return
+		}
+
+		if err := m.ValidateHash(key); err != nil {
+			log.Println("Hash mismatched")
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -148,6 +153,7 @@ func UpdateMetricsJSONHandler(service server.Processor) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 		service.ProcessMetric(r.Context(), modelMetric)
 		err = json.NewEncoder(w).Encode(m)
 		w.Header().Set("Content-Type", "application/json")

@@ -117,11 +117,11 @@ func (m Metrics) computeHash(key string) ([]byte, error) {
 	return hash, nil
 }
 
-func (m Metrics) CheckHash(key string) error {
-	hashStr := m.GenerateHash(key)
+func (m Metrics) ValidateHash(key string) error {
+	want := m.GenerateHash(key)
 
-	if m.Hash != hashStr {
-		return fmt.Errorf("fake hash value: expected %v, got %v", m.Hash, hashStr)
+	if m.Hash != want {
+		return fmt.Errorf("fake hash value: expected %v, got %v", want, m.Hash)
 	}
 	return nil
 }
