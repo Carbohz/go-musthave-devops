@@ -58,7 +58,7 @@ func TestUpdateMetricWithURL(t *testing.T) {
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
 	processor, _ := v1.NewService(metricStorage)
 	r := chi.NewRouter()
-	setupRouters(r, processor)
+	setupRouters(r, processor, "")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -136,7 +136,7 @@ func TestUpdateMetricWithBody(t *testing.T) {
 	)
 	processor, _ := v1.NewService(metricStorage)
 	r := chi.NewRouter()
-	setupRouters(r, processor)
+	setupRouters(r, processor, "")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -198,7 +198,7 @@ func TestGetMetricWithBody(t *testing.T) {
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
 	processor, _ := v1.NewService(metricStorage)
 	r := chi.NewRouter()
-	setupRouters(r, processor)
+	setupRouters(r, processor, "")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
