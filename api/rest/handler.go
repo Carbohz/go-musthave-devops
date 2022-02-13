@@ -63,14 +63,8 @@ func UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Unknown type", http.StatusNotImplemented)
 }
 
-func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
-}
-
-func DumbHandler(w http.ResponseWriter, r *http.Request)  {
-	log.Println("Dumb handler called. Not implemented")
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotImplemented)
+func AllMetricsHandler(w http.ResponseWriter, r * http.Request) {
+	w.Header().Set("Content-Type", "text/html")
 }
 
 func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
