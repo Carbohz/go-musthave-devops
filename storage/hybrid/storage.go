@@ -39,7 +39,7 @@ func NewMetricsStorage(config Config) (*MetricsStorage, error) {
 
 	dbs, err := psql.NewMetricsStorage(config.DBPath)
 	if err != nil {
-		log.Printf("failed to create database storage in hybrid storage Ctor")
+		log.Println(fmt.Errorf("failed to create database storage in hybrid storage Ctor: %w", err))
 	}
 
 	storage := &MetricsStorage{

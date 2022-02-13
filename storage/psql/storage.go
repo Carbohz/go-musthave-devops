@@ -18,9 +18,13 @@ type MetricsStorage struct {
 }
 
 func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
+	if dbPath == "" {
+		return nil, fmt.Errorf("empty database path")
+	}
+
 	db, err := sql.Open("pgx", dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("database connection error: %v", err)
+		return nil, fmt.Errorf("database connection error: %w", err)
 	}
 
 	dbStorage := &MetricsStorage{
