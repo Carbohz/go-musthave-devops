@@ -10,8 +10,6 @@ import (
 	"log"
 )
 
-// если есть тело запроса (например, JSON), то создаем структуру. Иначе излишне
-
 type Metrics struct {
 	ID    string   `json:"id"`              // имя метрики
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter

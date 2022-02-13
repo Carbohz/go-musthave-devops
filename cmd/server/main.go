@@ -22,25 +22,7 @@ func main() {
 
 	config := server.CreateConfig()
 
-	// init storage
-
-	// inmemory
-	//storage, _ := inmemory.NewMetricsStorage()
-
-	// filebased
-	//storageConfig := filebased.Config{
-	//	StoreInterval: config.StoreInterval,
-	//	StoreFile: config.StoreFile,
-	//	Restore: config.Restore}
-	//storage, _ := filebased.NewMetricsStorage(storageConfig)
-
-	// database
-	//storage, err := psql.NewMetricsStorage(config.DBPath)
-	//if err != nil {
-	//	log.Println("Failed to create db")
-	//}
-
-	// hybrid
+	// hybrid storage
 	hybridConfig := hybrid.Config{
 			StoreInterval: config.StoreInterval,
 			StoreFile: config.StoreFile,
@@ -51,10 +33,8 @@ func main() {
 		log.Println("Failed to create hybrid config")
 	}
 
-	// init server
 	processor, _ := v1.NewService(storage)
 
-	// init apiServer
 	apiServer, err := rest.NewAPIServer(config, processor)
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)

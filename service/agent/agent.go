@@ -49,7 +49,6 @@ func (agent *Agent) Run(ctx context.Context) error {
 			agent.collectMetrics()
 		case <-reportTicker.C:
 			log.Println("Sending Metrics")
-			//agent.sendMetrics()
 			go agent.sendMetricsJSON()
 			go agent.sendMetricsBatch()
 		case <-ctx.Done():

@@ -36,22 +36,6 @@ func NewAPIServer(config server.Config, serverSvc server.Processor) (*APIServer,
 }
 
 func (s *APIServer) Run(ctx context.Context) error {
-
-	//go func() {
-	//	storeTicker := time.NewTicker(s.config.StoreInterval)
-	//	defer storeTicker.Stop()
-	//	for {
-	//		select {
-	//		case <-storeTicker.C:
-	//			s.serverSvc.Dump()
-	//		//case <-ctx.Done():
-	//		//	log.Println("Dumping and exiting")
-	//		//	s.serverSvc.Dump()
-	//		//	return
-	//		}
-	//	}
-	//}()
-
 	go func() {
 		storeTicker := time.NewTicker(s.config.StoreInterval)
 		defer storeTicker.Stop()
