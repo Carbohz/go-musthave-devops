@@ -67,6 +67,10 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 		return fmt.Errorf("sendMetricJSON failed: %w", err)
 	}
 
+	if agent.config.Key != "" {
+		metricToSend.Hash = metricToSend.GenerateHash(agent.config.Key)
+	}
+
 	rawJSON, err := json.Marshal(metricToSend)
 	if err != nil {
 		log.Printf("Error occured during metrics marshalling: %v", err)

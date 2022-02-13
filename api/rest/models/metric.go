@@ -1,9 +1,13 @@
 package models
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
+	"log"
 )
 
 // если есть тело запроса (например, JSON), то создаем структуру. Иначе излишне
@@ -13,6 +17,7 @@ type Metrics struct {
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
 func (m Metrics) ToModelMetric() (model.Metric, error) {
@@ -79,4 +84,44 @@ func (m Metrics) String() string {
 		return fmt.Sprintf("[ID: %s, MType: %s, Delta: nil, Value: %v]", m.ID, m.MType, *m.Value)
 	}
 	return ""
+}
+
+func (m Metrics) GenerateHash(key string) string {
+	if key == "" {
+		return ""
+	}
+
+	hash, err := m.computeHash(key)
+	if err != nil {
+		log.Printf("Error occured during hash generation: %v", err)
+		return ""
+	} else {
+		return hex.EncodeToString(hash)
+	}
+}
+
+func (m Metrics) computeHash(key string) ([]byte, error) {
+	var str string
+
+	if m.MType == model.KGauge {
+		str = fmt.Sprintf("%s:gauge:%f", m.ID, *m.Value)
+	}
+
+	if m.MType == model.KCounter {
+		str = fmt.Sprintf("%s:counter:%d", m.ID, *m.Delta)
+	}
+
+	h := hmac.New(sha256.New, []byte(key))
+	h.Write([]byte(str))
+	hash := h.Sum(nil)
+	return hash, nil
+}
+
+func (m Metrics) CheckHash(key string) error {
+	hashStr := m.GenerateHash(key)
+
+	if m.Hash != hashStr {
+		return fmt.Errorf("fake hash value: expected %v, got %v", m.Hash, hashStr)
+	}
+	return nil
 }
