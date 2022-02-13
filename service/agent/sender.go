@@ -44,7 +44,7 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 		url = fmt.Sprintf("http://%s/update/%s/%s/%f", agent.config.Address, model.KCounter, m.Name, value)
 	}
 
-	resp, err := agent.client.R().
+	_, err := agent.client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(url)
 	if err != nil {
@@ -52,7 +52,7 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 		log.Printf("Error: %v", err)
 		return err
 	}
-	logResponse(resp, err)
+	//logResponse(resp, err)
 
 	return err
 }
@@ -73,7 +73,7 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	}
 	log.Printf("Sending following body %v in JSON request", string(rawJSON))
 
-	resp, err := agent.client.R().
+	_, err = agent.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(rawJSON).
 		EnableTrace().
@@ -84,7 +84,7 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 		return err
 	}
 
-	logResponse(resp, err)
+	//logResponse(resp, err)
 
 	return err
 }
