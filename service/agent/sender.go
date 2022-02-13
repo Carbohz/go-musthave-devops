@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
@@ -67,23 +66,16 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 		log.Printf("Error occured in agent.sendMetricJSON: %v", err)
 		return fmt.Errorf("sendMetricJSON failed: %w", err)
 	}
+
 	rawJSON, err := json.Marshal(metricToSend)
 	if err != nil {
 		log.Printf("Error occured during metrics marshalling: %v", err)
 	}
-	body := bytes.NewBuffer(rawJSON)
-
-	log.Printf("Sending following body %v in JSON request", body)
-
-	//unmarshal trick
-	var unmarshalled models.Metrics
-	json.Unmarshal(rawJSON, &unmarshalled)
-	log.Printf("Unmarshalled json: %v", unmarshalled)
-	//unmarshal trick
+	log.Printf("Sending following body %v in JSON request", rawJSON)
 
 	resp, err := agent.client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(body).
+		SetBody(rawJSON).
 		EnableTrace().
 		Post(url)
 	if err != nil {
