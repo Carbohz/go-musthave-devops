@@ -224,6 +224,103 @@ func TestGetMetricWithBody(t *testing.T) {
 	}
 }
 
+func TestUpdateMetricWithBodyHash(t *testing.T) {
+	var metric1Delta int64 = 2
+
+	type want struct {
+		code int
+	}
+	tests := []struct {
+		name   string
+		path   string
+		metric models.Metrics
+		want   want
+	}{
+		{
+			name:   "Valid counter metric",
+			path:   "/update/",
+			metric: models.Metrics{ID: "PollCount", MType: model.KCounter, Delta: &metric1Delta, Hash: "00a93a6437607dbd766fb64e8c7fa5c84310c435ea556c69a318eaaab583a199"},
+			want: want{
+				code: http.StatusOK,
+			},
+		},
+	}
+
+	mockCtrl := gomock.NewController(t)
+
+	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
+	metric1 := model.Metric{Name: "PollCount", Type: model.KCounter, Delta: optional.NewInt64(2)}
+
+	gomock.InOrder(
+		metricStorage.EXPECT().SaveMetric(metric1),
+	)
+	processor, _ := v1.NewService(metricStorage)
+	r := chi.NewRouter()
+	setupRouters(r, processor, "/tmp/VXtHYyL")
+
+	server := httptest.NewServer(r)
+	defer server.Close()
+
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(tt.metric)
+			log.Printf("Marshalled data: %s", string(data))
+			require.NoError(t, err)
+			statusCode, _ := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			assert.Equal(t, tt.want.code, statusCode)
+		})
+	}
+}
+
+func TestGetMetricWithBodyHash(t *testing.T) {
+	type want struct {
+		code int
+		body string
+	}
+	tests := []struct {
+		name   string
+		path   string
+		metric models.Metrics
+		want   want
+	}{
+		{
+			name:   "Valid counter metric",
+			path:   "/value/",
+			metric: models.Metrics{ID: "PollCount", MType: model.KCounter},
+			want: want{
+				code: http.StatusOK,
+				body: "{\"id\":\"PollCount\",\"type\":\"counter\",\"delta\":2,\"hash\":\"00a93a6437607dbd766fb64e8c7fa5c84310c435ea556c69a318eaaab583a199\"}",
+			},
+		},
+	}
+
+	mockCtrl := gomock.NewController(t)
+	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
+	processor, _ := v1.NewService(metricStorage)
+	r := chi.NewRouter()
+	setupRouters(r, processor, "/tmp/VXtHYyL")
+
+	server := httptest.NewServer(r)
+	defer server.Close()
+
+	metric1 := model.Metric{Name: "PollCount", Type: model.KCounter, Delta: optional.NewInt64(2)}
+
+	gomock.InOrder(
+		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric1, true),
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(tt.metric)
+			require.NoError(t, err)
+			statusCode, body := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			assert.Equal(t, tt.want.code, statusCode)
+			assert.Equal(t, tt.want.body, body)
+		})
+	}
+}
+
 func helperDoRequest(t *testing.T, server *httptest.Server, method, path string, data *[]byte) (int, string) {
 	var body io.Reader
 	if data != nil {
