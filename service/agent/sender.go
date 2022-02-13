@@ -21,6 +21,45 @@ func (agent *Agent) sendMetricsJSON() {
 	go agent.sendMetricJSON(agent.metrics.pollCount)
 }
 
+func (agent *Agent) sendMetricsBatch() error {
+	var metricsArr []models.Metrics
+
+	for _, m := range agent.metrics.memStats {
+		v, _ := models.FromModelMetrics(m)
+		v.Hash = v.GenerateHash(agent.config.Key)
+		metricsArr = append(metricsArr, v)
+	}
+
+	randomValue, _ := models.FromModelMetrics(agent.metrics.randomValue)
+	randomValue.Hash = randomValue.GenerateHash(agent.config.Key)
+	metricsArr = append(metricsArr, randomValue)
+
+	pollCount, _ := models.FromModelMetrics(agent.metrics.pollCount)
+	pollCount.Hash = pollCount.GenerateHash(agent.config.Key)
+	metricsArr = append(metricsArr, pollCount)
+
+	rawJSON, err := json.Marshal(metricsArr)
+	if err != nil {
+		log.Printf("Error occured during metrics marshalling: %v", err)
+	}
+	log.Printf("Sending following body %v in JSON request", string(rawJSON))
+
+	url := fmt.Sprintf("http://%s/updates/", agent.config.Address)
+
+	_, err = agent.client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(rawJSON).
+		EnableTrace().
+		Post(url)
+	if err != nil {
+		log.Println("Failed to send batch of metrics")
+		log.Printf("Error: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func (agent *Agent) sendMemStats() {
 	for _, m := range agent.metrics.memStats {
 		go agent.sendMetric(m)
