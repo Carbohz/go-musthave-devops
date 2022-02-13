@@ -62,18 +62,6 @@ func (s *MetricsStorage) LoadMetrics() {
 	}
 	defer f.Close()
 
-	//var internalStorage InternalStorage
-	//
-	//if err := json.NewDecoder(f).Decode(&internalStorage); err != nil {
-	//	log.Fatal("Can't decode metrics: ", err)
-	//}
-	//
-	//gaugeMetricsStorage = internalStorage.GaugeMetrics
-	//counterMetricsStorage = internalStorage.CounterMetrics
-	//log.Printf("Metrics successfully loaded from file %s", cfg.StoreFile)
-	//log.Printf("Loaded gauge metrics are: %v", gaugeMetricsStorage)
-	//log.Printf("Loaded counter metrics are: %v", counterMetricsStorage)
-
 	var metrics map[string]model.Metric
 
 	if err := json.NewDecoder(f).Decode(&metrics); err != nil {
@@ -98,17 +86,6 @@ func (s *MetricsStorage) Dump() {
 	defer f.Close()
 
 	encoder := json.NewEncoder(f)
-
-	//internalStorage := InternalStorage{
-	//	GaugeMetrics:   gaugeMetricsStorage,
-	//	CounterMetrics: counterMetricsStorage,
-	//}
-	//
-	//if err := encoder.Encode(internalStorage); err != nil {
-	//	log.Fatal("Can't encode server's metrics: ", err)
-	//}
-	//
-	//log.Printf("Metrics to be stored to file are: %v", internalStorage)
 
 	if err := encoder.Encode(s.inMemoryStorage.GetAllMetrics()); err != nil {
 		log.Fatal("Can't encode server's metrics: ", err)
