@@ -70,11 +70,12 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 }
 
 func (s *MetricsStorage) Dump() {
-	if s.databaseStorage != nil {
-		s.databaseStorage.Dump()
-	} else {
-		s.fileBasedStorage.Dump()
-	}
+	//if s.databaseStorage != nil {
+	//	s.databaseStorage.Dump()
+	//} else {
+	//	s.fileBasedStorage.Dump()
+	//}
+	s.fileBasedStorage.Dump()
 }
 
 func (s *MetricsStorage) Ping() error {

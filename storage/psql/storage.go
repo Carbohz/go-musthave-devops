@@ -52,7 +52,7 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 	}
 
 	if m.Type == model.KGauge {
-		//log.Println("Saving gauge metric")
+		log.Println("Saving gauge metric")
 		//_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
 		//log.Println(err)
 		return
