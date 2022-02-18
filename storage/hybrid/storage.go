@@ -54,28 +54,29 @@ func NewMetricsStorage(config Config) (*MetricsStorage, error) {
 func (s *MetricsStorage) SaveMetric(m model.Metric) {
 	if s.databaseStorage != nil {
 		s.databaseStorage.SaveMetric(m)
-		s.fileBasedStorage.SaveMetric(m)
 	} else {
 		s.fileBasedStorage.SaveMetric(m)
 	}
 }
 
 func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
-	//if s.databaseStorage != nil {
-	//	return s.databaseStorage.GetMetric(name)
-	//} else {
-	//	return s.fileBasedStorage.GetMetric(name)
-	//}
-	return s.fileBasedStorage.GetMetric(name)
+	if s.databaseStorage != nil {
+		return s.databaseStorage.GetMetric(name)
+	} else {
+		return s.fileBasedStorage.GetMetric(name)
+	}
+
+	//return s.fileBasedStorage.GetMetric(name)
 }
 
 func (s *MetricsStorage) Dump() {
-	//if s.databaseStorage != nil {
-	//	s.databaseStorage.Dump()
-	//} else {
-	//	s.fileBasedStorage.Dump()
-	//}
-	s.fileBasedStorage.Dump()
+	if s.databaseStorage != nil {
+		s.databaseStorage.Dump()
+	} else {
+		s.fileBasedStorage.Dump()
+	}
+
+	//s.fileBasedStorage.Dump()
 }
 
 func (s *MetricsStorage) Ping() error {

@@ -5,7 +5,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/api/rest"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
-	"github.com/Carbohz/go-musthave-devops/storage/psql"
+	"github.com/Carbohz/go-musthave-devops/storage/hybrid"
 	"log"
 	"os/signal"
 	"syscall"
@@ -23,11 +23,15 @@ func main() {
 
 	config := server.CreateConfig()
 
-	storage, err := psql.NewMetricsStorage(config.DBPath)
+	// hybrid storage
+	hybridConfig := hybrid.Config{
+		StoreInterval: config.StoreInterval,
+		StoreFile: config.StoreFile,
+		Restore: config.Restore,
+		DBPath: config.DBPath}
+	storage, err := hybrid.NewMetricsStorage(hybridConfig)
 	if err != nil {
-		// fatal
-		log.Printf("Failed to create db from config: %v", err)
-		panic("fail")
+		log.Println("Failed to create hybrid config")
 	}
 
 	processor, _ := v1.NewService(storage)

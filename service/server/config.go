@@ -23,7 +23,7 @@ const (
 	defaultStoreFile     = "/tmp/devops-metrics-db.json"
 	defaultRestore       = true
 	defaultKeyHash       = ""
-	defaultDBPath        = "postgres://postgres:password@localhost:5432/test"
+	defaultDBPath        = "" // postgres://postgres:password@localhost:5432/test
 )
 
 func CreateConfig() Config {
