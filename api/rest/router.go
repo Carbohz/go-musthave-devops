@@ -16,8 +16,8 @@ func setupRouters(r *chi.Mux, serverSvc server.Processor, key string) {
 		// в {} можно добавить regex
 		r.Post("/gauge/{metricName}/{metricValue}", GaugeMetricHandler(serverSvc))
 		r.Post("/counter/{metricName}/{metricValue}", CounterMetricHandler(serverSvc))
-		r.Post("/{metricName}/", UnknownTypeMetricHandler) // ?
-		//r.Post("/*", UnknownTypeMetricHandler) // ?
+		r.Post("/{metricName}/", NotFoundHandler) // ?
+		r.Post("/*", UnknownTypeMetricHandler) // ?
 		r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
 	})
 	r.Post("/updates/", UpdatesMetricsJSONHandler(serverSvc, key))
