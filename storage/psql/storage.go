@@ -7,6 +7,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/storage"
 	"github.com/markphelps/optional"
 	"log"
+	"os"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
@@ -125,50 +126,70 @@ func (s *MetricsStorage) initTable() error {
 
 func (s *MetricsStorage) getGauge(name string) (float64, bool) {
 	// TODO! возврат ошибок
-	log.Println("Getting gauge value from db")
+	//var gauge float64
+	//
+	//gRows, err := s.db.Query("SELECT name, value FROM gauges")
+	//if err != nil {
+	//	log.Print(err)
+	//	return gauge, false
+	//}
+	//defer gRows.Close()
+	//
+	//for gRows.Next() {
+	//	if err = gRows.Scan(&name, &gauge); err != nil {
+	//		log.Print(err)
+	//		return gauge, false
+	//	}
+	//}
+	//
+	//if err = gRows.Err(); err != nil {
+	//	log.Print(err)
+	//	return gauge, false
+	//}
+	//
+	//return gauge, true
+
 	var gauge float64
-
-	gRows, err := s.db.Query("SELECT name, value FROM gauges")
+	err := s.db.QueryRow("select value from gauges where name = $1", name).Scan(&gauge)
 	if err != nil {
-		log.Print(err)
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return gauge, false
 	}
-	defer gRows.Close()
-	for gRows.Next() {
-		if err = gRows.Scan(&name, &gauge); err != nil {
-			log.Print(err)
-			return gauge, false
-		}
-	}
-	if err = gRows.Err(); err != nil {
-		log.Print(err)
-		return gauge, false
-	}
-
 	return gauge, true
 }
 
-func (s *MetricsStorage) getCounter(name string) (int64, bool) {
-	log.Println("Getting counter value from db")
+func (s *MetricsStorage) getCounter(metricName string) (int64, bool) {
+	//var counter int64
+	//
+	//cRows, err := s.db.Query("SELECT name, value FROM counters")
+	//if err != nil {
+	//	log.Print(err)
+	//	return counter, false
+	//}
+	//defer cRows.Close()
+	//
+	//for cRows.Next() {
+	//	if err = cRows.Scan(&metricName, &counter); err != nil {
+	//		log.Print(err)
+	//		return counter, false
+	//	}
+	//}
+	//
+	//if err = cRows.Err(); err != nil {
+	//	log.Print(err)
+	//	return counter, false
+	//}
+	//
+	//return counter, true
 
 	var counter int64
-
-	cRows, err := s.db.Query("SELECT name, value FROM counters")
+	//err := s.db.QueryRow("select name, value from counters").Scan(&metricName, &counter)
+	err := s.db.QueryRow("select value from counters where name = $1", metricName).Scan(&counter)
+	//res, err := s.db.Exec("select name, value from counters where name = $1", metricName)
+	//s.db.QueryRow()
 	if err != nil {
-		log.Print(err)
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return counter, false
 	}
-	defer cRows.Close()
-	for cRows.Next() {
-		if err = cRows.Scan(&name, &counter); err != nil {
-			log.Print(err)
-			return counter, false
-		}
-	}
-	if err = cRows.Err(); err != nil {
-		log.Print(err)
-		return counter, false
-	}
-
 	return counter, true
 }
