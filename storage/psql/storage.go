@@ -26,6 +26,9 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("database connection error: %w", err)
 	}
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping db in Ctor: %w", err)
+	}
 	// TODO! добавить тут ping
 
 	dbStorage := &MetricsStorage{
@@ -33,7 +36,9 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 	}
 
 	// TODO! обработать ошибку
-	dbStorage.initTable()
+	if err := dbStorage.initTable(); err != nil {
+		return nil, fmt.Errorf("failed to create table in Ctor: %w", err)
+	}
 
 	return dbStorage, nil
 }
@@ -59,8 +64,8 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 
 	if m.Type == model.KGauge {
 		log.Println("Saving gauge metric")
-		//_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
-		//log.Println(err)
+		_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
+		log.Println(err)
 		return
 	}
 }
@@ -70,8 +75,8 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 
 	if counter, found := s.getCounter(name); found {
 		res := model.Metric{
-			Name: name,
-			Type: model.KCounter,
+			Name:  name,
+			Type:  model.KCounter,
 			Delta: optional.NewInt64(counter),
 		}
 		return res, true
@@ -79,8 +84,8 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 
 	if gauge, found := s.getGauge(name); found {
 		res := model.Metric{
-			Name: name,
-			Type: model.KGauge,
+			Name:  name,
+			Type:  model.KGauge,
 			Value: optional.NewFloat64(gauge),
 		}
 		return res, true
@@ -88,7 +93,7 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 	log.Println("Loaded metrics from db")
 
 	var dummy model.Metric
-	return  dummy, false
+	return dummy, false
 }
 
 func (s *MetricsStorage) Dump() {
