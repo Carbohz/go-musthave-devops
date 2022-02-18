@@ -12,23 +12,25 @@ import (
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
 
 type MetricsStorage struct {
+	// сделать embeded (без mu)
 	mu sync.RWMutex
 
 	metrics map[string]model.Metric
 }
 
 func NewMetricsStorage() (*MetricsStorage, error) {
-	storage := &MetricsStorage{
+	st := &MetricsStorage{
 		metrics: make(map[string]model.Metric),
 	}
 
-	return storage, nil
+	return st, nil
 }
 
 func (s *MetricsStorage) SaveMetric(m model.Metric) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// вывернуть ( через NotPresent())
 	if m.Delta.Present() {
 		if v, found := s.metrics[m.Name]; found {
 			newValue := m.MustGetInt()
@@ -38,18 +40,20 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 			return
 		}
 	}
-
+	//
 	s.metrics[m.Name] = m
 }
 
 func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
+	// TODO! если not found -> defaultMetric [ {} ]
 	v, found := s.metrics[name]
 	return v, found
 }
 
+// TODO! плохо, раскрываю детали; Лучше создать новую мапу-копию + блокировка
 func (s *MetricsStorage) GetAllMetrics() map[string]model.Metric {
 	return s.metrics
 }

@@ -19,6 +19,7 @@ type APIServer struct {
 
 func NewAPIServer(config server.Config, serverSvc server.Processor) (*APIServer, error) {
 	r := chi.NewRouter()
+	// д.б. в setupRouters
 	r.Use(middleware.Compress(5))
 
 	setupRouters(r, serverSvc, config.Key)
@@ -36,6 +37,9 @@ func NewAPIServer(config server.Config, serverSvc server.Processor) (*APIServer,
 }
 
 func (s *APIServer) Run(ctx context.Context) error {
+	// не использую ctx
+	// goroutine с завершением ctx
+
 	go func() {
 		storeTicker := time.NewTicker(s.config.StoreInterval)
 		defer storeTicker.Stop()
@@ -52,7 +56,9 @@ func (s *APIServer) Run(ctx context.Context) error {
 	return nil
 }
 
+// DumpBeforeExit() -> defer Close()
 func (s *APIServer) DumpBeforeExit() {
+	// Здесь можно выключить, тогда в Run не нужен ctx
 	log.Println("Dumping and exiting")
 	s.serverSvc.Dump()
 }

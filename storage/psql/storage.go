@@ -26,11 +26,13 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("database connection error: %w", err)
 	}
+	// TODO! добавить тут ping
 
 	dbStorage := &MetricsStorage{
 		db: db,
 	}
 
+	// TODO! обработать ошибку
 	dbStorage.initTable()
 
 	return dbStorage, nil
@@ -38,7 +40,11 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 
 func (s *MetricsStorage) SaveMetric(m model.Metric) {
 	log.Printf("Saving metric %s to db", m.Name)
+	// TODO! в psql есть добавление
+	// TODO! погуглить как в SQL сделать increment
 	if m.Type == model.KCounter {
+		// TODO! if not exist -> insert; else update
+		// TODO! или через транзакцию
 		log.Println("Saving counter metric")
 		valueToStore := m.MustGetInt()
 		metricFromDB, found := s.GetMetric(m.Name)
@@ -113,6 +119,7 @@ func (s *MetricsStorage) initTable() error {
 }
 
 func (s *MetricsStorage) getGauge(name string) (float64, bool) {
+	// TODO! возврат ошибок
 	log.Println("Getting gauge value from db")
 	var gauge float64
 

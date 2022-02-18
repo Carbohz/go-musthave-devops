@@ -17,6 +17,8 @@ import (
 
 func GaugeMetricHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		metricName := chi.URLParam(r, "metricName")
 		metricValue := chi.URLParam(r, "metricValue")
 		value, err := strconv.ParseFloat(metricValue, 64)
@@ -25,11 +27,17 @@ func GaugeMetricHandler(service server.Processor) http.HandlerFunc {
 			return
 		}
 
+		// useless log
+		// нужно log от кого пришло, в какой endpoint
+		// в chi есть такой mw
 		log.Printf("Requested to update storage for gauge metric %s to new value %s", metricName, metricValue)
 
+		// Лучше Ctor (NewModelMetric)
+		// можно в Ctor добавить валидацию Type
 		gauge := model.Metric{Name: metricName, Type: model.KGauge, Value: optional.NewFloat64(value)}
 
-		service.ProcessMetric(r.Context(), gauge)
+		// Не обработал err
+		service.ProcessMetric(ctx, gauge)
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -55,10 +63,12 @@ func CounterMetricHandler(service server.Processor) http.HandlerFunc {
 	}
 }
 
+// TODO! useless
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Not Found", http.StatusNotFound)
 }
 
+// TODO! remove
 func UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Unknown type", http.StatusNotImplemented)
 }
@@ -98,8 +108,10 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 		//log.Printf("SpecificMetricHandler called. Requested metric type is %s, name is %s", metricType, metricName)
 		log.Printf("Requested to return metric %s of type %s from storage", metricName, metricType)
 
+		// TODO! инвертировать на не найдено + выход
 		if m, found := service.GetMetric(metricName); found {
 			w.WriteHeader(http.StatusOK)
+			// TODO! switch по Type; добавить default Type
 			if delta, err := m.Delta.Get(); err == nil {
 				w.Write([]byte(fmt.Sprint(delta)))
 				log.Printf("Returned value from storage is %v", delta)
@@ -119,6 +131,7 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 
 func UpdateMetricsJSONHandler(service server.Processor, key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO! defer body.Close() в клиенте (агенте)
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -126,10 +139,12 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 		}
 
 		log.Printf("Request to update server's storage. Request body: %s", string(body))
+		// TODO! использовать chi.middleware (для такого-то endpoint такой-то mw) R.Use(...); добавить проверку
+		// TODO! выставить ближе к концу
 		w.Header().Set("Content-Type", "application/json")
 
 		var m models.Metrics
-		if err = json.Unmarshal(body, &m); err != nil {
+		if err := json.Unmarshal(body, &m); err != nil {
 			log.Printf("Failed to unmarshal following request body: %s", string(body))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

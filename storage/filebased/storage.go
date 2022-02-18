@@ -46,6 +46,7 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 	return s.inMemoryStorage.GetMetric(name)
 }
 
+// TODO! Добавить error
 func (s *MetricsStorage) LoadMetrics() {
 	log.Printf("Loading metrics from file %s", s.config.StoreFile)
 
@@ -61,6 +62,7 @@ func (s *MetricsStorage) LoadMetrics() {
 	var metrics map[string]model.Metric
 
 	if err := json.NewDecoder(f).Decode(&metrics); err != nil {
+		// TODO! ошибку вместо fatal
 		log.Fatal("Can't decode metrics: ", err)
 	}
 

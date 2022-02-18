@@ -28,9 +28,10 @@ const (
 
 func CreateConfig() Config {
 	var cfg Config
-	err := env.Parse(&cfg)
-	if err != nil {
-		log.Fatal(err)
+
+	if err := env.Parse(&cfg); err != nil {
+		//log.Fatal(err)
+		// error вместо fatal
 	}
 	log.Printf("Server is running with environment variables: %+v", cfg)
 
@@ -44,6 +45,7 @@ func CreateConfig() Config {
 	log.Printf("Server is running with command line flags: Address %v, Store Interval %v, Store File %v, Restore %v, Key %v, DB: %v",
 		*addressFlagPtr, *storeIntervalFlagPtr, *storeFileFlagPtr, *restoreFlagPtr, *keyHashFlagPtr, *dbPathPtr)
 
+	// завернуть в один if
 	_, isSet := os.LookupEnv("ADDRESS")
 	if !isSet {
 		cfg.Address = *addressFlagPtr

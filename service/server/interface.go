@@ -11,3 +11,5 @@ type Processor interface {
 	Dump()
 	Ping() error
 }
+
+// TODO! добавить model.Valide

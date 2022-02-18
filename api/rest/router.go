@@ -6,16 +6,22 @@ import (
 )
 
 func setupRouters(r *chi.Mux, serverSvc server.Processor, key string) {
-	r.Route("/update", func(r chi.Router) {
-		r.Post("/gauge/{metricName}/{metricValue}", GaugeMetricHandler(serverSvc))
-		r.Post("/counter/{metricName}/{metricValue}", CounterMetricHandler(serverSvc))
-		r.Post("/{metricName}/", NotFoundHandler)
-		r.Post("/*", UnknownTypeMetricHandler)
-		r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
-	})
-	r.Post("/value/", GetMetricsJSONHandler(serverSvc, key))
-	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler(serverSvc))
+	// здесь можно создать router с возвращением его
+
+	// в chi есть mw, для проверки app-type json
 	r.Get("/", AllMetricsHandler)
 	r.Get("/ping", PingDBHandler(serverSvc))
+
+	r.Route("/update", func(r chi.Router) {
+		// в {} можно добавить regex
+		r.Post("/gauge/{metricName}/{metricValue}", GaugeMetricHandler(serverSvc))
+		r.Post("/counter/{metricName}/{metricValue}", CounterMetricHandler(serverSvc))
+		r.Post("/{metricName}/", NotFoundHandler) // ?
+		r.Post("/*", UnknownTypeMetricHandler) // ?
+		r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
+	})
 	r.Post("/updates/", UpdatesMetricsJSONHandler(serverSvc, key))
+	// value можно сгруппировать
+	r.Post("/value/", GetMetricsJSONHandler(serverSvc, key))
+	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler(serverSvc))
 }

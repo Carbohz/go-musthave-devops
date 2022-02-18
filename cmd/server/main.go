@@ -19,6 +19,7 @@ func main() {
 		syscall.SIGQUIT,
 	)
 	defer ctxCancel()
+	// нужен timeout
 
 	config := server.CreateConfig()
 
@@ -27,21 +28,23 @@ func main() {
 			StoreInterval: config.StoreInterval,
 			StoreFile: config.StoreFile,
 			Restore: config.Restore,
-			DBPath: config.DBPath}
+			DBPath: config.DBPath,
+	}
 	storage, err := hybrid.NewMetricsStorage(hybridConfig)
 	if err != nil {
+		// fatal
 		log.Println("Failed to create hybrid config")
 	}
 
 	processor, _ := v1.NewService(storage)
+	// _ -> err
 
 	apiServer, err := rest.NewAPIServer(config, processor)
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)
 	}
+	defer apiServer.DumpBeforeExit() // ctx
 
 	go apiServer.Run(ctx)
 	<-ctx.Done()
-
-	apiServer.DumpBeforeExit()
 }
