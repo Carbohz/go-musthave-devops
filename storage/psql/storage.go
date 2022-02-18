@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/markphelps/optional"
 	"log"
-	"os"
-
-	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
@@ -52,13 +50,10 @@ func (s *MetricsStorage) SaveMetric(m model.Metric) {
 		// TODO! if not exist -> insert; else update
 		// TODO! или через транзакцию
 		log.Println("Saving counter metric")
-		valueToStore := m.MustGetInt()
-		metricFromDB, found := s.GetMetric(m.Name)
-		if found {
-			valueToStore += metricFromDB.MustGetInt()
-		}
+		incValue := m.MustGetInt()
 
-		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, valueToStore)
+		//_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, valueToStore)
+		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = counters.value + $2", m.Name, incValue)
 		log.Println(err)
 		return
 	}
@@ -152,7 +147,7 @@ func (s *MetricsStorage) getGauge(name string) (float64, bool) {
 	var gauge float64
 	err := s.db.QueryRow("select value from gauges where name = $1", name).Scan(&gauge)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		log.Printf("QueryRow failed: %v\n", err)
 		return gauge, false
 	}
 	return gauge, true
@@ -188,7 +183,7 @@ func (s *MetricsStorage) getCounter(metricName string) (int64, bool) {
 	//res, err := s.db.Exec("select name, value from counters where name = $1", metricName)
 	//s.db.QueryRow()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		log.Printf("QueryRow failed: %v\n", err)
 		return counter, false
 	}
 	return counter, true
