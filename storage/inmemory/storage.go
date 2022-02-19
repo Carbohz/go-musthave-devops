@@ -61,20 +61,20 @@ func (s *MetricsStorage) GetMetric(ctx context.Context, name string) (model.Metr
 	return v, nil
 }
 
-func (s *MetricsStorage) GetAllMetrics() map[string]model.Metric {
+func (s *MetricsStorage) GetAllMetrics() (map[string]model.Metric, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	var metricsCopy map[string]model.Metric
 
-	//if len(s.metrics) == 0 {
-	//	return metricsCopy
-	//}
+	if len(s.metrics) == 0 {
+		return metricsCopy, fmt.Errorf("empty inMemory storage")
+	}
 
 	for k, v := range s.metrics {
 		metricsCopy[k] = v
 	}
-	return metricsCopy
+	return metricsCopy, nil
 }
 
 func (s *MetricsStorage) Dump(ctx context.Context) error {

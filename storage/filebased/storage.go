@@ -8,6 +8,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
 	"github.com/Carbohz/go-musthave-devops/storage/inmemory"
+	"log"
 	"os"
 )
 
@@ -99,7 +100,13 @@ func (s *MetricsStorage) Dump(ctx context.Context) error {
 
 	encoder := json.NewEncoder(f)
 
-	if err := encoder.Encode(s.inMemoryStorage.GetAllMetrics()); err != nil {
+	metrics, err := s.inMemoryStorage.GetAllMetrics()
+	if err != nil {
+		log.Printf("Nothing to dump: %v", err)
+		return nil
+	}
+
+	if err := encoder.Encode(metrics); err != nil {
 		//log.Fatal("Can't encode server's metrics: ", err)
 		return fmt.Errorf("can't encode metrics from inMemory storage: %w", err)
 	}
