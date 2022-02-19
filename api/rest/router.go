@@ -13,15 +13,21 @@ func setupRouters(r *chi.Mux, serverSvc server.Processor, key string) {
 	r.Get("/ping", PingDBHandler(serverSvc))
 
 	r.Route("/update", func(r chi.Router) {
-		// в {} можно добавить regex
+		r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
+
 		r.Route("/{metricType}/{metricName}/{metricValue}", func(r chi.Router) {
-			r.Use(urlValidator)
+			r.Use(metricTypeValidator, metricNameValidator, metricValueValidator)
 			r.Post("/", URLMetricHandler(serverSvc))
 		})
-		r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
 	})
 	r.Post("/updates/", UpdatesMetricsJSONHandler(serverSvc, key))
-	// value можно сгруппировать
-	r.Post("/value/", GetMetricsJSONHandler(serverSvc, key))
-	r.Get("/value/{metricType}/{metricName}", SpecificMetricHandler(serverSvc))
+
+	r.Route("/value", func(r chi.Router) {
+		r.Post("/", GetMetricsJSONHandler(serverSvc, key))
+
+		r.Route("/{metricType}/{metricName}", func(r chi.Router) {
+			r.Use(metricTypeValidator, metricNameValidator)
+			r.Get("/", SpecificMetricHandler(serverSvc))
+		})
+	})
 }
