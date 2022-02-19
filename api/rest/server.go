@@ -5,8 +5,6 @@ import (
 	"fmt"
 	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	"github.com/Carbohz/go-musthave-devops/service/server"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 	"time"
@@ -19,11 +17,7 @@ type APIServer struct {
 }
 
 func NewAPIServer(config configsrv.ServerConfig, serverSvc server.Processor) (*APIServer, error) {
-	r := chi.NewRouter()
-	// TODO! д.б. в setupRouters
-	r.Use(middleware.Compress(5))
-
-	setupRouters(r, serverSvc, config.Key)
+	r := setupRouter(serverSvc, config.Key)
 
 	srv := &APIServer{
 		config: config,

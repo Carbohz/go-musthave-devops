@@ -3,12 +3,14 @@ package rest
 import (
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
-func setupRouters(r *chi.Mux, serverSvc server.Processor, key string) {
-	// здесь можно создать router с возвращением его
+func setupRouter(serverSvc server.Processor, key string) *chi.Mux {
+	r := chi.NewRouter()
+	r.Use(middleware.Compress(5))
 
-	// в chi есть mw, для проверки app-type json
+	// TODO! в chi есть mw, для проверки app-type json
 	r.Get("/", AllMetricsHandler)
 	r.Get("/ping", PingDBHandler(serverSvc))
 
@@ -30,4 +32,6 @@ func setupRouters(r *chi.Mux, serverSvc server.Processor, key string) {
 			r.Get("/", SpecificMetricHandler(serverSvc))
 		})
 	})
+
+	return r
 }

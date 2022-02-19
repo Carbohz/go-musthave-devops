@@ -6,7 +6,6 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 )
 
-// TODO! добавить context; возвращение ошибок
 type MetricsStorager interface {
 	SaveMetric(ctx context.Context, m model.Metric) error             // возвращать ошибку
 	GetMetric(ctx context.Context, name string) (model.Metric, error) // возвращать ошибку

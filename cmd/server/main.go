@@ -19,7 +19,7 @@ func main() {
 		syscall.SIGQUIT,
 	)
 	defer ctxCancel()
-	// нужен timeout
+	// TODO! нужен timeout
 
 	config, err := configsrv.NewCommonConfig()
 	if err != nil {
