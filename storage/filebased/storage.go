@@ -5,6 +5,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
 	"github.com/Carbohz/go-musthave-devops/storage/inmemory"
+	"github.com/pkg/errors"
 	"log"
 	"os"
 	"time"
@@ -91,5 +92,5 @@ func (s *MetricsStorage) Dump() {
 }
 
 func (s *MetricsStorage) Ping() error {
-	return nil
+	return errors.New("Filebased storage ping: no such method for this type of storage")
 }

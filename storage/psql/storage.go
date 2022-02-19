@@ -26,9 +26,9 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 		return nil, fmt.Errorf("database connection error: %w", err)
 	}
 	// TODO! добавить тут ping
-	//if err := db.Ping(); err != nil {
-	//	return nil, fmt.Errorf("failed to ping db in Ctor: %w", err)
-	//}
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping db in Ctor: %w", err)
+	}
 
 	dbStorage := &MetricsStorage{
 		db: db,
