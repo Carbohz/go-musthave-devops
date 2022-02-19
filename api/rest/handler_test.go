@@ -71,7 +71,7 @@ func TestUpdateMetricWithURL(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
-	processor, _ := v1.NewService(metricStorage)
+	processor := v1.NewService(metricStorage)
 	r := chi.NewRouter()
 	setupRouters(r, processor, "")
 
@@ -149,7 +149,7 @@ func TestUpdateMetricWithBody(t *testing.T) {
 		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric2).Return(nil),
 		//metricStorage.EXPECT().SaveMetric(metric3),
 	)
-	processor, _ := v1.NewService(metricStorage)
+	processor := v1.NewService(metricStorage)
 	r := chi.NewRouter()
 	setupRouters(r, processor, "")
 
@@ -211,7 +211,7 @@ func TestGetMetricWithBody(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
-	processor, _ := v1.NewService(metricStorage)
+	processor := v1.NewService(metricStorage)
 	r := chi.NewRouter()
 	setupRouters(r, processor, "")
 
@@ -269,7 +269,7 @@ func TestUpdateMetricWithBodyHash(t *testing.T) {
 	gomock.InOrder(
 		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric1).Return(nil),
 	)
-	processor, _ := v1.NewService(metricStorage)
+	processor := v1.NewService(metricStorage)
 	r := chi.NewRouter()
 	setupRouters(r, processor, "/tmp/VXtHYyL")
 
@@ -312,7 +312,7 @@ func TestGetMetricWithBodyHash(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
-	processor, _ := v1.NewService(metricStorage)
+	processor := v1.NewService(metricStorage)
 	r := chi.NewRouter()
 	setupRouters(r, processor, "/tmp/VXtHYyL")
 
