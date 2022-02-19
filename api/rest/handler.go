@@ -47,7 +47,7 @@ func URLMetricHandler(service server.Processor) http.HandlerFunc {
 			}
 
 			gauge := model.NewGaugeMetric(metricName, value)
-			// Не обработал err
+			// TODO! Не обработал err
 			service.SaveMetric(ctx, gauge)
 
 			w.WriteHeader(http.StatusOK)
@@ -90,14 +90,15 @@ func AllMetricsHandler(w http.ResponseWriter, r *http.Request) {
 
 func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 
-		//log.Printf("SpecificMetricHandler called. Requested metric type is %s, name is %s", metricType, metricName)
 		log.Printf("Requested to return metric %s of type %s from storage", metricName, metricType)
 
 		// TODO! инвертировать на не найдено + выход
-		if m, found := service.GetMetric(metricName); found {
+		if m, err := service.GetMetric(ctx, metricName); err == nil {
 			w.WriteHeader(http.StatusOK)
 			// TODO! switch по Type; добавить default Type
 			if delta, err := m.Delta.Get(); err == nil {
@@ -171,6 +172,8 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 
 func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r * http.Request) {
+		ctx := r.Context()
+
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -195,7 +198,7 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 
 			//requestedMetric.Hash = requestedMetric.GenerateHash(key)
 
-			if modelMetric, ok := service.GetMetric(requestedMetric.ID); ok {
+			if modelMetric, err := service.GetMetric(ctx, requestedMetric.ID); err == nil {
 				log.Println("Found metric in storage")
 				responseMetric, err := models.FromModelMetrics(modelMetric)
 				if err != nil {
@@ -222,9 +225,11 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 
 func PingDBHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r * http.Request) {
+		ctx := r.Context()
+
 		log.Println("`/ping` handler called")
 
-		if err := service.Ping(); err != nil {
+		if err := service.Ping(ctx); err != nil {
 			http.Error(w, "Failed to ping database", http.StatusInternalServerError)
 			return
 		}

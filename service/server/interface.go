@@ -7,9 +7,7 @@ import (
 
 type Processor interface {
 	SaveMetric(ctx context.Context, m model.Metric) error
-	GetMetric(name string) (model.Metric, bool)
-	Dump()
-	Ping() error
+	GetMetric(ctx context.Context, name string) (model.Metric, error)
+	Dump(ctx context.Context) error
+	Ping(ctx context.Context) error
 }
-
-// TODO! добавить model.Valide

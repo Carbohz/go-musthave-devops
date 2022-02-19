@@ -19,18 +19,17 @@ func NewService(storage storage.MetricsStorager) (*Service, error) {
 }
 
 func (s *Service) SaveMetric(ctx context.Context, m model.Metric) error {
-	s.storage.SaveMetric(m)
-	return nil
+	return s.storage.SaveMetric(ctx, m)
 }
 
-func (s *Service) GetMetric(name string) (model.Metric, bool) {
-	return s.storage.GetMetric(name)
+func (s *Service) GetMetric(ctx context.Context, name string) (model.Metric, error) {
+	return s.storage.GetMetric(ctx, name)
 }
 
-func (s *Service) Dump() {
-	s.storage.Dump()
+func (s *Service) Dump(ctx context.Context) error {
+	return s.storage.Dump(ctx)
 }
 
-func (s *Service) Ping() error {
-	return s.storage.Ping()
+func (s *Service) Ping(ctx context.Context) error {
+	return s.storage.Ping(ctx)
 }

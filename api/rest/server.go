@@ -38,15 +38,15 @@ func NewAPIServer(config configsrv.ServerConfig, serverSvc server.Processor) (*A
 }
 
 func (s *APIServer) Run(ctx context.Context) error {
-	// не использую ctx
-	// goroutine с завершением ctx
+	// TODO! не использую ctx
+	// TODO! goroutine с завершением ctx
 
 	go func() {
 		storeTicker := time.NewTicker(s.config.StoreInterval)
 		defer storeTicker.Stop()
 		for {
 			<-storeTicker.C
-			s.serverSvc.Dump()
+			s.serverSvc.Dump(ctx)
 		}
 	}()
 
@@ -59,7 +59,8 @@ func (s *APIServer) Run(ctx context.Context) error {
 
 // DumpBeforeExit() -> defer Close()
 func (s *APIServer) DumpBeforeExit() {
-	// Здесь можно выключить, тогда в Run не нужен ctx
+	// TODO! Здесь можно выключить, тогда в Run не нужен ctx
 	log.Println("Dumping and exiting")
-	s.serverSvc.Dump()
+	ctx := context.Background()
+	s.serverSvc.Dump(ctx)
 }
