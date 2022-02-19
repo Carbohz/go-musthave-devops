@@ -7,7 +7,6 @@ import (
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/Carbohz/go-musthave-devops/model"
 	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
-	"github.com/go-chi/chi"
 	"github.com/golang/mock/gomock"
 	"github.com/markphelps/optional"
 	"github.com/stretchr/testify/assert"
@@ -72,8 +71,7 @@ func TestUpdateMetricWithURL(t *testing.T) {
 
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
 	processor := v1.NewService(metricStorage)
-	r := chi.NewRouter()
-	setupRouters(r, processor, "")
+	r := setupRouter(processor, "")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -150,8 +148,7 @@ func TestUpdateMetricWithBody(t *testing.T) {
 		//metricStorage.EXPECT().SaveMetric(metric3),
 	)
 	processor := v1.NewService(metricStorage)
-	r := chi.NewRouter()
-	setupRouters(r, processor, "")
+	r := setupRouter(processor, "")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -212,8 +209,7 @@ func TestGetMetricWithBody(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
 	processor := v1.NewService(metricStorage)
-	r := chi.NewRouter()
-	setupRouters(r, processor, "")
+	r := setupRouter(processor, "")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -270,8 +266,7 @@ func TestUpdateMetricWithBodyHash(t *testing.T) {
 		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric1).Return(nil),
 	)
 	processor := v1.NewService(metricStorage)
-	r := chi.NewRouter()
-	setupRouters(r, processor, "/tmp/VXtHYyL")
+	r := setupRouter(processor, "/tmp/VXtHYyL")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
@@ -313,8 +308,7 @@ func TestGetMetricWithBodyHash(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
 	processor := v1.NewService(metricStorage)
-	r := chi.NewRouter()
-	setupRouters(r, processor, "/tmp/VXtHYyL")
+	r := setupRouter(processor, "/tmp/VXtHYyL")
 
 	server := httptest.NewServer(r)
 	defer server.Close()
