@@ -73,7 +73,7 @@ func (s *MetricsStorage) SaveMetric(ctx context.Context, m model.Metric) error {
 }
 
 func (s *MetricsStorage) GetMetric(ctx context.Context, name string) (model.Metric, error) {
-	if counter, err := s.getCounter(name); err != nil {
+	if counter, err := s.getCounter(name); err == nil {
 		res := model.Metric{
 			Name:  name,
 			Type:  model.KCounter,
@@ -82,7 +82,7 @@ func (s *MetricsStorage) GetMetric(ctx context.Context, name string) (model.Metr
 		return res, nil
 	}
 
-	if gauge, err := s.getGauge(name); err != nil {
+	if gauge, err := s.getGauge(name); err == nil {
 		res := model.Metric{
 			Name:  name,
 			Type:  model.KGauge,
