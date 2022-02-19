@@ -13,8 +13,11 @@ import (
 	"os"
 )
 
-var _ storage.MetricsStorager = (*MetricsStorage)(nil)
-var errEmptyFile = errors.New("noting to load: empty file")
+var (
+  _ storage.MetricsStorager = (*MetricsStorage)(nil)
+  errNoFile = errors.New("open file: the system cannot find the path specified")
+  errEmptyFile = errors.New("noting to load: empty file")
+)
 
 type MetricsStorage struct {
 	inMemoryStorage *inmemory.MetricsStorage
@@ -31,14 +34,15 @@ func NewMetricsStorage(config configsrv.FileBasedStorageConfig) (*MetricsStorage
 
 	if config.Restore {
 		if err := storage.LoadMetrics(); err != nil {
-			//if errors.Is(err, errEmptyFile) {
-			//	log.Printf("failed to restore metrics : %v", err)
-			//	return storage, nil
-			//}
-			//
-			//return nil, fmt.Errorf("failed to restore metrics : %w", err)
-			log.Println(err)
-			return storage, nil
+			if errors.Is(err, errEmptyFile) || errors.Is(err, errNoFile) {
+				log.Printf("Not fatal error: failed to restore metrics : %v", err)
+				return storage, nil
+			}
+
+			return nil, fmt.Errorf("failed to restore metrics : %w", err)
+
+			//log.Println(err)
+			//return storage, nil
 		}
 	}
 
@@ -66,7 +70,8 @@ func (s *MetricsStorage) LoadMetrics() error {
 
 	f, err := os.OpenFile(s.config.StoreFile, flag, 0)
 	if err != nil {
-		return fmt.Errorf("can't open file for loading metrics: %w", err)
+		//return fmt.Errorf("can't open file for loading metrics: %w", err)
+		return errNoFile
 	}
 	defer f.Close()
 
