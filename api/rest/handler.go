@@ -47,10 +47,6 @@ func CounterMetricHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r * http.Request) {
 		metricName := chi.URLParam(r, "metricName")
 		metricValue := chi.URLParam(r, "metricValue")
-		if metricValue == "" {
-			http.Error(w, "Missing value for counter metric", http.StatusNotFound)
-			return
-		}
 
 		value, err := strconv.ParseInt(metricValue, 10, 64)
 		if err != nil {
@@ -69,13 +65,13 @@ func CounterMetricHandler(service server.Processor) http.HandlerFunc {
 }
 
 // TODO! useless
-func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Not Found", http.StatusNotFound)
+func InvalidNameAndValueHandler(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Invalid url request: missing /{metric_name}/{metric_value} section in the end of url", http.StatusNotFound)
 }
 
 // TODO! remove
-func UnknownTypeMetricHandler(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Unknown type", http.StatusNotImplemented)
+func UnknownMetricTypeHandler(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Unknown metric type", http.StatusNotImplemented)
 }
 
 func AllMetricsHandler(w http.ResponseWriter, r * http.Request) {

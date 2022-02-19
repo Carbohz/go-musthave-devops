@@ -31,35 +31,35 @@ func TestUpdateMetricWithURL(t *testing.T) {
 		want want
 	}{
 		{
-			name: "Valid gauge metric1",
+			name: "valid gauge metric",
 			path: "/update/gauge/metric1/123.45",
 			want: want{
 				code: http.StatusOK,
 			},
 		},
 		{
-			name: "Valid counter metric2",
+			name: "valid counter metric",
 			path: "/update/counter/metric2/123",
 			want: want{
 				code: http.StatusOK,
 			},
 		},
 		{
-			name: "Invalid MType",
-			path: "/update/abcdef/metric3/123",
+			name: "invalid metric type",
+			path: "/update/invalid_metric_name/metric3/123",
 			want: want{
 				code: http.StatusNotImplemented,
 			},
 		},
 		{
-			name: "counter url handler without value",
+			name: "counter url handler without name and value section",
 			path: "/update/counter/",
 			want: want{
 				code: http.StatusNotFound,
 			},
 		},
 		{
-			name: "gauge url handler without value",
+			name: "gauge url handler without name and value section",
 			path: "/update/gauge/",
 			want: want{
 				code: http.StatusNotFound,
