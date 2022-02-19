@@ -5,6 +5,7 @@
 package storagemock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/Carbohz/go-musthave-devops/model"
@@ -35,54 +36,58 @@ func (m *MockMetricsStorager) EXPECT() *MockMetricsStoragerMockRecorder {
 }
 
 // Dump mocks base method.
-func (m *MockMetricsStorager) Dump() {
+func (m *MockMetricsStorager) Dump(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Dump")
+	ret := m.ctrl.Call(m, "Dump", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Dump indicates an expected call of Dump.
-func (mr *MockMetricsStoragerMockRecorder) Dump() *gomock.Call {
+func (mr *MockMetricsStoragerMockRecorder) Dump(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dump", reflect.TypeOf((*MockMetricsStorager)(nil).Dump))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dump", reflect.TypeOf((*MockMetricsStorager)(nil).Dump), ctx)
 }
 
 // GetMetric mocks base method.
-func (m *MockMetricsStorager) GetMetric(name string) (model.Metric, bool) {
+func (m *MockMetricsStorager) GetMetric(ctx context.Context, name string) (model.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMetric", name)
+	ret := m.ctrl.Call(m, "GetMetric", ctx, name)
 	ret0, _ := ret[0].(model.Metric)
-	ret1, _ := ret[1].(bool)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMetric indicates an expected call of GetMetric.
-func (mr *MockMetricsStoragerMockRecorder) GetMetric(name interface{}) *gomock.Call {
+func (mr *MockMetricsStoragerMockRecorder) GetMetric(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetric", reflect.TypeOf((*MockMetricsStorager)(nil).GetMetric), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetric", reflect.TypeOf((*MockMetricsStorager)(nil).GetMetric), ctx, name)
 }
 
 // Ping mocks base method.
-func (m *MockMetricsStorager) Ping() error {
+func (m *MockMetricsStorager) Ping(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Ping")
+	ret := m.ctrl.Call(m, "Ping", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Ping indicates an expected call of Ping.
-func (mr *MockMetricsStoragerMockRecorder) Ping() *gomock.Call {
+func (mr *MockMetricsStoragerMockRecorder) Ping(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockMetricsStorager)(nil).Ping))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockMetricsStorager)(nil).Ping), ctx)
 }
 
 // SaveMetric mocks base method.
-func (m_2 *MockMetricsStorager) SaveMetric(m model.Metric) {
+func (m_2 *MockMetricsStorager) SaveMetric(ctx context.Context, m model.Metric) error {
 	m_2.ctrl.T.Helper()
-	m_2.ctrl.Call(m_2, "SaveMetric", m)
+	ret := m_2.ctrl.Call(m_2, "SaveMetric", ctx, m)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SaveMetric indicates an expected call of SaveMetric.
-func (mr *MockMetricsStoragerMockRecorder) SaveMetric(m interface{}) *gomock.Call {
+func (mr *MockMetricsStoragerMockRecorder) SaveMetric(ctx, m interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveMetric", reflect.TypeOf((*MockMetricsStorager)(nil).SaveMetric), m)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveMetric", reflect.TypeOf((*MockMetricsStorager)(nil).SaveMetric), ctx, m)
 }

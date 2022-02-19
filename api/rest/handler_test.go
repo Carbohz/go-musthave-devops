@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/Carbohz/go-musthave-devops/model"
 	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
@@ -81,8 +82,8 @@ func TestUpdateMetricWithURL(t *testing.T) {
 	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
 
 	gomock.InOrder(
-		metricStorage.EXPECT().SaveMetric(metric1),
-		metricStorage.EXPECT().SaveMetric(metric2),
+		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric1).Return(nil),
+		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric2).Return(nil),
 	)
 
 	for _, tt := range tests {
@@ -144,8 +145,8 @@ func TestUpdateMetricWithBody(t *testing.T) {
 	//metric3 := model.Metric{Name: "metric3", Type: "abcdef"}
 
 	gomock.InOrder(
-		metricStorage.EXPECT().SaveMetric(metric1),
-		metricStorage.EXPECT().SaveMetric(metric2),
+		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric1).Return(nil),
+		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric2).Return(nil),
 		//metricStorage.EXPECT().SaveMetric(metric3),
 	)
 	processor, _ := v1.NewService(metricStorage)
@@ -222,9 +223,9 @@ func TestGetMetricWithBody(t *testing.T) {
 	metric3 := model.Metric{Name: "metric3", Type: "abrakadabra"}
 
 	gomock.InOrder(
-		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric1, true),
-		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric2, true),
-		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric3, false),
+		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric1, nil),
+		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric2, nil),
+		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric3, fmt.Errorf("aaaa")),
 	)
 
 	for _, tt := range tests {
@@ -266,7 +267,7 @@ func TestUpdateMetricWithBodyHash(t *testing.T) {
 	metric1 := model.Metric{Name: "PollCount", Type: model.KCounter, Delta: optional.NewInt64(2)}
 
 	gomock.InOrder(
-		metricStorage.EXPECT().SaveMetric(metric1),
+		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric1).Return(nil),
 	)
 	processor, _ := v1.NewService(metricStorage)
 	r := chi.NewRouter()
@@ -321,7 +322,7 @@ func TestGetMetricWithBodyHash(t *testing.T) {
 	metric1 := model.Metric{Name: "PollCount", Type: model.KCounter, Delta: optional.NewInt64(2)}
 
 	gomock.InOrder(
-		metricStorage.EXPECT().GetMetric(gomock.Any()).Return(metric1, true),
+		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric1, nil),
 	)
 
 	for _, tt := range tests {

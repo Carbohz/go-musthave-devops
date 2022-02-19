@@ -1,6 +1,7 @@
 package hybrid
 
 import (
+	"context"
 	"fmt"
 	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	"github.com/Carbohz/go-musthave-devops/model"
@@ -20,7 +21,6 @@ type MetricsStorage struct {
 
 func NewMetricsStorage(config configsrv.HybridStorageConfig) (*MetricsStorage, error) {
 	fbsConfig := configsrv.FileBasedStorageConfig{
-		//StoreInterval: config.StoreInterval,
 		StoreFile: config.StoreFile,
 		Restore: config.Restore,
 	}
@@ -47,34 +47,34 @@ func NewMetricsStorage(config configsrv.HybridStorageConfig) (*MetricsStorage, e
 	return storage, nil
 }
 
-func (s *MetricsStorage) SaveMetric(m model.Metric) {
+func (s *MetricsStorage) SaveMetric(ctx context.Context, m model.Metric) error {
 	if s.databaseStorage != nil {
-		s.databaseStorage.SaveMetric(m)
+		return s.databaseStorage.SaveMetric(ctx, m)
 	} else {
-		s.fileBasedStorage.SaveMetric(m)
+		return s.fileBasedStorage.SaveMetric(ctx, m)
 	}
 }
 
-func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
+func (s *MetricsStorage) GetMetric(ctx context.Context, name string) (model.Metric, error) {
 	if s.databaseStorage != nil {
-		return s.databaseStorage.GetMetric(name)
+		return s.databaseStorage.GetMetric(ctx, name)
 	} else {
-		return s.fileBasedStorage.GetMetric(name)
+		return s.fileBasedStorage.GetMetric(ctx, name)
 	}
 }
 
-func (s *MetricsStorage) Dump() {
+func (s *MetricsStorage) Dump(ctx context.Context) error {
 	if s.databaseStorage != nil {
-		s.databaseStorage.Dump()
+		return s.databaseStorage.Dump(ctx)
 	} else {
-		s.fileBasedStorage.Dump()
+		return s.fileBasedStorage.Dump(ctx)
 	}
 }
 
-func (s *MetricsStorage) Ping() error {
+func (s *MetricsStorage) Ping(ctx context.Context) error {
 	if s.databaseStorage != nil {
-		return s.databaseStorage.Ping()
+		return s.databaseStorage.Ping(ctx)
 	} else {
-		return s.fileBasedStorage.Ping()
+		return s.fileBasedStorage.Ping(ctx)
 	}
 }
