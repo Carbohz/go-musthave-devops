@@ -159,7 +159,7 @@ func TestUpdateMetricWithBody(t *testing.T) {
 			data, err := json.Marshal(tt.metric)
 			log.Printf("Marshalled data: %s", string(data))
 			require.NoError(t, err)
-			statusCode, _ := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			statusCode, _ := helperDoRequestJSON(t, server, http.MethodPost, tt.path, &data)
 			assert.Equal(t, tt.want.code, statusCode)
 		})
 	}
@@ -277,7 +277,7 @@ func TestUpdateMetricWithBodyHash(t *testing.T) {
 			data, err := json.Marshal(tt.metric)
 			log.Printf("Marshalled data: %s", string(data))
 			require.NoError(t, err)
-			statusCode, _ := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			statusCode, _ := helperDoRequestJSON(t, server, http.MethodPost, tt.path, &data)
 			assert.Equal(t, tt.want.code, statusCode)
 		})
 	}
@@ -336,6 +336,26 @@ func helperDoRequest(t *testing.T, server *httptest.Server, method, path string,
 		body = bytes.NewBuffer(*data)
 	}
 	request, err := http.NewRequest(method, server.URL+path, body)
+	require.NoError(t, err)
+
+	response, err := http.DefaultClient.Do(request)
+	require.NoError(t, err)
+
+	responseBody, err := ioutil.ReadAll(response.Body)
+	require.NoError(t, err)
+
+	defer response.Body.Close()
+
+	return response.StatusCode, string(responseBody)
+}
+
+func helperDoRequestJSON(t *testing.T, server *httptest.Server, method, path string, data *[]byte) (int, string) {
+	var body io.Reader
+	if data != nil {
+		body = bytes.NewBuffer(*data)
+	}
+	request, err := http.NewRequest(method, server.URL+path, body)
+	request.Header.Add("Content-Type", "application/json")
 	require.NoError(t, err)
 
 	response, err := http.DefaultClient.Do(request)

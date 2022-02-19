@@ -15,7 +15,10 @@ func setupRouter(serverSvc server.Processor, key string) *chi.Mux {
 	r.Get("/ping", PingDBHandler(serverSvc))
 
 	r.Route("/update", func(r chi.Router) {
-		r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
+		r.Route("/", func(r chi.Router) {
+			r.Use(middleware.AllowContentType("application/json"))
+			r.Post("/", UpdateMetricsJSONHandler(serverSvc, key))
+		})
 
 		r.Route("/{metricType}/{metricName}/{metricValue}", func(r chi.Router) {
 			r.Use(metricTypeValidator, metricNameValidator, metricValueValidator)
