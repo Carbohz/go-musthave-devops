@@ -111,12 +111,17 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 			reason := fmt.Sprintf("Metric %s with type %s not found in storage : %v", metricName, metricType, err)
 			//reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
 			http.Error(w, reason, http.StatusNotFound)
+			return
 		}
 
 		switch m.Type {
 		case model.KCounter: {
 			delta := m.MustGetInt()
-			w.Write([]byte(fmt.Sprint(delta)))
+			if _, err := w.Write([]byte(fmt.Sprint(delta))); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
 			log.Printf("Returned counter metric from storage with delta %v", delta)
 			w.WriteHeader(http.StatusOK)
 			return
@@ -124,7 +129,11 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 
 		case model.KGauge: {
 			value := m.MustGetFloat()
-			w.Write([]byte(fmt.Sprint(value)))
+			if _, err := w.Write([]byte(fmt.Sprint(value))); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
 			log.Printf("Returned gauge metric from storage with value %v", value)
 			return
 		}
@@ -202,7 +211,7 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 }
 
 func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r * http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		body, err := ioutil.ReadAll(r.Body)
@@ -250,9 +259,13 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 			return
 		}
 
+		if _, err := fmt.Fprint(w, string(data)); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, string(data))
 	}
 }
 
