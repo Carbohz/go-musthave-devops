@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	configagent "github.com/Carbohz/go-musthave-devops/config/agent"
 	"github.com/Carbohz/go-musthave-devops/service/agent"
 	"log"
 	"os/signal"
@@ -17,9 +18,12 @@ func main() {
 	)
 	defer ctxCancel()
 
-	config := agent.CreateConfig()
-	agent, err := agent.NewAgent(config)
+	config, err := configagent.NewAgentConfig()
+	if err != nil {
+		log.Fatalf("Failed to create agent config: %v", err)
+	}
 
+	agent, err := agent.NewAgent(config)
 	if err != nil {
 		log.Fatalf("Failed to create an agent: %v", err)
 	}

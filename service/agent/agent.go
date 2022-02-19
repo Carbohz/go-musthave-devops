@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	configagent "github.com/Carbohz/go-musthave-devops/config/agent"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
 	"log"
@@ -17,12 +18,12 @@ type metrics struct {
 }
 
 type Agent struct {
-	config Config
+	config configagent.AgentConfig
 	metrics metrics
 	client *resty.Client
 }
 
-func NewAgent(config Config) (*Agent, error) {
+func NewAgent(config configagent.AgentConfig) (*Agent, error) {
 	var m metrics
 	pollCount := optional.NewInt64(0)
 	m.pollCount = model.Metric{Name: "PollCount", Type: model.KCounter, Delta: pollCount}
