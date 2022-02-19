@@ -32,15 +32,19 @@ func NewMetricsStorage(config Config) (*MetricsStorage, error) {
 		Restore: config.Restore,
 	}
 
-	fbs, err := filebased.NewMetricsStorage(fbsConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create filebased storage in hybrid storage Ctor: %w", err)
-	}
-
+	var fbs *filebased.MetricsStorage
 	dbs, err := psql.NewMetricsStorage(config.DBPath)
 	if err != nil {
 		log.Println(fmt.Errorf("failed to create database storage in hybrid storage Ctor: %w", err))
+		log.Println("Creating filebased storage instead")
+
+		fbs, err = filebased.NewMetricsStorage(fbsConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create filebased storage in hybrid storage Ctor: %w", err)
+		}
 	}
+
+
 
 
 	storage := &MetricsStorage{

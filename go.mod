@@ -9,6 +9,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/markphelps/optional v0.9.0
+	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.7.0
 )
 
