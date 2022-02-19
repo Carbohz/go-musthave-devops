@@ -32,7 +32,7 @@ func URLMetricHandler(service server.Processor) http.HandlerFunc {
 			}
 
 			counter := model.NewCounterMetric(metricName, delta)
-			service.ProcessMetric(ctx, counter)
+			service.SaveMetric(ctx, counter)
 
 			w.WriteHeader(http.StatusOK)
 			return
@@ -48,7 +48,7 @@ func URLMetricHandler(service server.Processor) http.HandlerFunc {
 
 			gauge := model.NewGaugeMetric(metricName, value)
 			// Не обработал err
-			service.ProcessMetric(ctx, gauge)
+			service.SaveMetric(ctx, gauge)
 
 			w.WriteHeader(http.StatusOK)
 			return
@@ -156,7 +156,7 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 			return
 		}
 
-		service.ProcessMetric(r.Context(), modelMetric)
+		service.SaveMetric(r.Context(), modelMetric)
 		err = json.NewEncoder(w).Encode(m)
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
@@ -270,7 +270,7 @@ func UpdatesMetricsJSONHandler(service server.Processor, key string) http.Handle
 				return
 			}
 
-			service.ProcessMetric(r.Context(), modelMetric)
+			service.SaveMetric(r.Context(), modelMetric)
 			err = json.NewEncoder(w).Encode(m)
 			w.Header().Set("Content-Type", "application/json")
 			if err != nil {

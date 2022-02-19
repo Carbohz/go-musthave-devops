@@ -18,7 +18,7 @@ func NewService(storage storage.MetricsStorager) (*Service, error) {
 	return svc, nil
 }
 
-func (s *Service) ProcessMetric(ctx context.Context, m model.Metric) error {
+func (s *Service) SaveMetric(ctx context.Context, m model.Metric) error {
 	s.storage.SaveMetric(m)
 	return nil
 }
