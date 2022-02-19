@@ -1,13 +1,13 @@
 package psql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/markphelps/optional"
-	"log"
 )
 
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
@@ -23,168 +23,118 @@ func NewMetricsStorage(dbPath string) (*MetricsStorage, error) {
 
 	db, err := sql.Open("pgx", dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("database connection error: %w", err)
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	// TODO! добавить тут ping
+
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping db in Ctor: %w", err)
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	dbStorage := &MetricsStorage{
 		db: db,
 	}
 
-	// TODO! обработать ошибку
 	if err := dbStorage.initTable(); err != nil {
-		return nil, fmt.Errorf("failed to create table in Ctor: %w", err)
+		return nil, fmt.Errorf("failed to create table in database: %w", err)
 	}
 
 	return dbStorage, nil
 }
 
-func (s *MetricsStorage) SaveMetric(m model.Metric) {
-	log.Printf("Saving metric %s to db", m.Name)
-	// TODO! в psql есть добавление
-	// TODO! погуглить как в SQL сделать increment
-	if m.Type == model.KCounter {
-		// TODO! if not exist -> insert; else update
-		// TODO! или через транзакцию
-		log.Println("Saving counter metric")
-		incValue := m.MustGetInt()
-
-		//_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE SET value = $2", m.Name, valueToStore)
-		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = counters.value + $2", m.Name, incValue)
-		log.Println(err)
-		return
+func (s *MetricsStorage) SaveMetric(ctx context.Context, m model.Metric) error {
+	switch m.Type {
+	case model.KCounter: {
+		_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = counters.value + $2", m.Name, m.MustGetInt())
+		return err
 	}
 
-	if m.Type == model.KGauge {
-		log.Println("Saving gauge metric")
+	case model.KGauge: {
 		_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
-		log.Println(err)
-		return
+		return err
 	}
+
+	default:
+		return fmt.Errorf("failed to store metic %s of type %s into database table: unkonw metric type", m.Name, m.Type)
+	}
+
+	//if m.Type == model.KCounter {
+	//	incValue := m.MustGetInt()
+	//	_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = counters.value + $2", m.Name, incValue)
+	//	log.Println(err)
+	//	return err
+	//}
+	//
+	//if m.Type == model.KGauge {
+	//	log.Println("Saving gauge metric")
+	//	_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
+	//	log.Println(err)
+	//	return err
+	//}
 }
 
-func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
-	log.Println("Loading metrics from db")
-
-	if counter, found := s.getCounter(name); found {
+func (s *MetricsStorage) GetMetric(ctx context.Context, name string) (model.Metric, error) {
+	if counter, err := s.getCounter(name); err != nil {
 		res := model.Metric{
 			Name:  name,
 			Type:  model.KCounter,
 			Delta: optional.NewInt64(counter),
 		}
-		return res, true
+		return res, nil
 	}
 
-	if gauge, found := s.getGauge(name); found {
+	if gauge, err := s.getGauge(name); err != nil {
 		res := model.Metric{
 			Name:  name,
 			Type:  model.KGauge,
 			Value: optional.NewFloat64(gauge),
 		}
-		return res, true
+		return res, nil
 	}
-	log.Println("Loaded metrics from db")
 
-	var dummy model.Metric
-	return dummy, false
+	return model.Metric{}, fmt.Errorf("failed to load metric %s from database: no such metric in counters or gauges table", name)
 }
 
-func (s *MetricsStorage) Dump() {
+func (s *MetricsStorage) Dump(ctx context.Context) error {
+	return fmt.Errorf("database storage Dump: no such method for this type of storage")
 }
 
-func (s *MetricsStorage) Ping() error {
+func (s *MetricsStorage) Ping(ctx context.Context) error {
 	if s.db == nil {
-		err := fmt.Errorf("connection error: database is not connected")
-		return err
+		return fmt.Errorf("connection error: database is not connected")
 	}
 	return s.db.Ping()
 }
 
 func (s *MetricsStorage) initTable() error {
-	_, err := s.db.Exec("CREATE TABLE IF NOT EXISTS gauges (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value DOUBLE PRECISION NOT NULL)")
+	_, err := s.db.Exec("CREATE TABLE IF NOT EXISTS counters (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value BIGINT NOT NULL)")
 	if err != nil {
-		log.Println(err)
-		return err
+		return fmt.Errorf("failed to create table for counters metrics: %w", err)
 	}
 
-	_, err = s.db.Exec("CREATE TABLE IF NOT EXISTS counters (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value BIGINT NOT NULL)")
+	_, err = s.db.Exec("CREATE TABLE IF NOT EXISTS gauges (id serial PRIMARY KEY, name VARCHAR (128) UNIQUE NOT NULL, value DOUBLE PRECISION NOT NULL)")
 	if err != nil {
-		log.Println(err)
-		return err
+		return fmt.Errorf("failed to create table for gauges metrics: %w", err)
 	}
 
 	return nil
 }
 
-func (s *MetricsStorage) getGauge(name string) (float64, bool) {
-	// TODO! возврат ошибок
-	//var gauge float64
-	//
-	//gRows, err := s.db.Query("SELECT name, value FROM gauges")
-	//if err != nil {
-	//	log.Print(err)
-	//	return gauge, false
-	//}
-	//defer gRows.Close()
-	//
-	//for gRows.Next() {
-	//	if err = gRows.Scan(&name, &gauge); err != nil {
-	//		log.Print(err)
-	//		return gauge, false
-	//	}
-	//}
-	//
-	//if err = gRows.Err(); err != nil {
-	//	log.Print(err)
-	//	return gauge, false
-	//}
-	//
-	//return gauge, true
-
+func (s *MetricsStorage) getGauge(name string) (float64, error) {
 	var gauge float64
+
 	err := s.db.QueryRow("select value from gauges where name = $1", name).Scan(&gauge)
 	if err != nil {
-		log.Printf("QueryRow failed: %v\n", err)
-		return gauge, false
+		return gauge, fmt.Errorf("queryRow failed: %w", err)
 	}
-	return gauge, true
+	return gauge, nil
 }
 
-func (s *MetricsStorage) getCounter(metricName string) (int64, bool) {
-	//var counter int64
-	//
-	//cRows, err := s.db.Query("SELECT name, value FROM counters")
-	//if err != nil {
-	//	log.Print(err)
-	//	return counter, false
-	//}
-	//defer cRows.Close()
-	//
-	//for cRows.Next() {
-	//	if err = cRows.Scan(&metricName, &counter); err != nil {
-	//		log.Print(err)
-	//		return counter, false
-	//	}
-	//}
-	//
-	//if err = cRows.Err(); err != nil {
-	//	log.Print(err)
-	//	return counter, false
-	//}
-	//
-	//return counter, true
-
+func (s *MetricsStorage) getCounter(metricName string) (int64, error) {
 	var counter int64
-	//err := s.db.QueryRow("select name, value from counters").Scan(&metricName, &counter)
+
 	err := s.db.QueryRow("select value from counters where name = $1", metricName).Scan(&counter)
-	//res, err := s.db.Exec("select name, value from counters where name = $1", metricName)
-	//s.db.QueryRow()
 	if err != nil {
-		log.Printf("QueryRow failed: %v\n", err)
-		return counter, false
+		return counter, fmt.Errorf("queryRow failed: %w", err)
 	}
-	return counter, true
+	return counter, nil
 }
