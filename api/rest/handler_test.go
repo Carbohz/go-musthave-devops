@@ -92,6 +92,25 @@ func TestUpdateMetricWithURL(t *testing.T) {
 	}
 }
 
+func helperDoRequest(t *testing.T, server *httptest.Server, method, path string, data *[]byte) (int, string) {
+	var body io.Reader
+	if data != nil {
+		body = bytes.NewBuffer(*data)
+	}
+	request, err := http.NewRequest(method, server.URL+path, body)
+	require.NoError(t, err)
+
+	response, err := http.DefaultClient.Do(request)
+	require.NoError(t, err)
+
+	responseBody, err := ioutil.ReadAll(response.Body)
+	require.NoError(t, err)
+
+	defer response.Body.Close()
+
+	return response.StatusCode, string(responseBody)
+}
+
 func TestUpdateMetricWithBody(t *testing.T) {
 	metric1Value := 123.45
 	var metric2Delta int64 = 123
@@ -228,7 +247,7 @@ func TestGetMetricWithBody(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			data, err := json.Marshal(tt.metric)
 			require.NoError(t, err)
-			statusCode, body := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			statusCode, body := helperDoRequestJSON(t, server, http.MethodPost, tt.path, &data)
 			assert.Equal(t, tt.want.code, statusCode)
 			assert.Equal(t, tt.want.body, body)
 		})
@@ -323,30 +342,11 @@ func TestGetMetricWithBodyHash(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			data, err := json.Marshal(tt.metric)
 			require.NoError(t, err)
-			statusCode, body := helperDoRequest(t, server, http.MethodPost, tt.path, &data)
+			statusCode, body := helperDoRequestJSON(t, server, http.MethodPost, tt.path, &data)
 			assert.Equal(t, tt.want.code, statusCode)
 			assert.Equal(t, tt.want.body, body)
 		})
 	}
-}
-
-func helperDoRequest(t *testing.T, server *httptest.Server, method, path string, data *[]byte) (int, string) {
-	var body io.Reader
-	if data != nil {
-		body = bytes.NewBuffer(*data)
-	}
-	request, err := http.NewRequest(method, server.URL+path, body)
-	require.NoError(t, err)
-
-	response, err := http.DefaultClient.Do(request)
-	require.NoError(t, err)
-
-	responseBody, err := ioutil.ReadAll(response.Body)
-	require.NoError(t, err)
-
-	defer response.Body.Close()
-
-	return response.StatusCode, string(responseBody)
 }
 
 func helperDoRequestJSON(t *testing.T, server *httptest.Server, method, path string, data *[]byte) (int, string) {
