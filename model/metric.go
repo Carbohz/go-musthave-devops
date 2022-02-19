@@ -1,15 +1,15 @@
 package model
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 
 	"github.com/markphelps/optional"
 )
 
 const (
-	KGauge   = "gauge"
 	KCounter = "counter"
+	KGauge   = "gauge"
 )
 
 type (
@@ -21,11 +21,26 @@ type (
 	}
 )
 
+func (m Metric) Validate() error {
+	if m.Type != KCounter && m.Type != KGauge {
+		return fmt.Errorf("unknown metric type: %s", m.Type)
+	}
+
+	return nil
+}
+
+func ValidateType(mType string) error {
+	if mType != KCounter && mType != KGauge {
+		return fmt.Errorf("unknown metric type: %s", mType)
+	}
+
+	return nil
+}
+
 func (m Metric) MustGetInt() int64 {
 	value, err := m.Delta.Get()
 	if err != nil {
-		//panic("value not present")
-		log.Println("value not present")
+		panic("value not present")
 	}
 	return value
 }
@@ -33,8 +48,7 @@ func (m Metric) MustGetInt() int64 {
 func (m Metric) MustGetFloat() float64 {
 	value, err := m.Value.Get()
 	if err != nil {
-		//panic("value not present")
-		log.Println("value not present")
+		panic("value not present")
 	}
 	return value
 }

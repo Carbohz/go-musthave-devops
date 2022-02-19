@@ -15,6 +15,79 @@ import (
 	"strconv"
 )
 
+func URLMetricHandler(service server.Processor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		metricType := chi.URLParam(r, "metricType")
+		if metricType == model.KCounter {
+			metricName := chi.URLParam(r, "metricName")
+			metricValue := chi.URLParam(r, "metricValue")
+
+			value, err := strconv.ParseInt(metricValue, 10, 64)
+			if err != nil {
+				http.Error(w, "parsing error", http.StatusBadRequest)
+				return
+			}
+
+			log.Printf("Requested to update storage for counter metric %s : need to add value %s to old one", metricName, metricValue)
+
+			counter := model.Metric{Name: metricName, Type: model.KCounter, Delta: optional.NewInt64(value)}
+
+			service.ProcessMetric(r.Context(), counter)
+
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if metricType == model.KGauge {
+			ctx := r.Context()
+
+			metricName := chi.URLParam(r, "metricName")
+			metricValue := chi.URLParam(r, "metricValue")
+			value, err := strconv.ParseFloat(metricValue, 64)
+			if err != nil {
+				http.Error(w, "parsing error. Bad request", http.StatusBadRequest)
+				return
+			}
+
+			// useless log
+			// нужно log от кого пришло, в какой endpoint
+			// в chi есть такой mw
+			log.Printf("Requested to update storage for gauge metric %s to new value %s", metricName, metricValue)
+
+			// Лучше Ctor (NewModelMetric)
+			// можно в Ctor добавить валидацию Type
+			gauge := model.Metric{Name: metricName, Type: model.KGauge, Value: optional.NewFloat64(value)}
+
+			// Не обработал err
+			service.ProcessMetric(ctx, gauge)
+
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+	}
+}
+
+func CounterMetricHandler(service server.Processor) http.HandlerFunc {
+	return func(w http.ResponseWriter, r * http.Request) {
+		metricName := chi.URLParam(r, "metricName")
+		metricValue := chi.URLParam(r, "metricValue")
+
+		value, err := strconv.ParseInt(metricValue, 10, 64)
+		if err != nil {
+			http.Error(w, "parsing error", http.StatusBadRequest)
+			return
+		}
+
+		log.Printf("Requested to update storage for counter metric %s : need to add value %s to old one", metricName, metricValue)
+
+		counter := model.Metric{Name: metricName, Type: model.KCounter, Delta: optional.NewInt64(value)}
+
+		service.ProcessMetric(r.Context(), counter)
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func GaugeMetricHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -38,27 +111,6 @@ func GaugeMetricHandler(service server.Processor) http.HandlerFunc {
 
 		// Не обработал err
 		service.ProcessMetric(ctx, gauge)
-
-		w.WriteHeader(http.StatusOK)
-	}
-}
-
-func CounterMetricHandler(service server.Processor) http.HandlerFunc {
-	return func(w http.ResponseWriter, r * http.Request) {
-		metricName := chi.URLParam(r, "metricName")
-		metricValue := chi.URLParam(r, "metricValue")
-
-		value, err := strconv.ParseInt(metricValue, 10, 64)
-		if err != nil {
-			http.Error(w, "parsing error", http.StatusBadRequest)
-			return
-		}
-
-		log.Printf("Requested to update storage for counter metric %s : need to add value %s to old one", metricName, metricValue)
-
-		counter := model.Metric{Name: metricName, Type: model.KCounter, Delta: optional.NewInt64(value)}
-
-		service.ProcessMetric(r.Context(), counter)
 
 		w.WriteHeader(http.StatusOK)
 	}
