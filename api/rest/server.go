@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	"github.com/Carbohz/go-musthave-devops/service/server"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -12,12 +13,12 @@ import (
 )
 
 type APIServer struct {
-	config server.Config
+	config configsrv.ServerConfig
 	serverSvc  server.Processor
 	httpServer *http.Server
 }
 
-func NewAPIServer(config server.Config, serverSvc server.Processor) (*APIServer, error) {
+func NewAPIServer(config configsrv.ServerConfig, serverSvc server.Processor) (*APIServer, error) {
 	r := chi.NewRouter()
 	// д.б. в setupRouters
 	r.Use(middleware.Compress(5))

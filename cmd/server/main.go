@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/Carbohz/go-musthave-devops/api/rest"
-	"github.com/Carbohz/go-musthave-devops/service/server"
+	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
 	"github.com/Carbohz/go-musthave-devops/storage/hybrid"
 	"log"
@@ -21,15 +21,14 @@ func main() {
 	defer ctxCancel()
 	// нужен timeout
 
-	config := server.CreateConfig()
+	config, err := configsrv.NewCommonConfig()
+	if err != nil {
+		log.Fatalf("Failed to create common config: %v", err)
+	}
 
 	// hybrid storage
-	hybridConfig := hybrid.Config{
-		StoreInterval: config.StoreInterval,
-		StoreFile: config.StoreFile,
-		Restore: config.Restore,
-		DBPath: config.DBPath}
-	storage, err := hybrid.NewMetricsStorage(hybridConfig)
+	hybridStorageConfig := configsrv.NewHybridStorageConfig(config)
+	storage, err := hybrid.NewMetricsStorage(hybridStorageConfig)
 	if err != nil {
 		log.Println("Failed to create hybrid config")
 	}
@@ -37,7 +36,8 @@ func main() {
 	processor, _ := v1.NewService(storage)
 	// _ -> err
 
-	apiServer, err := rest.NewAPIServer(config, processor)
+	serverConfig := configsrv.NewServerConfig(config)
+	apiServer, err := rest.NewAPIServer(serverConfig, processor)
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)
 	}

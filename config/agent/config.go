@@ -2,10 +2,11 @@ package agent
 
 import (
 	"flag"
-	"github.com/caarlos0/env/v6"
 	"log"
 	"os"
 	"time"
+
+	"github.com/caarlos0/env/v6"
 )
 
 type Config struct {
@@ -22,7 +23,7 @@ const (
 	defaultKeyHash        = ""
 )
 
-func CreateConfig() Config {
+func NewAgentConfig() (Config, error) {
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {
