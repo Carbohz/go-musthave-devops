@@ -5,7 +5,6 @@ import (
 	"fmt"
 	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	"github.com/Carbohz/go-musthave-devops/service/server"
-	"log"
 	"net/http"
 	"time"
 )
@@ -32,9 +31,6 @@ func NewAPIServer(config configsrv.ServerConfig, serverSvc server.Processor) (*A
 }
 
 func (s *APIServer) Run(ctx context.Context) error {
-	// TODO! не использую ctx
-	// TODO! goroutine с завершением ctx
-
 	go func() {
 		storeTicker := time.NewTicker(s.config.StoreInterval)
 		defer storeTicker.Stop()
@@ -52,7 +48,5 @@ func (s *APIServer) Run(ctx context.Context) error {
 }
 
 func (s *APIServer) Close(ctx context.Context) {
-	// TODO! Здесь можно выключить, тогда в Run не нужен ctx
-	log.Println("Dumping and exiting")
 	s.serverSvc.Dump(ctx)
 }

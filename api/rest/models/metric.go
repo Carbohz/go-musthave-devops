@@ -33,12 +33,10 @@ func (m Metrics) ToModelMetric() (model.Metric, error) {
 		return modelMetric, nil
 	}
 
-	//err := fmt.Errorf("serialization to model.Metric failed: missing Delta or Value")
 	return model.Metric{}, fmt.Errorf("serialization to model.Metric failed: missing Delta or Value")
 }
 
-// TODO! NewMetricsFromCanonical
-func FromModelMetrics(modelMetric model.Metric) (Metrics, error) {
+func NewMetricFromCanonical(modelMetric model.Metric) (Metrics, error) {
 	var m Metrics
 	m.ID = modelMetric.Name
 	m.MType = modelMetric.Type
@@ -55,8 +53,7 @@ func FromModelMetrics(modelMetric model.Metric) (Metrics, error) {
 		return m, nil
 	}
 
-	err := fmt.Errorf("deserialization from model.Metric failed: missing Delta or Value")
-	return m, err
+	return m, fmt.Errorf("deserialization from canonical model failed: missing Delta or Value")
 }
 
 func (m Metrics) Validate() error {

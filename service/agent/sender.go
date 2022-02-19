@@ -24,16 +24,16 @@ func (agent *Agent) sendMetricsBatch() error {
 	var metricsArr []models.Metrics
 
 	for _, m := range agent.metrics.memStats {
-		v, _ := models.FromModelMetrics(m)
+		v, _ := models.NewMetricFromCanonical(m)
 		v.Hash = v.GenerateHash(agent.config.Key)
 		metricsArr = append(metricsArr, v)
 	}
 
-	randomValue, _ := models.FromModelMetrics(agent.metrics.randomValue)
+	randomValue, _ := models.NewMetricFromCanonical(agent.metrics.randomValue)
 	randomValue.Hash = randomValue.GenerateHash(agent.config.Key)
 	metricsArr = append(metricsArr, randomValue)
 
-	pollCount, _ := models.FromModelMetrics(agent.metrics.pollCount)
+	pollCount, _ := models.NewMetricFromCanonical(agent.metrics.pollCount)
 	pollCount.Hash = pollCount.GenerateHash(agent.config.Key)
 	metricsArr = append(metricsArr, pollCount)
 
@@ -98,7 +98,7 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	url := fmt.Sprintf("http://%s/update/", agent.config.Address)
 
-	metricToSend, err := models.FromModelMetrics(m)
+	metricToSend, err := models.NewMetricFromCanonical(m)
 	if err != nil {
 		log.Printf("Error occured in agent.sendMetricJSON: %v", err)
 		return fmt.Errorf("sendMetricJSON failed: %w", err)

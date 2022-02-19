@@ -219,7 +219,7 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 			return
 		}
 
-		responseMetric, err := models.FromModelMetrics(modelMetric)
+		responseMetric, err := models.NewMetricFromCanonical(modelMetric)
 		if err != nil {
 			reason := fmt.Sprintf("Failed to convert from model type into api type: %v", err)
 			log.Println(reason)

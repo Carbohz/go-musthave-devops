@@ -19,28 +19,17 @@ func main() {
 		syscall.SIGQUIT,
 	)
 	defer ctxCancel()
-	// TODO! нужен timeout
 
 	config, err := configsrv.NewCommonConfig()
 	if err != nil {
 		log.Fatalf("Failed to create common config: %v", err)
 	}
 
-	// hybrid storage
 	hybridStorageConfig := configsrv.NewHybridStorageConfig(config)
 	storage, err := hybrid.NewMetricsStorage(hybridStorageConfig)
 	if err != nil {
 		log.Fatalf("Failed to create hybrid config: %v", err)
-		//log.Printf("Failed to create hybrid config: %v", err)
 	}
-
-	//// fileBased storage
-	//fileBasedConfig := configsrv.NewFileBasedStorageConfig(config)
-	//storage, err := filebased.NewMetricsStorage(fileBasedConfig)
-	//if err != nil {
-	//	log.Fatalf("Failed to create filebased config: %v", err)
-	//	//log.Printf("Failed to create filebased config: %v", err)
-	//}
 
 	service := v1.NewService(storage)
 
@@ -49,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)
 	}
-	defer apiServer.Close(ctx) // ctx
+	defer apiServer.Close(ctx)
 
 	go apiServer.Run(ctx)
 	<-ctx.Done()
