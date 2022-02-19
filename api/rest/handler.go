@@ -104,12 +104,9 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 
-		//log.Printf("Requested to return metric %s of type %s from storage", metricName, metricType)
-
 		m, err := service.GetMetric(ctx, metricName)
 		if err != nil {
 			reason := fmt.Sprintf("Metric %s with type %s not found in storage : %v", metricName, metricType, err)
-			//reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
 			http.Error(w, reason, http.StatusNotFound)
 			return
 		}
@@ -135,6 +132,7 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 			}
 
 			log.Printf("Returned gauge metric from storage with value %v", value)
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
@@ -143,18 +141,6 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 			http.Error(w, reason, http.StatusInternalServerError)
 			return
 		}
-
-		//// TODO! switch по Type; добавить default Type
-		//if delta, err := m.Delta.Get(); err == nil {
-		//	w.Write([]byte(fmt.Sprint(delta)))
-		//	log.Printf("Returned value from storage is %v", delta)
-		//	return
-		//} else {
-		//	value, _ := m.Value.Get()
-		//	w.Write([]byte(fmt.Sprint(value)))
-		//	log.Printf("Returned value from storage is %v", value)
-		//	return
-		//}
 	}
 }
 
@@ -165,8 +151,6 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		log.Printf("Request to update server's storage. Request body: %s", string(body))
 
 		var m models.Metrics
 		if err := json.Unmarshal(body, &m); err != nil {
@@ -205,8 +189,8 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		log.Println("Metric updated")
+		w.Header().Set("Content-Type", "application/json")
 	}
 }
 
@@ -259,12 +243,11 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		if _, err := fmt.Fprint(w, string(data)); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 	}
 }
