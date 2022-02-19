@@ -40,9 +40,6 @@ func NewMetricsStorage(config configsrv.FileBasedStorageConfig) (*MetricsStorage
 			}
 
 			return nil, fmt.Errorf("failed to restore metrics : %w", err)
-
-			//log.Println(err)
-			//return storage, nil
 		}
 	}
 
@@ -99,14 +96,12 @@ func (s *MetricsStorage) LoadMetrics() error {
 			return fmt.Errorf("failed to fill inMemory storage with metric %v : %w", m, err)
 		}
 	}
-	//log.Printf("Metrics successfully loaded from file %s", s.config.StoreFile)
+
 	log.Println("Metrics successfully loaded")
 	return nil
 }
 
 func (s *MetricsStorage) Dump(ctx context.Context) error {
-	//log.Printf("Dumping metrics to file %s", s.config.StoreFile)
-
 	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 
 	f, err := os.OpenFile(s.config.StoreFile, flag, 0644)

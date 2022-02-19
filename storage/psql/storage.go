@@ -56,20 +56,6 @@ func (s *MetricsStorage) SaveMetric(ctx context.Context, m model.Metric) error {
 	default:
 		return fmt.Errorf("failed to store metic %s of type %s into database table: unkonw metric type", m.Name, m.Type)
 	}
-
-	//if m.Type == model.KCounter {
-	//	incValue := m.MustGetInt()
-	//	_, err := s.db.Exec("INSERT INTO counters (name, value) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET value = counters.value + $2", m.Name, incValue)
-	//	log.Println(err)
-	//	return err
-	//}
-	//
-	//if m.Type == model.KGauge {
-	//	log.Println("Saving gauge metric")
-	//	_, err := s.db.Exec("INSERT INTO gauges (name, value) VALUES ($1, $2) ON CONFLICT(name) DO UPDATE set value = $2", m.Name, m.MustGetFloat())
-	//	log.Println(err)
-	//	return err
-	//}
 }
 
 func (s *MetricsStorage) GetMetric(ctx context.Context, name string) (model.Metric, error) {

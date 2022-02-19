@@ -7,8 +7,8 @@ import (
 )
 
 type MetricsStorager interface {
-	SaveMetric(ctx context.Context, m model.Metric) error             // возвращать ошибку
-	GetMetric(ctx context.Context, name string) (model.Metric, error) // возвращать ошибку
-	Dump(ctx context.Context) error                                   // возвращать ошибку
+	SaveMetric(ctx context.Context, m model.Metric) error
+	GetMetric(ctx context.Context, name string) (model.Metric, error)
+	Dump(ctx context.Context) error
 	Ping(ctx context.Context) error
 }
