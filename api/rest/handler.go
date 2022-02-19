@@ -47,6 +47,11 @@ func CounterMetricHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r * http.Request) {
 		metricName := chi.URLParam(r, "metricName")
 		metricValue := chi.URLParam(r, "metricValue")
+		if metricValue == "" {
+			http.Error(w, "Missing value for counter metric", http.StatusNotFound)
+			return
+		}
+
 		value, err := strconv.ParseInt(metricValue, 10, 64)
 		if err != nil {
 			http.Error(w, "parsing error", http.StatusBadRequest)

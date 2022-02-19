@@ -51,6 +51,20 @@ func TestUpdateMetricWithURL(t *testing.T) {
 				code: http.StatusNotImplemented,
 			},
 		},
+		{
+			name: "counter url handler without value",
+			path: "/update/counter/",
+			want: want{
+				code: http.StatusNotFound,
+			},
+		},
+		{
+			name: "gauge url handler without value",
+			path: "/update/gauge/",
+			want: want{
+				code: http.StatusNotFound,
+			},
+		},
 	}
 
 	mockCtrl := gomock.NewController(t)
