@@ -2,29 +2,23 @@ package filebased
 
 import (
 	"encoding/json"
+	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/Carbohz/go-musthave-devops/storage"
 	"github.com/Carbohz/go-musthave-devops/storage/inmemory"
 	"github.com/pkg/errors"
 	"log"
 	"os"
-	"time"
 )
 
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
 
-type Config struct {
-	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile     string        `env:"STORE_FILE"`
-	Restore       bool          `env:"RESTORE"`
-}
-
 type MetricsStorage struct {
 	inMemoryStorage *inmemory.MetricsStorage
-	config Config
+	config configsrv.FileBasedStorageConfig
 }
 
-func NewMetricsStorage(config Config) (*MetricsStorage, error) {
+func NewMetricsStorage(config configsrv.FileBasedStorageConfig) (*MetricsStorage, error) {
 	inMemoryStorage, _ := inmemory.NewMetricsStorage()
 
 	storage := &MetricsStorage{

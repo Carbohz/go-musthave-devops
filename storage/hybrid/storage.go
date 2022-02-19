@@ -19,8 +19,8 @@ type MetricsStorage struct {
 }
 
 func NewMetricsStorage(config configsrv.HybridStorageConfig) (*MetricsStorage, error) {
-	fbsConfig := filebased.Config{
-		StoreInterval: config.StoreInterval,
+	fbsConfig := configsrv.FileBasedStorageConfig{
+		//StoreInterval: config.StoreInterval,
 		StoreFile: config.StoreFile,
 		Restore: config.Restore,
 	}
@@ -61,8 +61,6 @@ func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
 	} else {
 		return s.fileBasedStorage.GetMetric(name)
 	}
-
-	//return s.fileBasedStorage.GetMetric(name)
 }
 
 func (s *MetricsStorage) Dump() {
@@ -71,8 +69,6 @@ func (s *MetricsStorage) Dump() {
 	} else {
 		s.fileBasedStorage.Dump()
 	}
-
-	//s.fileBasedStorage.Dump()
 }
 
 func (s *MetricsStorage) Ping() error {
