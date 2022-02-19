@@ -158,8 +158,6 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 		}
 
 		log.Printf("Request to update server's storage. Request body: %s", string(body))
-		// TODO! выставить ближе к концу
-		//w.Header().Set("Content-Type", "application/json")
 
 		var m models.Metrics
 		if err := json.Unmarshal(body, &m); err != nil {
@@ -262,8 +260,6 @@ func PingDBHandler(service server.Processor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r * http.Request) {
 		ctx := r.Context()
 
-		log.Println("`/ping` handler called")
-
 		if err := service.Ping(ctx); err != nil {
 			http.Error(w, "Failed to ping database", http.StatusInternalServerError)
 			return
@@ -280,8 +276,6 @@ func UpdatesMetricsJSONHandler(service server.Processor, key string) http.Handle
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		log.Printf("/updates/ handler called. Request body: %s", string(body))
 
 		var metrics []models.Metrics
 		err = json.Unmarshal(body, &metrics)
@@ -310,17 +304,19 @@ func UpdatesMetricsJSONHandler(service server.Processor, key string) http.Handle
 				return
 			}
 
-			service.SaveMetric(r.Context(), modelMetric)
-			err = json.NewEncoder(w).Encode(m)
-			w.Header().Set("Content-Type", "application/json")
-			if err != nil {
-				log.Printf("Failed to update metric on storage")
+			if err := service.SaveMetric(r.Context(), modelMetric); err != nil {
+				log.Printf("Failed to save metric to storage: %v", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if err := json.NewEncoder(w).Encode(m); err != nil {
+				log.Println("Failed to encode metric from storage")
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
-			} else {
-				log.Println("Metric updated")
 			}
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 	}
