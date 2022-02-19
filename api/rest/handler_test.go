@@ -3,7 +3,6 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/Carbohz/go-musthave-devops/api/rest/models"
 	"github.com/Carbohz/go-musthave-devops/model"
 	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
@@ -218,9 +217,8 @@ func TestGetMetricWithBody(t *testing.T) {
 			path:   "/value/",
 			metric: models.Metrics{ID: "metric3", MType: "abrakadabra"},
 			want: want{
-				//code: http.StatusNotImplemented,
 				code: http.StatusNotFound,
-				body: "Metric not found in storage\n",
+				body: "Failed to convert from model type into api type: deserialization from model.Metric failed: missing Delta or Value\n",
 			},
 		},
 	}
@@ -240,7 +238,7 @@ func TestGetMetricWithBody(t *testing.T) {
 	gomock.InOrder(
 		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric1, nil),
 		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric2, nil),
-		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric3, fmt.Errorf("aaaa")),
+		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric3, nil), //fmt.Errorf("aaaa")
 	)
 
 	for _, tt := range tests {

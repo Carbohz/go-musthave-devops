@@ -151,7 +151,6 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 
 func UpdateMetricsJSONHandler(service server.Processor, key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO! defer body.Close() в клиенте (агенте)
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -159,9 +158,8 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 		}
 
 		log.Printf("Request to update server's storage. Request body: %s", string(body))
-		// TODO! использовать chi.middleware (для такого-то endpoint такой-то mw) R.Use(...); добавить проверку
 		// TODO! выставить ближе к концу
-		w.Header().Set("Content-Type", "application/json")
+		//w.Header().Set("Content-Type", "application/json")
 
 		var m models.Metrics
 		if err := json.Unmarshal(body, &m); err != nil {
@@ -188,16 +186,20 @@ func UpdateMetricsJSONHandler(service server.Processor, key string) http.Handler
 			return
 		}
 
-		service.SaveMetric(r.Context(), modelMetric)
-		err = json.NewEncoder(w).Encode(m)
-		w.Header().Set("Content-Type", "application/json")
-		if err != nil {
-			log.Printf("Failed to update metric on storage")
+		if err := service.SaveMetric(r.Context(), modelMetric); err != nil {
+			log.Printf("Failed to save metric to storage: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := json.NewEncoder(w).Encode(m); err != nil {
+			log.Println("Failed to encode metric from storage")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
-		} else {
-			log.Println("Metric updated")
 		}
+
+		w.Header().Set("Content-Type", "application/json")
+		log.Println("Metric updated")
 	}
 }
 
@@ -211,46 +213,40 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 			return
 		}
 
-		log.Printf("Request to return metric from storage. Request body: %s", string(body))
+		var requestedMetric models.Metrics
+		if err := json.Unmarshal(body, &requestedMetric); err != nil {
+			log.Printf("Failed to unmarshal following request body: %s", string(body))
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		modelMetric, err := service.GetMetric(ctx, requestedMetric.ID)
+		if err != nil {
+			reason := fmt.Sprintf("Metric not found in storage: %v", err)
+			log.Println(reason)
+			http.Error(w, reason, http.StatusNotFound)
+			return
+		}
+
+		responseMetric, err := models.FromModelMetrics(modelMetric)
+		if err != nil {
+			reason := fmt.Sprintf("Failed to convert from model type into api type: %v", err)
+			log.Println(reason)
+			http.Error(w, reason, http.StatusNotFound)
+			return
+		}
+
+		responseMetric.Hash = responseMetric.GenerateHash(key)
+
+		data, err := json.Marshal(responseMetric)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
-		if string(body)[0] == '[' {
-			log.Println("Request body contains array of metrics. Currently not supported")
-			http.Error(w, "Request body contains array of metrics. Currently not supported", http.StatusBadRequest)
-		} else {
-			log.Println("Request body contains single metric")
-
-			var requestedMetric models.Metrics
-			if err := json.Unmarshal(body, &requestedMetric); err != nil {
-				log.Printf("Failed to unmarshal following request body: %s", string(body))
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			//requestedMetric.Hash = requestedMetric.GenerateHash(key)
-
-			if modelMetric, err := service.GetMetric(ctx, requestedMetric.ID); err == nil {
-				log.Println("Found metric in storage")
-				responseMetric, err := models.FromModelMetrics(modelMetric)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadRequest)
-				}
-
-				responseMetric.Hash = responseMetric.GenerateHash(key)
-
-				data, err := json.Marshal(responseMetric)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				w.Header().Set("content-type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				fmt.Fprint(w, string(data))
-			} else {
-				log.Println("Metric not found in storage")
-				http.Error(w, "Metric not found in storage", http.StatusNotFound)
-			}
-		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, string(data))
 	}
 }
 
