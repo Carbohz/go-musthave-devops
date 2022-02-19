@@ -22,7 +22,7 @@ type CommonConfig struct {
 const (
 	defaultAddress       = "127.0.0.1:8080"
 	defaultStoreInterval = 300 * time.Second
-	defaultStoreFile     = "/tmp/devops-metrics-db.json"
+	defaultStoreFile     = "D:\\Go\\yandex-praktikum\\increments\\go-musthave-devops\\tmp\\devops-metrics-db.json"
 	defaultRestore       = true
 	defaultKeyHash       = ""
 	defaultDBPath        = ""

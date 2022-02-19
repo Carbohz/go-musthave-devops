@@ -13,9 +13,9 @@ type Service struct {
 	storage storage.MetricsStorager
 }
 
-func NewService(storage storage.MetricsStorager) (*Service, error) {
+func NewService(storage storage.MetricsStorager) *Service {
 	svc := &Service{storage: storage}
-	return svc, nil
+	return svc
 }
 
 func (s *Service) SaveMetric(ctx context.Context, m model.Metric) error {

@@ -60,6 +60,16 @@ func (s *MetricsStorage) LoadMetrics() error {
 	}
 	defer f.Close()
 
+	fInfo, err := os.Stat(s.config.StoreFile)
+	if err != nil {
+		return err
+	}
+
+	fSize := fInfo.Size()
+	if fSize == 0 {
+		return nil
+	}
+
 	var metrics map[string]model.Metric
 
 	if err := json.NewDecoder(f).Decode(&metrics); err != nil {

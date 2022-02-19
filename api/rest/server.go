@@ -20,7 +20,7 @@ type APIServer struct {
 
 func NewAPIServer(config configsrv.ServerConfig, serverSvc server.Processor) (*APIServer, error) {
 	r := chi.NewRouter()
-	// д.б. в setupRouters
+	// TODO! д.б. в setupRouters
 	r.Use(middleware.Compress(5))
 
 	setupRouters(r, serverSvc, config.Key)
@@ -57,10 +57,9 @@ func (s *APIServer) Run(ctx context.Context) error {
 	return nil
 }
 
-// DumpBeforeExit() -> defer Close()
-func (s *APIServer) DumpBeforeExit() {
+// TODO! DumpBeforeExit() -> defer Close()
+func (s *APIServer) DumpBeforeExit(ctx context.Context) {
 	// TODO! Здесь можно выключить, тогда в Run не нужен ctx
 	log.Println("Dumping and exiting")
-	ctx := context.Background()
 	s.serverSvc.Dump(ctx)
 }

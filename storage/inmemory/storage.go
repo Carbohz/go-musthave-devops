@@ -66,6 +66,11 @@ func (s *MetricsStorage) GetAllMetrics() map[string]model.Metric {
 	defer s.mu.Unlock()
 
 	var metricsCopy map[string]model.Metric
+
+	//if len(s.metrics) == 0 {
+	//	return metricsCopy
+	//}
+
 	for k, v := range s.metrics {
 		metricsCopy[k] = v
 	}

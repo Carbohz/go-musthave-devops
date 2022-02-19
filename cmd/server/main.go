@@ -30,18 +30,18 @@ func main() {
 	hybridStorageConfig := configsrv.NewHybridStorageConfig(config)
 	storage, err := hybrid.NewMetricsStorage(hybridStorageConfig)
 	if err != nil {
-		log.Println("Failed to create hybrid config")
+		log.Fatalf("Failed to create hybrid config: %v", err)
+		//log.Printf("Failed to create hybrid config: %v", err)
 	}
 
-	processor, _ := v1.NewService(storage)
-	// _ -> err
+	service := v1.NewService(storage)
 
 	serverConfig := configsrv.NewServerConfig(config)
-	apiServer, err := rest.NewAPIServer(serverConfig, processor)
+	apiServer, err := rest.NewAPIServer(serverConfig, service)
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)
 	}
-	defer apiServer.DumpBeforeExit() // ctx
+	defer apiServer.DumpBeforeExit(ctx) // ctx
 
 	go apiServer.Run(ctx)
 	<-ctx.Done()
