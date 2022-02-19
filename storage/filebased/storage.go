@@ -111,6 +111,7 @@ func (s *MetricsStorage) Dump(ctx context.Context) error {
 
 	f, err := os.OpenFile(s.config.StoreFile, flag, 0644)
 	if err != nil {
+		log.Println(err)
 		return fmt.Errorf("can't open file for dumping: %w", err)
 	}
 	defer f.Close()

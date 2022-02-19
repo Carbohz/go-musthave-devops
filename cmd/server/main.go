@@ -5,7 +5,7 @@ import (
 	"github.com/Carbohz/go-musthave-devops/api/rest"
 	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
-	"github.com/Carbohz/go-musthave-devops/storage/filebased"
+	"github.com/Carbohz/go-musthave-devops/storage/hybrid"
 	"log"
 	"os/signal"
 	"syscall"
@@ -26,21 +26,21 @@ func main() {
 		log.Fatalf("Failed to create common config: %v", err)
 	}
 
-	//// hybrid storage
-	//hybridStorageConfig := configsrv.NewHybridStorageConfig(config)
-	//storage, err := hybrid.NewMetricsStorage(hybridStorageConfig)
-	//if err != nil {
-	//	log.Fatalf("Failed to create hybrid config: %v", err)
-	//	//log.Printf("Failed to create hybrid config: %v", err)
-	//}
-
-	// fileBased storage
-	fileBasedConfig := configsrv.NewFileBasedStorageConfig(config)
-	storage, err := filebased.NewMetricsStorage(fileBasedConfig)
+	// hybrid storage
+	hybridStorageConfig := configsrv.NewHybridStorageConfig(config)
+	storage, err := hybrid.NewMetricsStorage(hybridStorageConfig)
 	if err != nil {
-		log.Fatalf("Failed to create filebased config: %v", err)
-		//log.Printf("Failed to create filebased config: %v", err)
+		log.Fatalf("Failed to create hybrid config: %v", err)
+		//log.Printf("Failed to create hybrid config: %v", err)
 	}
+
+	//// fileBased storage
+	//fileBasedConfig := configsrv.NewFileBasedStorageConfig(config)
+	//storage, err := filebased.NewMetricsStorage(fileBasedConfig)
+	//if err != nil {
+	//	log.Fatalf("Failed to create filebased config: %v", err)
+	//	//log.Printf("Failed to create filebased config: %v", err)
+	//}
 
 	service := v1.NewService(storage)
 
