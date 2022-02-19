@@ -32,7 +32,12 @@ func URLMetricHandler(service server.Processor) http.HandlerFunc {
 			}
 
 			counter := model.NewCounterMetric(metricName, delta)
-			service.SaveMetric(ctx, counter)
+
+			if err := service.SaveMetric(ctx, counter); err != nil {
+				reason := fmt.Sprintf("failed to store counter metric with name %s and value %s : %v", metricName, metricValue, err)
+				http.Error(w, reason, http.StatusInternalServerError)
+				return
+			}
 
 			w.WriteHeader(http.StatusOK)
 			return
@@ -47,8 +52,12 @@ func URLMetricHandler(service server.Processor) http.HandlerFunc {
 			}
 
 			gauge := model.NewGaugeMetric(metricName, value)
-			// TODO! Не обработал err
-			service.SaveMetric(ctx, gauge)
+
+			if err := service.SaveMetric(ctx, gauge); err != nil {
+				reason := fmt.Sprintf("failed to store gauge metric with name %s and value %s : %v", metricName, metricValue, err)
+				http.Error(w, reason, http.StatusInternalServerError)
+				return
+			}
 
 			w.WriteHeader(http.StatusOK)
 			return
@@ -95,26 +104,48 @@ func SpecificMetricHandler(service server.Processor) http.HandlerFunc {
 		metricType := chi.URLParam(r, "metricType")
 		metricName := chi.URLParam(r, "metricName")
 
-		log.Printf("Requested to return metric %s of type %s from storage", metricName, metricType)
+		//log.Printf("Requested to return metric %s of type %s from storage", metricName, metricType)
 
-		// TODO! инвертировать на не найдено + выход
-		if m, err := service.GetMetric(ctx, metricName); err == nil {
-			w.WriteHeader(http.StatusOK)
-			// TODO! switch по Type; добавить default Type
-			if delta, err := m.Delta.Get(); err == nil {
-				w.Write([]byte(fmt.Sprint(delta)))
-				log.Printf("Returned value from storage is %v", delta)
-				return
-			} else {
-				value, _ := m.Value.Get()
-				w.Write([]byte(fmt.Sprint(value)))
-				log.Printf("Returned value from storage is %v", value)
-				return
-			}
+		m, err := service.GetMetric(ctx, metricName)
+		if err != nil {
+			reason := fmt.Sprintf("Metric %s with type %s not found in storage : %v", metricName, metricType, err)
+			//reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
+			http.Error(w, reason, http.StatusNotFound)
 		}
-		log.Printf("No metric %s with type %s found in storage", metricName, metricType)
-		reason := fmt.Sprintf("Unknown metric \"%s\" of type \"%s\"", metricName, metricType)
-		http.Error(w, reason, http.StatusNotFound)
+
+		switch m.Type {
+		case model.KCounter: {
+			delta := m.MustGetInt()
+			w.Write([]byte(fmt.Sprint(delta)))
+			log.Printf("Returned counter metric from storage with delta %v", delta)
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		case model.KGauge: {
+			value := m.MustGetFloat()
+			w.Write([]byte(fmt.Sprint(value)))
+			log.Printf("Returned gauge metric from storage with value %v", value)
+			return
+		}
+
+		default:
+			reason := fmt.Sprintf("Unknown metric named %s with type %s", m.Name, m.Type)
+			http.Error(w, reason, http.StatusInternalServerError)
+			return
+		}
+
+		//// TODO! switch по Type; добавить default Type
+		//if delta, err := m.Delta.Get(); err == nil {
+		//	w.Write([]byte(fmt.Sprint(delta)))
+		//	log.Printf("Returned value from storage is %v", delta)
+		//	return
+		//} else {
+		//	value, _ := m.Value.Get()
+		//	w.Write([]byte(fmt.Sprint(value)))
+		//	log.Printf("Returned value from storage is %v", value)
+		//	return
+		//}
 	}
 }
 
