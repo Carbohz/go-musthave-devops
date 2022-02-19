@@ -126,7 +126,6 @@ func TestUpdateMetricWithBody(t *testing.T) {
 		{
 			name:   "Valid gauge metric1",
 			path:   "/update/",
-			//metric: model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)},
 			metric: models.Metrics{ID: "metric1", MType: model.KGauge, Value: &metric1Value},
 			want: want{
 				code: http.StatusOK,
@@ -135,7 +134,6 @@ func TestUpdateMetricWithBody(t *testing.T) {
 		{
 			name:   "Valid counter metric2",
 			path:   "/update/",
-			//metric: model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)},
 			metric: models.Metrics{ID: "metric2", MType: model.KCounter, Delta: &metric2Delta},
 			want: want{
 				code: http.StatusOK,
@@ -144,8 +142,6 @@ func TestUpdateMetricWithBody(t *testing.T) {
 		{
 			name: "Invalid MType",
 			path: "/update/",
-			//metric: model.Metric{ID: "metric3", MType: model.MetricType("abcdef")},
-			//metric: model.Metric{Name: "metric3", Type: "abcdef"},
 			metric: models.Metrics{ID: "metric3", MType: "abcdef"},
 			want: want{
 				code: http.StatusNotImplemented,
@@ -158,12 +154,10 @@ func TestUpdateMetricWithBody(t *testing.T) {
 	metricStorage := storagemock.NewMockMetricsStorager(mockCtrl)
 	metric1 := model.Metric{Name: "metric1", Type: model.KGauge, Value: optional.NewFloat64(123.45)}
 	metric2 := model.Metric{Name: "metric2", Type: model.KCounter, Delta: optional.NewInt64(123)}
-	//metric3 := model.Metric{Name: "metric3", Type: "abcdef"}
 
 	gomock.InOrder(
 		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric1).Return(nil),
 		metricStorage.EXPECT().SaveMetric(gomock.Any(), metric2).Return(nil),
-		//metricStorage.EXPECT().SaveMetric(metric3),
 	)
 	processor := v1.NewService(metricStorage)
 	r := setupRouter(processor, "")
@@ -218,7 +212,7 @@ func TestGetMetricWithBody(t *testing.T) {
 			metric: models.Metrics{ID: "metric3", MType: "abrakadabra"},
 			want: want{
 				code: http.StatusNotFound,
-				body: "Failed to convert from model type into api type: deserialization from model.Metric failed: missing Delta or Value\n",
+				body: "Failed to convert from model type into api type: deserialization from canonical model failed: missing Delta or Value\n",
 			},
 		},
 	}
@@ -238,7 +232,7 @@ func TestGetMetricWithBody(t *testing.T) {
 	gomock.InOrder(
 		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric1, nil),
 		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric2, nil),
-		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric3, nil), //fmt.Errorf("aaaa")
+		metricStorage.EXPECT().GetMetric(gomock.Any(), gomock.Any()).Return(metric3, nil),
 	)
 
 	for _, tt := range tests {
