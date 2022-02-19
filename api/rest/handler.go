@@ -237,6 +237,14 @@ func GetMetricsJSONHandler(service server.Processor, key string) http.HandlerFun
 		}
 
 		responseMetric.Hash = responseMetric.GenerateHash(key)
+		if requestedMetric.Hash != "" {
+			if requestedMetric.Hash != responseMetric.Hash {
+				reason := fmt.Sprintf("Hash mismatched. Expected %s, got %s", responseMetric.Hash, requestedMetric.Hash)
+				log.Println(reason)
+				http.Error(w, reason, http.StatusBadRequest)
+				return
+			}
+		}
 
 		data, err := json.Marshal(responseMetric)
 		if err != nil {
