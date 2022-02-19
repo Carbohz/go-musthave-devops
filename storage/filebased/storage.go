@@ -3,6 +3,7 @@ package filebased
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
 	"github.com/Carbohz/go-musthave-devops/model"
@@ -13,6 +14,7 @@ import (
 )
 
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
+var errEmptyFile = errors.New("noting to load: empty file")
 
 type MetricsStorage struct {
 	inMemoryStorage *inmemory.MetricsStorage
@@ -29,6 +31,11 @@ func NewMetricsStorage(config configsrv.FileBasedStorageConfig) (*MetricsStorage
 
 	if config.Restore {
 		if err := storage.LoadMetrics(); err != nil {
+			if errors.Is(err, errEmptyFile) {
+				log.Printf("failed to restore metrics : %v", err)
+				return storage, nil
+			}
+
 			return nil, fmt.Errorf("failed to restore metrics : %w", err)
 		}
 	}
@@ -68,7 +75,9 @@ func (s *MetricsStorage) LoadMetrics() error {
 
 	fSize := fInfo.Size()
 	if fSize == 0 {
-		return nil
+		//return fmt.Errorf("noting to load: empty file")
+		//return nil
+		return errEmptyFile
 	}
 
 	var metrics map[string]model.Metric
@@ -84,6 +93,7 @@ func (s *MetricsStorage) LoadMetrics() error {
 		}
 	}
 	//log.Printf("Metrics successfully loaded from file %s", s.config.StoreFile)
+	log.Println("Metrics successfully loaded")
 	return nil
 }
 
@@ -98,19 +108,19 @@ func (s *MetricsStorage) Dump(ctx context.Context) error {
 	}
 	defer f.Close()
 
-	encoder := json.NewEncoder(f)
-
 	metrics, err := s.inMemoryStorage.GetAllMetrics()
 	if err != nil {
 		log.Printf("Nothing to dump: %v", err)
 		return nil
 	}
 
+	encoder := json.NewEncoder(f)
 	if err := encoder.Encode(metrics); err != nil {
 		//log.Fatal("Can't encode server's metrics: ", err)
 		return fmt.Errorf("can't encode metrics from inMemory storage: %w", err)
 	}
 
+	log.Printf("Metrics successfully stored")
 	return nil
 }
 

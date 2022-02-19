@@ -1,8 +1,8 @@
 package configsrv
 
 type FileBasedStorageConfig struct {
-	StoreFile     string        `env:"STORE_FILE"`
-	Restore       bool          `env:"RESTORE"`
+	StoreFile     string
+	Restore       bool
 }
 
 func NewFileBasedStorageConfig(config CommonConfig) FileBasedStorageConfig {

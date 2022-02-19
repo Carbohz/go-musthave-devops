@@ -65,7 +65,6 @@ func (s *MetricsStorage) GetAllMetrics() (map[string]model.Metric, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	//var metricsCopy map[string]model.Metric
 	metricsCopy := make(map[string]model.Metric)
 
 	if len(s.metrics) == 0 {

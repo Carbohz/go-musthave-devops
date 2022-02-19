@@ -5,10 +5,10 @@ import (
 )
 
 type HybridStorageConfig struct {
-	StoreInterval time.Duration `env:"STORE_INTERVAL"`
-	StoreFile     string        `env:"STORE_FILE"`
-	Restore       bool          `env:"RESTORE"`
-	DBPath        string        `env:"DATABASE_DSN"`
+	StoreInterval time.Duration
+	StoreFile     string
+	Restore       bool
+	DBPath        string
 }
 
 func NewHybridStorageConfig(config CommonConfig) HybridStorageConfig {
