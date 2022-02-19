@@ -1,12 +1,15 @@
 //go:generate mockgen -source=interface.go -destination=./mock/storage.go -package=storagemock
 package storage
 
-import "github.com/Carbohz/go-musthave-devops/model"
+import (
+	"context"
+	"github.com/Carbohz/go-musthave-devops/model"
+)
 
 // TODO! добавить context; возвращение ошибок
 type MetricsStorager interface {
-	SaveMetric(m model.Metric) // возвращать ошибку
-	GetMetric(name string) (model.Metric, bool) // возвращать ошибку
-	Dump()// возвращать ошибку
-	Ping() error
+	SaveMetric(ctx context.Context, m model.Metric) error             // возвращать ошибку
+	GetMetric(ctx context.Context, name string) (model.Metric, error) // возвращать ошибку
+	Dump(ctx context.Context) error                                   // возвращать ошибку
+	Ping(ctx context.Context) error
 }

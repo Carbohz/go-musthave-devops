@@ -1,8 +1,8 @@
 package inmemory
 
 import (
-	"github.com/markphelps/optional"
-	"log"
+	"context"
+	"fmt"
 	"sync"
 
 	"github.com/Carbohz/go-musthave-devops/model"
@@ -12,55 +12,70 @@ import (
 var _ storage.MetricsStorager = (*MetricsStorage)(nil)
 
 type MetricsStorage struct {
-	// сделать embeded (без mu)
 	mu sync.RWMutex
 
 	metrics map[string]model.Metric
 }
 
-func NewMetricsStorage() (*MetricsStorage, error) {
+func NewMetricsStorage() *MetricsStorage {
 	st := &MetricsStorage{
 		metrics: make(map[string]model.Metric),
 	}
 
-	return st, nil
+	return st
 }
 
-func (s *MetricsStorage) SaveMetric(m model.Metric) {
+func (s *MetricsStorage) SaveMetric(ctx context.Context, m model.Metric) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// вывернуть ( через NotPresent())
 	if m.Delta.Present() {
+		newDelta := m.MustGetInt()
 		if v, found := s.metrics[m.Name]; found {
-			newValue := m.MustGetInt()
-			oldValue := v.MustGetInt()
-			log.Printf("Stored counter value was %v, incoming value is %v, so result is %v", oldValue, newValue, oldValue + newValue)
-			s.metrics[m.Name] = model.Metric{Name: m.Name, Type: model.KCounter, Delta: optional.NewInt64(oldValue + newValue)}
-			return
+			oldDelta := v.MustGetInt()
+			s.metrics[m.Name] = model.NewCounterMetric(m.Name, oldDelta + newDelta)
+			return nil
+		} else {
+			s.metrics[m.Name] = m
+			return nil
 		}
 	}
-	//
-	s.metrics[m.Name] = m
+
+	if m.Value.Present() {
+		s.metrics[m.Name] = m
+		return nil
+	}
+
+	return fmt.Errorf("unknown metric type %s was requested to store into inMemory storage", m.Type)
 }
 
-func (s *MetricsStorage) GetMetric(name string) (model.Metric, bool) {
+func (s *MetricsStorage) GetMetric(ctx context.Context, name string) (model.Metric, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	// TODO! если not found -> defaultMetric [ {} ]
 	v, found := s.metrics[name]
-	return v, found
+	if !found {
+		return model.Metric{}, fmt.Errorf("metric %s not found in inMemory storage", name)
+	}
+
+	return v, nil
 }
 
-// TODO! плохо, раскрываю детали; Лучше создать новую мапу-копию + блокировка
 func (s *MetricsStorage) GetAllMetrics() map[string]model.Metric {
-	return s.metrics
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var metricsCopy map[string]model.Metric
+	for k, v := range s.metrics {
+		metricsCopy[k] = v
+	}
+	return metricsCopy
 }
 
-func (s *MetricsStorage) Dump() {
+func (s *MetricsStorage) Dump(ctx context.Context) error {
+	return fmt.Errorf("InMemory storage dump: no such method for this type of storage")
 }
 
-func (s *MetricsStorage) Ping() error {
-	return nil
+func (s *MetricsStorage) Ping(ctx context.Context) error {
+	return fmt.Errorf("InMemory storage ping: no such method for this type of storage")
 }
