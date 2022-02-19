@@ -31,12 +31,14 @@ func NewMetricsStorage(config configsrv.FileBasedStorageConfig) (*MetricsStorage
 
 	if config.Restore {
 		if err := storage.LoadMetrics(); err != nil {
-			if errors.Is(err, errEmptyFile) {
-				log.Printf("failed to restore metrics : %v", err)
-				return storage, nil
-			}
-
-			return nil, fmt.Errorf("failed to restore metrics : %w", err)
+			//if errors.Is(err, errEmptyFile) {
+			//	log.Printf("failed to restore metrics : %v", err)
+			//	return storage, nil
+			//}
+			//
+			//return nil, fmt.Errorf("failed to restore metrics : %w", err)
+			log.Println(err)
+			return storage, nil
 		}
 	}
 

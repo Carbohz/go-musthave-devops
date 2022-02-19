@@ -57,8 +57,7 @@ func (s *APIServer) Run(ctx context.Context) error {
 	return nil
 }
 
-// TODO! DumpBeforeExit() -> defer Close()
-func (s *APIServer) DumpBeforeExit(ctx context.Context) {
+func (s *APIServer) Close(ctx context.Context) {
 	// TODO! Здесь можно выключить, тогда в Run не нужен ctx
 	log.Println("Dumping and exiting")
 	s.serverSvc.Dump(ctx)

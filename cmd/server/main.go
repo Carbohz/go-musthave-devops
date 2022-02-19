@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create a server: %v", err)
 	}
-	defer apiServer.DumpBeforeExit(ctx) // ctx
+	defer apiServer.Close(ctx) // ctx
 
 	go apiServer.Run(ctx)
 	<-ctx.Done()
