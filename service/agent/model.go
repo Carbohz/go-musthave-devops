@@ -23,9 +23,6 @@ type metrics struct {
 }
 
 func toModelUtilizationData(utilData utilizationData) []model.Metric {
-	//utilizationDataSize := 3 + len(utilData.CPUutilizations) * 2
-	//utilizationDataSize := 2 + len(utilData.CPUutilizations)
-	//modelData := make([]model.Metric, utilizationDataSize)
 	var modelData []model.Metric
 
 	modelData = append(modelData,

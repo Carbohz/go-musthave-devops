@@ -11,6 +11,7 @@ import (
 func (a *Agent) sendMetrics() {
 	//go a.sendMemStats()
 	go a.sendMetricsSlice(a.metrics.memStats)
+
 	go a.sendMetric(a.metrics.randomValue)
 	go a.sendMetric(a.metrics.pollCount)
 
@@ -19,9 +20,13 @@ func (a *Agent) sendMetrics() {
 }
 
 func (a *Agent) sendMetricsJSON() {
-	go a.sendMemStatsJSON()
+	//go a.sendMemStatsJSON()
+	go a.sendMetricsSliceJSON(a.metrics.memStats)
+
 	go a.sendMetricJSON(a.metrics.randomValue)
 	go a.sendMetricJSON(a.metrics.pollCount)
+
+	go a.sendMetricsSliceJSON(toModelUtilizationData(a.metrics.utilization))
 }
 
 func (a *Agent) sendMetricsBatch() error {
@@ -40,6 +45,13 @@ func (a *Agent) sendMetricsBatch() error {
 	pollCount, _ := models.NewMetricFromCanonical(a.metrics.pollCount)
 	pollCount.Hash = pollCount.GenerateHash(a.config.Key)
 	metricsArr = append(metricsArr, pollCount)
+
+	utilMetricsArr := toModelUtilizationData(a.metrics.utilization)
+	for _, m := range utilMetricsArr {
+		v, _ := models.NewMetricFromCanonical(m)
+		v.Hash = v.GenerateHash(a.config.Key)
+		metricsArr = append(metricsArr, v)
+	}
 
 	rawJSON, err := json.Marshal(metricsArr)
 	if err != nil {
@@ -63,8 +75,8 @@ func (a *Agent) sendMetricsBatch() error {
 	return nil
 }
 
-func (a *Agent) sendMetricsSlice(arr []model.Metric ) {
-	for _, m := range arr {
+func (a *Agent) sendMetricsSlice(slice []model.Metric ) {
+	for _, m := range slice {
 		go a.sendMetric(m)
 	}
 }
@@ -79,6 +91,13 @@ func (a *Agent) sendMemStatsJSON() {
 	for _, m := range a.metrics.memStats {
 		go a.sendMetricJSON(m)
 	}
+}
+
+func (a *Agent) sendMetricsSliceJSON(slice []model.Metric) {
+	for _, m := range slice {
+		go a.sendMetricJSON(m)
+	}
+
 }
 
 //func (agent *Agent) sendCPUutilization() {

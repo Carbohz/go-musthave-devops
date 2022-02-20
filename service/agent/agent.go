@@ -11,22 +11,6 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-//type utilizationData struct {
-//	mu              sync.Mutex
-//	TotalMemory     model.Metric
-//	FreeMemory      model.Metric
-//	CPUutilizations []model.Metric
-//	CPUtime         []float64
-//	CPUutilLastTime time.Time
-//}
-//
-//type metrics struct {
-//	memStats    []model.Metric
-//	randomValue model.Metric
-//	pollCount   model.Metric
-//	utilization utilizationData
-//}
-
 type Agent struct {
 	config configagent.AgentConfig
 	metrics metrics
@@ -60,9 +44,9 @@ func (a *Agent) Run(ctx context.Context) error {
 			a.collectMetrics()
 		case <-reportTicker.C:
 			log.Println("Sending Metrics")
-			go a.sendMetrics()
+			//go a.sendMetrics()
 			//go a.sendMetricsJSON()
-			//go a.sendMetricsBatch()
+			go a.sendMetricsBatch()
 		case <-ctx.Done():
 			return nil
 		}
