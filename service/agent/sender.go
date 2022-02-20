@@ -8,35 +8,37 @@ import (
 	"log"
 )
 
-func (agent *Agent) sendMetrics() {
-	go agent.sendMemStats()
-	go agent.sendMetric(agent.metrics.randomValue)
-	go agent.sendMetric(agent.metrics.pollCount)
+func (a *Agent) sendMetrics() {
+	//go a.sendMemStats()
+	go a.sendMetricsSlice(a.metrics.memStats)
+	go a.sendMetric(a.metrics.randomValue)
+	go a.sendMetric(a.metrics.pollCount)
 
-	//go agent.sendMetric(agent.metrics.utilization)
+	//go a.sendMetric(a.metrics.utilization)
+	go a.sendMetricsSlice(toModelUtilizationData(a.metrics.utilization))
 }
 
-func (agent *Agent) sendMetricsJSON() {
-	go agent.sendMemStatsJSON()
-	go agent.sendMetricJSON(agent.metrics.randomValue)
-	go agent.sendMetricJSON(agent.metrics.pollCount)
+func (a *Agent) sendMetricsJSON() {
+	go a.sendMemStatsJSON()
+	go a.sendMetricJSON(a.metrics.randomValue)
+	go a.sendMetricJSON(a.metrics.pollCount)
 }
 
-func (agent *Agent) sendMetricsBatch() error {
+func (a *Agent) sendMetricsBatch() error {
 	var metricsArr []models.Metrics
 
-	for _, m := range agent.metrics.memStats {
+	for _, m := range a.metrics.memStats {
 		v, _ := models.NewMetricFromCanonical(m)
-		v.Hash = v.GenerateHash(agent.config.Key)
+		v.Hash = v.GenerateHash(a.config.Key)
 		metricsArr = append(metricsArr, v)
 	}
 
-	randomValue, _ := models.NewMetricFromCanonical(agent.metrics.randomValue)
-	randomValue.Hash = randomValue.GenerateHash(agent.config.Key)
+	randomValue, _ := models.NewMetricFromCanonical(a.metrics.randomValue)
+	randomValue.Hash = randomValue.GenerateHash(a.config.Key)
 	metricsArr = append(metricsArr, randomValue)
 
-	pollCount, _ := models.NewMetricFromCanonical(agent.metrics.pollCount)
-	pollCount.Hash = pollCount.GenerateHash(agent.config.Key)
+	pollCount, _ := models.NewMetricFromCanonical(a.metrics.pollCount)
+	pollCount.Hash = pollCount.GenerateHash(a.config.Key)
 	metricsArr = append(metricsArr, pollCount)
 
 	rawJSON, err := json.Marshal(metricsArr)
@@ -45,9 +47,9 @@ func (agent *Agent) sendMetricsBatch() error {
 	}
 	log.Printf("Sending following body %v in JSON request", string(rawJSON))
 
-	url := fmt.Sprintf("http://%s/updates/", agent.config.Address)
+	url := fmt.Sprintf("http://%s/updates/", a.config.Address)
 
-	_, err = agent.client.R().
+	_, err = a.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(rawJSON).
 		EnableTrace().
@@ -61,15 +63,21 @@ func (agent *Agent) sendMetricsBatch() error {
 	return nil
 }
 
-func (agent *Agent) sendMemStats() {
-	for _, m := range agent.metrics.memStats {
-		go agent.sendMetric(m)
+func (a *Agent) sendMetricsSlice(arr []model.Metric ) {
+	for _, m := range arr {
+		go a.sendMetric(m)
 	}
 }
 
-func (agent *Agent) sendMemStatsJSON() {
-	for _, m := range agent.metrics.memStats {
-		go agent.sendMetricJSON(m)
+func (a *Agent) sendMemStats() {
+	for _, m := range a.metrics.memStats {
+		go a.sendMetric(m)
+	}
+}
+
+func (a *Agent) sendMemStatsJSON() {
+	for _, m := range a.metrics.memStats {
+		go a.sendMetricJSON(m)
 	}
 }
 
@@ -77,18 +85,18 @@ func (agent *Agent) sendMemStatsJSON() {
 //	agent.metrics.utilization
 //}
 
-func (agent *Agent) sendMetric(m model.Metric) error {
+func (a *Agent) sendMetric(m model.Metric) error {
 	var url string
 
 	if m.Delta.Present() {
 		delta := m.MustGetInt()
-		url = fmt.Sprintf("http://%s/update/%s/%s/%d", agent.config.Address, model.KCounter, m.Name, delta)
+		url = fmt.Sprintf("http://%s/update/%s/%s/%d", a.config.Address, model.KCounter, m.Name, delta)
 	} else {
 		value := m.MustGetFloat()
-		url = fmt.Sprintf("http://%s/update/%s/%s/%f", agent.config.Address, model.KCounter, m.Name, value)
+		url = fmt.Sprintf("http://%s/update/%s/%s/%.20f", a.config.Address, model.KGauge, m.Name, value)
 	}
 
-	_, err := agent.client.R().
+	_, err := a.client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(url)
 	if err != nil {
@@ -101,16 +109,16 @@ func (agent *Agent) sendMetric(m model.Metric) error {
 }
 
 
-func (agent *Agent) sendMetricJSON(m model.Metric) error {
-	url := fmt.Sprintf("http://%s/update/", agent.config.Address)
+func (a *Agent) sendMetricJSON(m model.Metric) error {
+	url := fmt.Sprintf("http://%s/update/", a.config.Address)
 
 	metricToSend, err := models.NewMetricFromCanonical(m)
 	if err != nil {
-		log.Printf("Error occured in agent.sendMetricJSON: %v", err)
+		log.Printf("Error occured in a.sendMetricJSON: %v", err)
 		return fmt.Errorf("sendMetricJSON failed: %w", err)
 	}
 
-	metricToSend.Hash = metricToSend.GenerateHash(agent.config.Key)
+	metricToSend.Hash = metricToSend.GenerateHash(a.config.Key)
 
 	rawJSON, err := json.Marshal(metricToSend)
 	if err != nil {
@@ -118,7 +126,7 @@ func (agent *Agent) sendMetricJSON(m model.Metric) error {
 	}
 	log.Printf("Sending following body %v in JSON request", string(rawJSON))
 
-	_, err = agent.client.R().
+	_, err = a.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(rawJSON).
 		EnableTrace().

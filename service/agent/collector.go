@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-func (agent *Agent) collectMetrics() {
-	agent.metrics.memStats = collectMemStats()
-	agent.metrics.randomValue = collectRandomValue()
+func (a *Agent) collectMetrics() {
+	a.metrics.memStats = collectMemStats()
+	a.metrics.randomValue = collectRandomValue()
 
-	pollCount, _ := agent.metrics.pollCount.Delta.Get()
-	agent.metrics.pollCount.Delta.Set(pollCount + 1)
+	pollCount, _ := a.metrics.pollCount.Delta.Get()
+	a.metrics.pollCount.Delta.Set(pollCount + 1)
 
-	agent.metrics.utilization = collectCPUutilizationMetrics()
+	a.metrics.utilization = collectCPUutilizationMetrics()
 }
 
 func collectMemStats() []model.Metric {
