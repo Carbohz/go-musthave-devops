@@ -24,7 +24,7 @@ func (a *Agent) sendSingleMetricWithURL(m model.Metric) error {
 		url = fmt.Sprintf("http://%s/update/%s/%s/%d", a.config.Address, model.KCounter, m.Name, delta)
 	} else {
 		value := m.MustGetFloat()
-		url = fmt.Sprintf("http://%s/update/%s/%s/%.20f", a.config.Address, model.KGauge, m.Name, value)
+		url = fmt.Sprintf("http://%s/update/%s/%s/%.6f", a.config.Address, model.KGauge, m.Name, value)
 	}
 
 	_, err := a.client.R().
