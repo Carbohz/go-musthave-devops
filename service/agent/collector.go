@@ -22,7 +22,7 @@ func (a *Agent) collectMetrics() {
 	pollCount, _ := a.metrics.pollCount.Delta.Get()
 	a.metrics.pollCount.Delta.Set(pollCount + 1)
 
-	a.metrics.utilization = collectCPUutilizationMetrics()
+	a.metrics.utilization = collectCPUUtilizationMetrics()
 }
 
 func collectMemStats() []model.Metric {
@@ -68,8 +68,8 @@ func collectRandomValue() model.Metric {
 	return model.Metric{Name: "RandomValue", Type: model.KGauge, Value: randomValue}
 }
 
-func collectCPUutilizationMetrics() *utilizationData {
-	cpuStat, err := cpu.Times(true)
+func collectCPUUtilizationMetrics() *utilizationData {
+	m, err := mem.VirtualMemory()
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -77,46 +77,21 @@ func collectCPUutilizationMetrics() *utilizationData {
 
 	var utilization utilizationData
 
-	numCPU := len(cpuStat)
-	//utilization.CPUtime = make([]float64, numCPU)
-	utilization.CPUutilizations = make([]model.Metric, numCPU)
-
-	m, err := mem.VirtualMemory()
-	if err != nil {
-		log.Println(err)
-	}
-
-	//var utilization utilizationData
-
 	utilization.mu.Lock()
-	//timeNow := time.Now()
-	//timeDiff := timeNow.Sub(utilization.CPUutilLastTime)
+	defer utilization.mu.Unlock()
 
-	//utilization.CPUutilLastTime = timeNow
 	utilization.TotalMemory = model.NewGaugeMetric("TotalMemory", float64(m.Total))
 	utilization.FreeMemory = model.NewGaugeMetric("FreeMemory", float64(m.Free))
 
 	percentage, err := cpu.Percent(0,true)
 	if err != nil {
 		log.Printf("collect CPU utilization failed: %v", err)
+		return nil
 	}
 
 	for i, percent := range percentage {
-		utilization.CPUutilizations[i] = model.NewGaugeMetric("CPUutilization" + strconv.Itoa(i+1), percent)
+		utilization.CPUutilizations = append(utilization.CPUutilizations, model.NewGaugeMetric("CPUutilization" + strconv.Itoa(i+1), percent))
 	}
-
-
-	//cpus, err := cpu.Times(true)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//for i := range cpus {
-	//	newCPUTime := cpus[i].User + cpus[i].System
-	//	cpuUtilization := (newCPUTime - utilization.CPUtime[i]) * 1000 / float64(timeDiff.Milliseconds())
-	//	utilization.CPUutilizations[i] = model.NewGaugeMetric("CPUutilization" + strconv.Itoa(i+1), cpuUtilization)
-	//	utilization.CPUtime[i] = newCPUTime
-	//}
-	utilization.mu.Unlock()
 
 	return &utilization
 }

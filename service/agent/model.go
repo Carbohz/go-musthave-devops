@@ -10,8 +10,6 @@ type utilizationData struct {
 	TotalMemory     model.Metric
 	FreeMemory      model.Metric
 	CPUutilizations []model.Metric
-	//CPUtime         []float64
-	//CPUutilLastTime time.Time
 }
 
 type metrics struct {
@@ -29,11 +27,6 @@ func toModelUtilizationData(utilData *utilizationData) []model.Metric {
 		utilData.FreeMemory,
 	)
 	modelData = append(modelData, utilData.CPUutilizations...)
-
-	//for i, t := range utilData.CPUtime {
-	//	cpuTime := model.NewGaugeMetric("CPUtime" + strconv.Itoa(i+1), t)
-	//	modelData = append(modelData, cpuTime)
-	//}
 
 	return modelData
 }

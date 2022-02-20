@@ -5,7 +5,6 @@ import (
 	configagent "github.com/Carbohz/go-musthave-devops/config/agent"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
-	"log"
 	"sync"
 	"time"
 
@@ -47,14 +46,11 @@ func (a *Agent) Run(ctx context.Context) error {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				log.Println("Collecting Metrics")
 				a.collectMetrics()
-				log.Println("Metrics collected")
 			}()
 		case <-reportTicker.C:
 			wg.Wait()
 			go func() {
-				log.Println("Sending Metrics")
 				a.sendMetricsBatch()
 			}()
 		case <-ctx.Done():
