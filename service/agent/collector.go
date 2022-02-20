@@ -13,6 +13,9 @@ import (
 )
 
 func (a *Agent) collectMetrics() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
 	a.metrics.memStats = collectMemStats()
 	a.metrics.randomValue = collectRandomValue()
 

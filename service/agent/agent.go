@@ -6,12 +6,14 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
 )
 
 type Agent struct {
+	mu sync.RWMutex
 	config configagent.AgentConfig
 	metrics metrics
 	client *resty.Client
@@ -41,7 +43,7 @@ func (a *Agent) Run(ctx context.Context) error {
 		select {
 		case <-pollTicker.C:
 			log.Println("Collecting Metrics")
-			a.collectMetrics()
+			go a.collectMetrics()
 		case <-reportTicker.C:
 			log.Println("Sending Metrics")
 			//go a.sendMetrics()

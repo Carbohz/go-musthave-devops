@@ -9,6 +9,9 @@ import (
 )
 
 func (a *Agent) sendMetrics() {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
 	//go a.sendMemStats()
 	go a.sendMetricsSlice(a.metrics.memStats)
 
@@ -20,6 +23,9 @@ func (a *Agent) sendMetrics() {
 }
 
 func (a *Agent) sendMetricsJSON() {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
 	//go a.sendMemStatsJSON()
 	go a.sendMetricsSliceJSON(a.metrics.memStats)
 
@@ -30,6 +36,9 @@ func (a *Agent) sendMetricsJSON() {
 }
 
 func (a *Agent) sendMetricsBatch() error {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
 	var metricsArr []models.Metrics
 
 	for _, m := range a.metrics.memStats {
