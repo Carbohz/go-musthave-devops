@@ -78,7 +78,7 @@ func collectCPUutilizationMetrics() *utilizationData {
 	var utilization utilizationData
 
 	numCPU := len(cpuStat)
-	utilization.CPUtime = make([]float64, numCPU)
+	//utilization.CPUtime = make([]float64, numCPU)
 	utilization.CPUutilizations = make([]model.Metric, numCPU)
 
 	m, err := mem.VirtualMemory()
@@ -89,23 +89,33 @@ func collectCPUutilizationMetrics() *utilizationData {
 	//var utilization utilizationData
 
 	utilization.mu.Lock()
-	timeNow := time.Now()
-	timeDiff := timeNow.Sub(utilization.CPUutilLastTime)
+	//timeNow := time.Now()
+	//timeDiff := timeNow.Sub(utilization.CPUutilLastTime)
 
-	utilization.CPUutilLastTime = timeNow
+	//utilization.CPUutilLastTime = timeNow
 	utilization.TotalMemory = model.NewGaugeMetric("TotalMemory", float64(m.Total))
 	utilization.FreeMemory = model.NewGaugeMetric("FreeMemory", float64(m.Free))
 
-	cpus, err := cpu.Times(true)
+	percentage, err := cpu.Percent(0,true)
 	if err != nil {
-		log.Println(err)
+		log.Printf("collect CPU utilization failed: %v", err)
 	}
-	for i := range cpus {
-		newCPUTime := cpus[i].User + cpus[i].System
-		cpuUtilization := (newCPUTime - utilization.CPUtime[i]) * 1000 / float64(timeDiff.Milliseconds())
-		utilization.CPUutilizations[i] = model.NewGaugeMetric("CPUutilization" + strconv.Itoa(i+1), cpuUtilization)
-		utilization.CPUtime[i] = newCPUTime
+
+	for i, percent := range percentage {
+		utilization.CPUutilizations[i] = model.NewGaugeMetric("CPUutilization" + strconv.Itoa(i+1), percent)
 	}
+
+
+	//cpus, err := cpu.Times(true)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	//for i := range cpus {
+	//	newCPUTime := cpus[i].User + cpus[i].System
+	//	cpuUtilization := (newCPUTime - utilization.CPUtime[i]) * 1000 / float64(timeDiff.Milliseconds())
+	//	utilization.CPUutilizations[i] = model.NewGaugeMetric("CPUutilization" + strconv.Itoa(i+1), cpuUtilization)
+	//	utilization.CPUtime[i] = newCPUTime
+	//}
 	utilization.mu.Unlock()
 
 	return &utilization

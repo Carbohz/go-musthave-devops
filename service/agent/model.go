@@ -3,7 +3,6 @@ package agent
 import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"sync"
-	"time"
 )
 
 type utilizationData struct {
@@ -11,8 +10,8 @@ type utilizationData struct {
 	TotalMemory     model.Metric
 	FreeMemory      model.Metric
 	CPUutilizations []model.Metric
-	CPUtime         []float64
-	CPUutilLastTime time.Time
+	//CPUtime         []float64
+	//CPUutilLastTime time.Time
 }
 
 type metrics struct {
