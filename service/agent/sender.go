@@ -12,6 +12,8 @@ func (agent *Agent) sendMetrics() {
 	go agent.sendMemStats()
 	go agent.sendMetric(agent.metrics.randomValue)
 	go agent.sendMetric(agent.metrics.pollCount)
+
+	//go agent.sendMetric(agent.metrics.utilization)
 }
 
 func (agent *Agent) sendMetricsJSON() {
@@ -70,6 +72,10 @@ func (agent *Agent) sendMemStatsJSON() {
 		go agent.sendMetricJSON(m)
 	}
 }
+
+//func (agent *Agent) sendCPUutilization() {
+//	agent.metrics.utilization
+//}
 
 func (agent *Agent) sendMetric(m model.Metric) error {
 	var url string

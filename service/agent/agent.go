@@ -6,15 +6,26 @@ import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
 )
 
+type utilizationData struct {
+	mu              sync.Mutex
+	TotalMemory     model.Metric
+	FreeMemory      model.Metric
+	CPUutilizations []model.Metric
+	CPUtime         []float64
+	CPUutilLastTime time.Time
+}
+
 type metrics struct {
 	memStats    []model.Metric
 	randomValue model.Metric
 	pollCount   model.Metric
+	utilization utilizationData
 }
 
 type Agent struct {
