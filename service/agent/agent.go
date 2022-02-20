@@ -51,7 +51,7 @@ func (a *Agent) Run(ctx context.Context) error {
 		case <-reportTicker.C:
 			wg.Wait()
 			go func() {
-				a.sendMetricsBatch()
+				a.sendMetricsBatchWithJSON()
 			}()
 		case <-ctx.Done():
 			return nil

@@ -9,7 +9,7 @@ type utilizationData struct {
 	mu              sync.Mutex
 	TotalMemory     model.Metric
 	FreeMemory      model.Metric
-	CPUutilizations []model.Metric
+	CPUUtilizations []model.Metric
 }
 
 type metrics struct {
@@ -26,7 +26,7 @@ func toModelUtilizationData(utilData *utilizationData) []model.Metric {
 		utilData.TotalMemory,
 		utilData.FreeMemory,
 	)
-	modelData = append(modelData, utilData.CPUutilizations...)
+	modelData = append(modelData, utilData.CPUUtilizations...)
 
 	return modelData
 }

@@ -8,34 +8,17 @@ import (
 	"log"
 )
 
-func (a *Agent) sendMetrics() {
+func (a *Agent) sendMetricsWithJSON() {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	//go a.sendMemStats()
-	go a.sendMetricsSlice(a.metrics.memStats)
-
-	go a.sendMetric(a.metrics.randomValue)
-	go a.sendMetric(a.metrics.pollCount)
-
-	//go a.sendMetric(a.metrics.utilization)
-	go a.sendMetricsSlice(toModelUtilizationData(a.metrics.utilization))
+	go a.sendMetricsSliceWithJSON(a.metrics.memStats)
+	go a.sendSingleMetricWithJSON(a.metrics.randomValue)
+	go a.sendSingleMetricWithJSON(a.metrics.pollCount)
+	go a.sendMetricsSliceWithJSON(toModelUtilizationData(a.metrics.utilization))
 }
 
-func (a *Agent) sendMetricsJSON() {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-
-	//go a.sendMemStatsJSON()
-	go a.sendMetricsSliceJSON(a.metrics.memStats)
-
-	go a.sendMetricJSON(a.metrics.randomValue)
-	go a.sendMetricJSON(a.metrics.pollCount)
-
-	go a.sendMetricsSliceJSON(toModelUtilizationData(a.metrics.utilization))
-}
-
-func (a *Agent) sendMetricsBatch() error {
+func (a *Agent) sendMetricsBatchWithJSON() error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
@@ -84,66 +67,13 @@ func (a *Agent) sendMetricsBatch() error {
 	return nil
 }
 
-func (a *Agent) sendMetricsSlice(slice []model.Metric ) {
-	for _, m := range slice {
-		go a.sendMetric(m)
-	}
-}
-
-func (a *Agent) sendMemStats() {
-	for _, m := range a.metrics.memStats {
-		go a.sendMetric(m)
-	}
-}
-
-func (a *Agent) sendMemStatsJSON() {
-	for _, m := range a.metrics.memStats {
-		go a.sendMetricJSON(m)
-	}
-}
-
-func (a *Agent) sendMetricsSliceJSON(slice []model.Metric) {
-	for _, m := range slice {
-		go a.sendMetricJSON(m)
-	}
-
-}
-
-//func (agent *Agent) sendCPUutilization() {
-//	agent.metrics.utilization
-//}
-
-func (a *Agent) sendMetric(m model.Metric) error {
-	var url string
-
-	if m.Delta.Present() {
-		delta := m.MustGetInt()
-		url = fmt.Sprintf("http://%s/update/%s/%s/%d", a.config.Address, model.KCounter, m.Name, delta)
-	} else {
-		value := m.MustGetFloat()
-		url = fmt.Sprintf("http://%s/update/%s/%s/%.20f", a.config.Address, model.KGauge, m.Name, value)
-	}
-
-	_, err := a.client.R().
-		SetHeader("Content-Type", "text/plain").
-		Post(url)
-	if err != nil {
-		log.Printf("Failed to \"Post\" request to update metric \"%s\" of type \"%s\"", m.Name, m.Type)
-		log.Printf("Error: %v", err)
-		return err
-	}
-
-	return err
-}
-
-
-func (a *Agent) sendMetricJSON(m model.Metric) error {
+func (a *Agent) sendSingleMetricWithJSON(m model.Metric) error {
 	url := fmt.Sprintf("http://%s/update/", a.config.Address)
 
 	metricToSend, err := models.NewMetricFromCanonical(m)
 	if err != nil {
-		log.Printf("Error occured in a.sendMetricJSON: %v", err)
-		return fmt.Errorf("sendMetricJSON failed: %w", err)
+		log.Printf("Error occured in a.sendSingleMetricWithJSON: %v", err)
+		return fmt.Errorf("sendSingleMetricWithJSON failed: %w", err)
 	}
 
 	metricToSend.Hash = metricToSend.GenerateHash(a.config.Key)
@@ -166,4 +96,11 @@ func (a *Agent) sendMetricJSON(m model.Metric) error {
 	}
 
 	return err
+}
+
+func (a *Agent) sendMetricsSliceWithJSON(slice []model.Metric) {
+	for _, m := range slice {
+		go a.sendSingleMetricWithJSON(m)
+	}
+
 }

@@ -90,7 +90,7 @@ func collectCPUUtilizationMetrics() *utilizationData {
 	}
 
 	for i, percent := range percentage {
-		utilization.CPUutilizations = append(utilization.CPUutilizations, model.NewGaugeMetric("CPUutilization" + strconv.Itoa(i+1), percent))
+		utilization.CPUUtilizations = append(utilization.CPUUtilizations, model.NewGaugeMetric("CPUUtilization" + strconv.Itoa(i+1), percent))
 	}
 
 	return &utilization
