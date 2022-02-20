@@ -39,16 +39,26 @@ func (a *Agent) Run(ctx context.Context) error {
 	pollTicker := time.NewTicker(a.config.PollInterval)
 	reportTicker := time.NewTicker(a.config.ReportInterval)
 
+	wg := sync.WaitGroup{}
+
 	for {
 		select {
 		case <-pollTicker.C:
-			log.Println("Collecting Metrics")
-			go a.collectMetrics()
+			wg.Add(1)
+			go func() {
+				log.Println("Collecting Metrics")
+				a.collectMetrics()
+				wg.Done()
+				log.Println("Metrics collected")
+			}()
 		case <-reportTicker.C:
-			log.Println("Sending Metrics")
-			//go a.sendMetrics()
-			//go a.sendMetricsJSON()
-			go a.sendMetricsBatch()
+			go func() {
+				//go a.sendMetrics()
+				//go a.sendMetricsJSON()
+				wg.Wait()
+				log.Println("Sending Metrics")
+				a.sendMetricsBatch()
+			}()
 		case <-ctx.Done():
 			return nil
 		}
