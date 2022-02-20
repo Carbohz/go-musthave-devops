@@ -1,44 +1,34 @@
 package main
 
 import (
-	"github.com/Carbohz/go-musthave-devops/internal/metrics"
-	"github.com/Carbohz/go-musthave-devops/internal/sender"
-	"net/http"
-	"time"
-)
-
-const (
-	pollInterval = 2 * time.Second
-	reportInterval = 10 * time.Second
+	"context"
+	configagent "github.com/Carbohz/go-musthave-devops/config/agent"
+	"github.com/Carbohz/go-musthave-devops/service/agent"
+	"log"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	RunAgent()
-}
+	ctx, ctxCancel  := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
+	defer ctxCancel()
 
-func RunAgent() {
-	var runtimeMetrics []metrics.GaugeMetric
-	var randomValueMetric metrics.GaugeMetric
-	var pollCountMetric metrics.CounterMetric
+	config, err := configagent.NewAgentConfig()
+	if err != nil {
+		log.Fatalf("Failed to create agent config: %v", err)
+	}
 
-	client := http.Client{Timeout: 2 * time.Second}
+	agent, err := agent.NewAgent(config)
+	if err != nil {
+		log.Fatalf("Failed to create an agent: %v", err)
+	}
 
-	pollTicker := time.NewTicker(pollInterval)
-	reportTicker := time.NewTicker(reportInterval)
-	for {
-		select {
-			case <-pollTicker.C:
-				metrics.IncrementPollCountMetric()
-				runtimeMetrics = metrics.GetRuntimeMetrics()
-				randomValueMetric = metrics.GetRandomValueMetric()
-				pollCountMetric = metrics.GetPollCountMetric()
-			case <-reportTicker.C:
-				for _, m := range runtimeMetrics {
-					sender.SendGaugeMetric(&client, m)
-				}
-				sender.SendGaugeMetric(&client, randomValueMetric)
-				sender.SendCounterMetric(&client, pollCountMetric)
-				metrics.ResetPollCountMetric()
-		}
+	if err := agent.Run(ctx); err != nil {
+		log.Fatalf("Failed to run an agent: %v", err)
 	}
 }

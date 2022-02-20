@@ -1,48 +1,45 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"github.com/Carbohz/go-musthave-devops/api/rest"
+	configsrv "github.com/Carbohz/go-musthave-devops/config/server"
+	v1 "github.com/Carbohz/go-musthave-devops/service/server/v1"
+	"github.com/Carbohz/go-musthave-devops/storage/hybrid"
 	"log"
-	"net/http"
-	"os"
-	"text/template"
-
-	"github.com/Carbohz/go-musthave-devops/internal/handler"
-	"github.com/go-chi/chi"
-)
-
-const (
-	host     = "127.0.0.1"
-	port     = "8080"
-	htmlFile = "index.html"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	PrepareHTMLPage()
-	RunServer()
-}
+	ctx, ctxCancel := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
+	defer ctxCancel()
 
-func PrepareHTMLPage() {
-	page := "cmd/server/" + htmlFile
-	bytes, err := os.ReadFile(page)
+	config, err := configsrv.NewCommonConfig()
 	if err != nil {
-		log.Fatal("Error occurred while reading HTML file: ", err)
+		log.Fatalf("Failed to create common config: %v", err)
 	}
-	handler.HTMLTemplate, err = template.New("").Parse(string(bytes))
-	if err != nil {
-		log.Fatal("Error occurred while parsing HTML file: ", err)
-	}
-}
 
-func RunServer() {
-	r := chi.NewRouter()
-	handler.SetupRouters(r)
-	addr := fmt.Sprintf("%s:%s", host, port)
-	server := &http.Server{
-		Addr:    addr,
-		Handler: r,
+	hybridStorageConfig := configsrv.NewHybridStorageConfig(config)
+	storage, err := hybrid.NewMetricsStorage(hybridStorageConfig)
+	if err != nil {
+		log.Fatalf("Failed to create hybrid config: %v", err)
 	}
-	server.SetKeepAlivesEnabled(false)
-	log.Printf("Listening on port %s", port)
-	log.Fatal(server.ListenAndServe())
+
+	service := v1.NewService(storage)
+
+	serverConfig := configsrv.NewServerConfig(config)
+	apiServer, err := rest.NewAPIServer(serverConfig, service)
+	if err != nil {
+		log.Fatalf("Failed to create a server: %v", err)
+	}
+	defer apiServer.Close(ctx)
+
+	go apiServer.Run(ctx)
+	<-ctx.Done()
 }
