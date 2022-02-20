@@ -46,16 +46,14 @@ func (a *Agent) Run(ctx context.Context) error {
 		case <-pollTicker.C:
 			wg.Add(1)
 			go func() {
+				defer wg.Done()
 				log.Println("Collecting Metrics")
 				a.collectMetrics()
-				wg.Done()
 				log.Println("Metrics collected")
 			}()
 		case <-reportTicker.C:
+			wg.Wait()
 			go func() {
-				//go a.sendMetrics()
-				//go a.sendMetricsJSON()
-				wg.Wait()
 				log.Println("Sending Metrics")
 				a.sendMetricsBatch()
 			}()
