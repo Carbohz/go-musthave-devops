@@ -65,11 +65,11 @@ func collectRandomValue() model.Metric {
 	return model.Metric{Name: "RandomValue", Type: model.KGauge, Value: randomValue}
 }
 
-func collectCPUutilizationMetrics() utilizationData {
+func collectCPUutilizationMetrics() *utilizationData {
 	cpuStat, err := cpu.Times(true)
 	if err != nil {
 		log.Println(err)
-		return utilizationData{}
+		return nil
 	}
 
 	var utilization utilizationData
@@ -105,5 +105,5 @@ func collectCPUutilizationMetrics() utilizationData {
 	}
 	utilization.mu.Unlock()
 
-	return utilization
+	return &utilization
 }
