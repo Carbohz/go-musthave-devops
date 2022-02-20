@@ -29,11 +29,7 @@ func toModelUtilizationData(utilData *utilizationData) []model.Metric {
 		utilData.TotalMemory,
 		utilData.FreeMemory,
 	)
-
-	for _, d := range utilData.CPUutilizations {
-		modelData = append(modelData, d)
-	}
-
+	modelData = append(modelData, utilData.CPUutilizations...)
 
 	//for i, t := range utilData.CPUtime {
 	//	cpuTime := model.NewGaugeMetric("CPUtime" + strconv.Itoa(i+1), t)
