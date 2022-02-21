@@ -19,7 +19,7 @@ type metrics struct {
 	utilization *utilizationData
 }
 
-func (d utilizationData) toCanonical() []model.Metric {
+func (d *utilizationData) toCanonical() []model.Metric {
 	var modelData []model.Metric
 
 	modelData = append(modelData,
