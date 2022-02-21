@@ -19,14 +19,14 @@ type metrics struct {
 	utilization *utilizationData
 }
 
-func toModelUtilizationData(utilData *utilizationData) []model.Metric {
+func (d utilizationData) toCanonical() []model.Metric {
 	var modelData []model.Metric
 
 	modelData = append(modelData,
-		utilData.TotalMemory,
-		utilData.FreeMemory,
+		d.TotalMemory,
+		d.FreeMemory,
 	)
-	modelData = append(modelData, utilData.CPUUtilizations...)
+	modelData = append(modelData, d.CPUUtilizations...)
 
 	return modelData
 }

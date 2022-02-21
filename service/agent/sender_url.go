@@ -13,7 +13,7 @@ func (a *Agent) sendMetricsWithURL() {
 	go a.sendMetricsSliceWithURL(a.metrics.memStats)
 	go a.sendSingleMetricWithURL(a.metrics.randomValue)
 	go a.sendSingleMetricWithURL(a.metrics.pollCount)
-	go a.sendMetricsSliceWithURL(toModelUtilizationData(a.metrics.utilization))
+	go a.sendMetricsSliceWithURL(a.metrics.utilization.toCanonical())
 }
 
 func (a *Agent) sendSingleMetricWithURL(m model.Metric) error {
