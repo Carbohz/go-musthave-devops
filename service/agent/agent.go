@@ -5,19 +5,14 @@ import (
 	configagent "github.com/Carbohz/go-musthave-devops/config/agent"
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
-	"log"
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
 )
 
-type metrics struct {
-	memStats    []model.Metric
-	randomValue model.Metric
-	pollCount   model.Metric
-}
-
 type Agent struct {
+	mu sync.RWMutex
 	config configagent.AgentConfig
 	metrics metrics
 	client *resty.Client
@@ -39,19 +34,25 @@ func NewAgent(config configagent.AgentConfig) (*Agent, error) {
 	return agent, nil
 }
 
-func (agent *Agent) Run(ctx context.Context) error {
-	pollTicker := time.NewTicker(agent.config.PollInterval)
-	reportTicker := time.NewTicker(agent.config.ReportInterval)
+func (a *Agent) Run(ctx context.Context) error {
+	pollTicker := time.NewTicker(a.config.PollInterval)
+	reportTicker := time.NewTicker(a.config.ReportInterval)
+
+	wg := sync.WaitGroup{}
 
 	for {
 		select {
 		case <-pollTicker.C:
-			log.Println("Collecting Metrics")
-			agent.collectMetrics()
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				a.collectMetrics()
+			}()
 		case <-reportTicker.C:
-			log.Println("Sending Metrics")
-			go agent.sendMetricsJSON()
-			go agent.sendMetricsBatch()
+			wg.Wait()
+			go func() {
+				a.sendMetricsBatchWithJSON()
+			}()
 		case <-ctx.Done():
 			return nil
 		}

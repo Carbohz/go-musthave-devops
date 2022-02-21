@@ -3,17 +3,26 @@ package agent
 import (
 	"github.com/Carbohz/go-musthave-devops/model"
 	"github.com/markphelps/optional"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
+	"log"
 	"math/rand"
 	"runtime"
+	"strconv"
 	"time"
 )
 
-func (agent *Agent) collectMetrics() {
-	agent.metrics.memStats = collectMemStats()
-	agent.metrics.randomValue = collectRandomValue()
+func (a *Agent) collectMetrics() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 
-	pollCount, _ := agent.metrics.pollCount.Delta.Get()
-	agent.metrics.pollCount.Delta.Set(pollCount + 1)
+	a.metrics.memStats = collectMemStats()
+	a.metrics.randomValue = collectRandomValue()
+
+	pollCount, _ := a.metrics.pollCount.Delta.Get()
+	a.metrics.pollCount.Delta.Set(pollCount + 1)
+
+	a.metrics.utilization = collectCPUUtilizationMetrics()
 }
 
 func collectMemStats() []model.Metric {
@@ -59,3 +68,30 @@ func collectRandomValue() model.Metric {
 	return model.Metric{Name: "RandomValue", Type: model.KGauge, Value: randomValue}
 }
 
+func collectCPUUtilizationMetrics() *utilizationData {
+	m, err := mem.VirtualMemory()
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	var utilization utilizationData
+
+	utilization.mu.Lock()
+	defer utilization.mu.Unlock()
+
+	utilization.TotalMemory = model.NewGaugeMetric("TotalMemory", float64(m.Total))
+	utilization.FreeMemory = model.NewGaugeMetric("FreeMemory", float64(m.Free))
+
+	percentage, err := cpu.Percent(0,true)
+	if err != nil {
+		log.Printf("collect CPU utilization failed: %v", err)
+		return nil
+	}
+
+	for i, percent := range percentage {
+		utilization.CPUUtilizations = append(utilization.CPUUtilizations, model.NewGaugeMetric("CPUUtilization" + strconv.Itoa(i+1), percent))
+	}
+
+	return &utilization
+}
