@@ -36,7 +36,9 @@ func NewAgent(config configagent.AgentConfig) (*Agent, error) {
 
 func (a *Agent) Run(ctx context.Context) error {
 	pollTicker := time.NewTicker(a.config.PollInterval)
+	defer pollTicker.Stop()
 	reportTicker := time.NewTicker(a.config.ReportInterval)
+	defer reportTicker.Stop()
 
 	wg := sync.WaitGroup{}
 

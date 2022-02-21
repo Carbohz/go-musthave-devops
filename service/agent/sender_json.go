@@ -15,7 +15,7 @@ func (a *Agent) sendMetricsWithJSON() {
 	go a.sendMetricsSliceWithJSON(a.metrics.memStats)
 	go a.sendSingleMetricWithJSON(a.metrics.randomValue)
 	go a.sendSingleMetricWithJSON(a.metrics.pollCount)
-	go a.sendMetricsSliceWithJSON(toModelUtilizationData(a.metrics.utilization))
+	go a.sendMetricsSliceWithJSON(a.metrics.utilization.toCanonical())
 }
 
 func (a *Agent) sendMetricsBatchWithJSON() error {
@@ -38,24 +38,24 @@ func (a *Agent) sendMetricsBatchWithJSON() error {
 	pollCount.Hash = pollCount.GenerateHash(a.config.Key)
 	metricsArr = append(metricsArr, pollCount)
 
-	utilMetricsArr := toModelUtilizationData(a.metrics.utilization)
+	utilMetricsArr := a.metrics.utilization.toCanonical()
 	for _, m := range utilMetricsArr {
 		v, _ := models.NewMetricFromCanonical(m)
 		v.Hash = v.GenerateHash(a.config.Key)
 		metricsArr = append(metricsArr, v)
 	}
 
-	rawJSON, err := json.Marshal(metricsArr)
+	metricsArrRaw, err := json.Marshal(metricsArr)
 	if err != nil {
 		log.Printf("Error occured during metrics marshalling: %v", err)
 	}
-	log.Printf("Sending following body %v in JSON request", string(rawJSON))
+	log.Printf("Sending following body %v in JSON request", string(metricsArrRaw))
 
 	url := fmt.Sprintf("http://%s/updates/", a.config.Address)
 
 	_, err = a.client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(rawJSON).
+		SetBody(metricsArrRaw).
 		EnableTrace().
 		Post(url)
 	if err != nil {
@@ -78,15 +78,15 @@ func (a *Agent) sendSingleMetricWithJSON(m model.Metric) error {
 
 	metricToSend.Hash = metricToSend.GenerateHash(a.config.Key)
 
-	rawJSON, err := json.Marshal(metricToSend)
+	metricToSendRaw, err := json.Marshal(metricToSend)
 	if err != nil {
 		log.Printf("Error occured during metrics marshalling: %v", err)
 	}
-	log.Printf("Sending following body %v in JSON request", string(rawJSON))
+	log.Printf("Sending following body %v in JSON request", string(metricToSendRaw))
 
 	_, err = a.client.R().
 		SetHeader("Content-Type", "application/json").
-		SetBody(rawJSON).
+		SetBody(metricToSendRaw).
 		EnableTrace().
 		Post(url)
 	if err != nil {
